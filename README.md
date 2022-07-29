@@ -76,10 +76,10 @@ These are to be performed on game servers only.
 
 ### Prerequisites
 1. **Clone** this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
-	- By cloning the repo and keeping it up to date you can receive the latest changes.
+	- ``git clone https://github.com/frankthetank001/honfigurator``
 3. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
 4. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
-5. Install Python from ``honfigurator\dependencies\``
+5. Install Python from ``honfigurator-main\dependencies\``
 6. Run the Installer for **Python** ``as Administrator``
  	- Use the following options:
 		- ``custom installation``
@@ -87,7 +87,7 @@ These are to be performed on game servers only.
 		- ``Add python to PATH``
 		- ``disable PATH length constraints``
 7. open **Powershell** ``as Administrator``
-	- ```pip install -r honfigurator\dependencies\requirements.txt```
+	- ```pip install -r honfigurator-main\dependencies\requirements.txt```
 8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
 9. Execute **HoNfigurator.py** ``as Administrator``
 10. Fill in the basic information requirements (defaults will be remembered):
