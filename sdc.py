@@ -6,7 +6,6 @@
 # if all players disconnect from the game without conceding, winning, remaking etc, then there will be a 3 minute delay until the bot restarts itself.
 
 import asyncio
-from config.honfig import honfig
 from asyncio.windows_events import NULL
 import discord
 from discord.ext import commands
@@ -100,6 +99,7 @@ svr_id_total = config_dataDict['svrid_total']
 svr_ip = config_dataDict['svr_ip']
 svr_dns = config_dataDict['svr_dns']
 svr_identifier = config_dataDict['svr_identifier']
+print("Server Identifier: " + svr_identifier)
 svr_total = config_dataDict['svr_total']
 bot_token = config_dataDict['token']
 pythonLoc = config_dataDict['python_location']
@@ -666,6 +666,9 @@ class hsl(commands.Bot):
         global game_started
         global embed_updated
 
+        priority_normal = False
+        priority_realtime = False
+
         #   This loop is the heart beat
         while True:
             #   Heart beat speed
@@ -715,6 +718,11 @@ class hsl(commands.Bot):
                     stripColor = discord.Color.teal()
                     pushEmbed = await hsl.manageEmbed(hsl)
                     await mainEmbed.edit(embed = pushEmbed)
+                    if priority_realtime == True or priority_normal == False:
+                        honPID.nice(psutil.NORMAL_PRIORITY_CLASS)
+                        print("priority set to normal")
+                        priority_normal = True
+                        priority_realtime = False
                 elif playerCount == 0 and firstrunthrough == False or (playerCount == 1 and  map != "empty" and map not in available_maps):
                     if playerCount == 1:
                         #
@@ -754,6 +762,13 @@ class hsl(commands.Bot):
                     stripColor = discord.Color.purple()
                     pushEmbed = await hsl.manageEmbed(hsl)
                     await mainEmbed.edit(embed = pushEmbed)
+                #
+                #
+                elif priority_realtime == False and playerCount >= 1 and lobby_created == True:
+                    honPID.nice(psutil.REALTIME_PRIORITY_CLASS)
+                    print("priority set to realtime")
+                    priority_realtime = True
+                    priority_normal = False
                 #
                 #   On playercount reaching one and more, and lobby being created, let's advise the players that they are now able to join.
                 elif playerCount >= 1 and just_collected is False and lobby_created == True and game_started == False:
@@ -916,7 +931,7 @@ class honCMD():
         honP = honEXE.pid
         honPID = psutil.Process(pid=honEXE.pid)
         #   Set server priority to REALTIME for least lag
-        honPID.nice(psutil.REALTIME_PRIORITY_CLASS)
+        #   honPID.nice(psutil.REALTIME_PRIORITY_CLASS)
         #   Set the CPU affinity to use only a single core
         honPID.cpu_affinity([affinity])
         #

@@ -7,11 +7,10 @@ import configparser
 import psutil
 import os
 import subprocess as sp
+from asyncio.windows_events import NULL
 import time
-from config.honfig import honfig
 from os.path import exists
 import shutil
-import sys
 from tkinter import PhotoImage
 import ctypes
 from tkinter import END
@@ -37,6 +36,7 @@ class initialise():
 
         self.nssm = self.dataDict['nssm_exe']
         self.hon_directory = self.dataDict['hon_directory']
+        self.hon_game_dir = self.dataDict['hon_game_dir']
         self.sdc_home_dir = self.dataDict['sdc_home_dir']
         self.hon_logs_dir = self.dataDict['hon_logs_dir']
         self.bot_version = self.dataDict['bot_version']
@@ -122,7 +122,7 @@ class initialise():
         f.close()
         return options
 
-    def create_config(self,filename,filenameLocal,serverID,serverHoster,location,svr_total,svr_ip):
+    def create_config(self,filename,serverID,serverHoster,location,svr_total,svr_ip):
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
         print("customising startup.cfg with the following values")
@@ -131,102 +131,25 @@ class initialise():
         print("svr_location: " + str(location))
         print("svr_total: " + str(svr_total))
         print("svr_ip: " + str(svr_ip))
-        confData = honfig()
-        #
-        #   Configure networking
-        #if self.svr_id < 10:
-        temp = confData.getconf142()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf142(2,temp)
-        temp = confData.getconf143()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf143(2,temp)
-        temp = confData.getconf145()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf145(2,temp)
-        temp = confData.getconf153()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf153(2,temp)
-        temp = confData.getconf156()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf156(2,temp)
-        temp = confData.getconf158()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf158(2,temp)
-        temp = confData.getconf159()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf159(2,temp)
-        temp = confData.getconf237()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf237(2,temp)
-        temp = confData.getconf238()
-        temp = int(temp[2])
-        temp = temp + iter
-        print("svr_port: " + str(temp))
-        #svr_port = temp
-        temp = str(temp)
-        confData.setconf238(2,temp)
-        temp = confData.getconf239()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf239(2,temp)
-        temp = confData.getconf240()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf240(2,temp)
-        temp = confData.getconf251()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf251(2,temp)
-        temp = confData.getconf252()
-        temp = int(temp[2])
-        temp = temp + iter
-        temp = str(temp)
-        confData.setconf252(2,temp)
+        startup = dmgr.mData.parse_config(self,os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.ini")
+        networking = ["svr_port","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart"]
+        for i in networking:
+            temp_port = startup[i]
+            temp_port = temp_port.strip('"')
+            temp_port = int(temp_port)
+            temp_port = temp_port + iter
+            startup.update({i:temp_port})
+        startup.update({"man_enableProxy":"true"})
+        startup.update({"svr_name":serverHoster + " " + str(svr_identifier)})
+        startup.update({"svr_location":location})
+        startup.update({"svr_ip":svr_ip})
+        startup.update({"svr_login":self.master_user})
+        startup.update({"svr_password":self.master_pass})
+        print (temp_port)
+        dmgr.mData.setData(NULL,filename,startup)
 
 
-        #
-        #   masterserver login
-        confData.setconf149(2,self.master_user)
-        #   ?
-        confData.setconf150(2,self.master_pass)
-        #   server ip
-        confData.setconf223(2,svr_ip)
-        #   server name
-        confData.setconf235(2,serverHoster + " " + str(svr_identifier))
-        #   server login
-        confData.setconf226(2,self.master_user)
-        #   ?
-        confData.setconf236(2,self.master_pass)
-        #   server location
-        confData.setconf225(2,location)
-        #   version - might need to set this in the future
-        # confData.setconf359(2,)
-        #
-        #   deploy setartup.cfg
-        confData.createFile(filename)
-        #
-        #   deploy game_settings_local.cfg
-        confData.createFileLocal(filenameLocal)
+
 
     def configureEnvironment(self,configLoc,force_update):
         initialise.init(self,configLoc)
@@ -282,10 +205,12 @@ class initialise():
             os.makedirs(f"{self.sdc_home_dir}\\cogs")
         #
         #   Check if startup.cfg exists.
-        if exists(f"{self.hon_logs_dir}\\..\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
+        if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
             print(f"Server is already configured, checking values for {self.service_name_bot}...")
-            initialise.parse_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg")
-        if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
+            initialise.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
+        if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
+        #   below commented as we are no longer using game_settings_local.cfg
+        #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
             if bot_needs_update:
                 print("==========================================")
                 print("BOT VERSION UPDATE DETECTED, APPLYING...")
@@ -294,14 +219,18 @@ class initialise():
                 print("==========================================")
                 print("FORCE UPDATE DETECTED, APPLYING...")
                 print("==========================================")
-            if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
+            if not exists(f"{self.hon_game_dir}\\startup.cfg"):
+            #   below commented as we are no longer using game_settings_local.cfg
+            # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
-            initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
+            #   below commented as we are no longer using game_settings_local.cfg
+            #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
             shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\cogs\\dataManager.py", f'{self.sdc_home_dir}\\cogs\\dataManager.py')
             shutil.copy(configLoc,f"{self.sdc_home_dir}\\config\\sdc.ini")
-            shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
+            #shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
             print("Done!")
             print("Checking and creating required dependencies...")
             if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
@@ -331,8 +260,14 @@ class initialise():
             if service_api['status'] == 'running':
                 print("Windows Service RUNNING")
             else:
-                print("Windows Service NOT RUNNING")
-            print("==========================================")
+                print("Windows Service STARTING...")
+                initialise.start_service(self,self.service_name_api)
+                service_api = initialise.get_service(self.service_name_api)
+                if service_api['status'] == 'running':
+                    print("Windows Service now RUNNING")
+                else:
+                    print("SERVICE FAILED TO START!")
+                print("==========================================")
         else:
             bot_needs_update = True
             print("==========================================")
@@ -356,7 +291,14 @@ class initialise():
             if service_bot['status'] == 'running':
                 print("Windows Service RUNNING")
             else:
-                print("Windows Service NOT RUNNING")
+                print("Windows Service STARTING...")
+                initialise.start_service(self,self.service_name_bot)
+                service_bot = initialise.get_service(self.service_name_bot)
+                if service_bot['status'] == 'running':
+                    print("Windows Service now RUNNING")
+                else:
+                    print("SERVICE FAILED TO START!")
+                print("==========================================")
         else:
             bot_needs_update = True
             print("==========================================")
@@ -368,12 +310,6 @@ class initialise():
             initialise.start_service(self,self.service_name_bot)
             print("==========================================")
             print(f"HONSERVER STATUS: {self.service_name_bot}")
-            service_bot = initialise.get_service(self.service_name_bot)
-            if service_bot['status'] == 'running':
-                print("Windows Service RUNNING")
-            else:
-                print("Windows Service NOT RUNNING")
-            print("==========================================")
         if force_update == True or bot_first_launch == True or bot_needs_update == True:
             print("==========================================")
             print("UPDATED CONFIGURATION FILES TO VERSION: "+str(self.bot_version))
@@ -404,6 +340,8 @@ class gui():
 
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_user,master_pass,force_update):
         global configLoc
+        #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+        hondirectory = os.path.join(hondirectory, '')
         if identifier == "single":
             print()
             print("==========================================")

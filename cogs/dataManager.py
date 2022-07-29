@@ -6,11 +6,15 @@
 import configparser
 from fileinput import filename
 from unittest.mock import DEFAULT
+from asyncio.windows_events import NULL
 import urllib.request
 import os
 import psutil
 import subprocess as sp
 import socket
+from os.path import exists
+from stat import S_IREAD, S_IRGRP, S_IROTH
+import stat
 
 config = configparser.ConfigParser()
 
@@ -18,6 +22,7 @@ class mData():
     def __init__(self,configFile):
         #   Read in config file from the honfigurator repo location
         #config.read(os.path.dirname(os.path.realpath(__file__))+"\\..\\config\\sdc.ini")
+        
         config.read(configFile)
         self.confDict = {}
         for option in config.options("OPTIONS"):
@@ -48,7 +53,8 @@ class mData():
         self.confDict.update({"last_restart_loc":mData.getData(self,"lastRestartLoc")})
         self.confDict.update({"incr_port":mData.getData(self,"incr_port")})
 
-        return 
+        return
+    
     def returnDict(self):
         return self.confDict
     def getData(self, dtype):
@@ -100,34 +106,44 @@ class mData():
                 print("no DNS lookup for host.")
         if dtype == "lastRestartLoc":
             tmp = f"{self.confDict['sdc_home_dir']}\\last_restart_time"
-            return tmp  
+            return tmp
     def parse_config(self,filename):
-        svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
+        # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'
         OPTION_CHAR =  ' '
         options = {}
         f = open(filename)
         for line in f:
-            for i in svr_options:
-                if i in line:
-                    #First, remove comments:
-                    # remove garbage
-                    line=line.replace("SetSave ","")
-                    line=line.strip(" \"0\"\n")
-                    line=line.replace('"','')
-                    if COMMENT_CHAR in line:
-                        # split on comment char, keep only the part before
-                        line, comment = line.split(COMMENT_CHAR, 1)
-                    # Second, find lines with an option=value:
-                    if OPTION_CHAR in line:
-                        # split on option char:
-                        option, value = line.split(OPTION_CHAR, 1)
-                        # strip spaces:
-                        option = option.strip()
-                        value = value.strip()
-                        # store in dictionary:
-                        options[option] = value
+            #for i in svr_options:
+                #if i in line:
+            #First, remove comments:
+            # remove garbage
+            line=line.replace("SetSave ","")
+            #line=line.replace('"','')
+            if COMMENT_CHAR in line:
+                # split on comment char, keep only the part before
+                line, comment = line.split(COMMENT_CHAR, 1)
+            # Second, find lines with an option=value:
+            if OPTION_CHAR in line:
+                # split on option char:
+                option, value = line.split(OPTION_CHAR, 1)
+                # strip spaces:
+                option = option.strip('"')
+                value = value.strip()
+                value = value.replace(' "0"',"")
+                #value = value.strip()
+                # store in dictionary:
+                options[option] = value
+        #print(options)
         f.close()
         return options
-    def setData(self):
-        return "data"
+    def setData(self,filename,dict):
+        #configGame = mData.parse_config(self,"c:\\temp\\admintools\\admintools\\config\\honfig.ini")
+        if exists(filename):
+            os.chmod(filename,stat.S_IWRITE )
+        with open(filename, 'w') as startup:
+            for k, v in dict.items():
+                startup.write(f'SetSave "{k}" {v} "0"\n')
+        if exists(filename):
+            os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+        return
