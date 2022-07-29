@@ -11,19 +11,7 @@ The total number of servers supported is limited by the total number of logical 
 ### Servers get deployed in the following mannner:
 1. Open **HoNfigurator.py** ``as Administrator``
 2. Fill in the basic information requirements (defaults will be remembered):
-	- Server host ``(example: T4NK)``
-	- Location ``(example: AUSTRALIA)``
-	- Region ``(example: AUS)``
-	- Total Servers. ``Limited by total CPU cores``
-	- Discord Admin Role ``(example: AUS Server Admins)``
-	- Discord Bot Token
-	- Masterserver User
-	- Master Password
-6. Buttons 
-	- ``Configure ALL servers`` button
-		- Configures all servers within the ``total servers range``
-	- ``Configure SINGLE server``
-		- Configures single server by selected ``server ID``.
+6. Select to deploy single or all servers 
 
 ### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
@@ -87,17 +75,31 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 These are to be performed on game servers only.
 
 ### Prerequisites
-1. Clone this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
-2. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
-3. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
-4. Install Python from ``admintools\dependencies\``
-5. Run the Installer for **Python** ``as Administrator``
+1. **Clone** this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
+	- By cloning the repo and keeping it up to date you can receive the latest changes.
+3. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
+4. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
+5. Install Python from ``honfigurator\dependencies\``
+6. Run the Installer for **Python** ``as Administrator``
  	- Use the following options:
 		- ``custom installation``
 		- ``select option to install for all users``
 		- ``Add python to PATH``
 		- ``disable PATH length constraints``
-6. open **Powershell** ``as Administrator``
-	- ```pip install -r admintools\dependencies\requirements.txt```
-7. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
-8. Execute **HoNfigurator.py** ``as Administrator``
+7. open **Powershell** ``as Administrator``
+	- ```pip install -r honfigurator\dependencies\requirements.txt```
+8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
+9. Execute **HoNfigurator.py** ``as Administrator``
+10. Fill in the basic information requirements (defaults will be remembered):
+	- Server host ``(example: T4NK)``
+	- Location ``(example: AUSTRALIA)``
+	- Region ``(example: AUS)``
+	- Total Servers. ``Limited by total CPU cores``
+	- Discord Admin Role ``(example: AUS Server Admins)``
+	- Discord Bot Token
+	- Masterserver User
+	- Master Password
+	- ``Configure ALL servers`` button
+		- Configures all servers within the ``total servers range``
+	- ``Configure SINGLE server``
+		- Configures single server by selected ``server ID``.
