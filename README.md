@@ -101,3 +101,12 @@ These are to be performed on game servers only.
 	- ```pip install -r honfigurator\dependencies\requirements.txt```
 7. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
 8. Execute **HoNfigurator.py** ``as Administrator``
+9. Fill in the basic information requirements (defaults will be remembered):
+	- Server host ``(example: T4NK)``
+	- Location ``(example: AUSTRALIA)``
+	- Region ``(example: AUS)``
+	- Total Servers. ``Limited by total CPU cores``
+	- Discord Admin Role ``(example: AUS Server Admins)``
+	- Discord Bot Token
+	- Masterserver User
+	- Master Password
