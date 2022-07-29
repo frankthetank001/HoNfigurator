@@ -11,19 +11,7 @@ The total number of servers supported is limited by the total number of logical 
 ### Servers get deployed in the following mannner:
 1. Open **HoNfigurator.py** ``as Administrator``
 2. Fill in the basic information requirements (defaults will be remembered):
-	- Server host ``(example: T4NK)``
-	- Location ``(example: AUSTRALIA)``
-	- Region ``(example: AUS)``
-	- Total Servers. ``Limited by total CPU cores``
-	- Discord Admin Role ``(example: AUS Server Admins)``
-	- Discord Bot Token
-	- Masterserver User
-	- Master Password
-6. Buttons 
-	- ``Configure ALL servers`` button
-		- Configures all servers within the ``total servers range``
-	- ``Configure SINGLE server``
-		- Configures single server by selected ``server ID``.
+6. Select to deploy single or all servers 
 
 ### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
@@ -110,3 +98,7 @@ These are to be performed on game servers only.
 	- Discord Bot Token
 	- Masterserver User
 	- Master Password
+- ``Configure ALL servers`` button
+	- Configures all servers within the ``total servers range``
+- ``Configure SINGLE server``
+	- Configures single server by selected ``server ID``.
