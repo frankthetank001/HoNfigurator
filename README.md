@@ -75,21 +75,22 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 These are to be performed on game servers only.
 
 ### Prerequisites
-1. Clone this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
-2. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
-3. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
-4. Install Python from ``honfigurator\dependencies\``
-5. Run the Installer for **Python** ``as Administrator``
+1. **Clone** this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
+	- By cloning the repo and keeping it up to date you can receive the latest changes.
+3. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
+4. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
+5. Install Python from ``honfigurator\dependencies\``
+6. Run the Installer for **Python** ``as Administrator``
  	- Use the following options:
 		- ``custom installation``
 		- ``select option to install for all users``
 		- ``Add python to PATH``
 		- ``disable PATH length constraints``
-6. open **Powershell** ``as Administrator``
+7. open **Powershell** ``as Administrator``
 	- ```pip install -r honfigurator\dependencies\requirements.txt```
-7. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
-8. Execute **HoNfigurator.py** ``as Administrator``
-9. Fill in the basic information requirements (defaults will be remembered):
+8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
+9. Execute **HoNfigurator.py** ``as Administrator``
+10. Fill in the basic information requirements (defaults will be remembered):
 	- Server host ``(example: T4NK)``
 	- Location ``(example: AUSTRALIA)``
 	- Region ``(example: AUS)``
