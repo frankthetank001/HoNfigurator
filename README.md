@@ -75,6 +75,7 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 These are to be performed on game servers only.
 
 ### Prerequisites
+Details on how to clone a repository found here: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
 1. **Clone** this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
 	- ``git clone https://github.com/frankthetank001/honfigurator``
 3. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
