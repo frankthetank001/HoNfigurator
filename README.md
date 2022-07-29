@@ -98,7 +98,7 @@ These are to be performed on game servers only.
 	- Discord Bot Token
 	- Masterserver User
 	- Master Password
-- ``Configure ALL servers`` button
-	- Configures all servers within the ``total servers range``
-- ``Configure SINGLE server``
-	- Configures single server by selected ``server ID``.
+	- ``Configure ALL servers`` button
+		- Configures all servers within the ``total servers range``
+	- ``Configure SINGLE server``
+		- Configures single server by selected ``server ID``.
