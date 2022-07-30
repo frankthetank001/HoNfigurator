@@ -82,7 +82,7 @@ class initialise():
             print ('could not start service {}'.format(service_name))
 
     def create_service_bot(self,service_name):
-        sp.Popen([self.nssm, "install",service_name,self.pythonLoc,f"sdc.py"])
+        sp.Popen([self.nssm, "install",service_name,"python.exe",f"sdc.py"])
 
     def create_service_api(self,service_name):
         sp.Popen([self.nssm, "install",service_name,f"{self.hon_directory}\\API_HON_SERVER.exe"])
