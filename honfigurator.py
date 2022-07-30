@@ -51,7 +51,7 @@ class initialise():
         self.pythonLoc = self.dataDict['python_location']
         self.master_user = self.dataDict['master_user']
         self.master_pass = self.dataDict['master_pass']
-        self.service_name_bot = f"adminbot-server{self.svr_id}"
+        self.service_name_bot = f"adminbot{self.svr_id}"
         self.service_name_api = "honserver-registration"
         if exists(f"{self.sdc_home_dir}\\config\\sdc.ini"):
             config = configparser.ConfigParser()
