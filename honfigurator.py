@@ -416,9 +416,9 @@ class gui():
         applet = ttk
         app.title("HoNfigurator")
         #   importing icon
-        honico = PhotoImage(file = 'honico.png')
+        honico = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\honico.png")
         app.iconphoto(False, honico) 
-        honlogo = PhotoImage(file='logo.png')
+        honlogo = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\logo.png")
         #colors
         maincolor = '#14283A'
         titlecolor = 'black'
