@@ -87,7 +87,7 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 		- ``select option to install for all users``
 		- ``Add python to path/environment variables``
 		- ``disable PATH length constraints``
-7. Execute **HoNfigurator-installer** ``as Administrator``
+7. Execute **HoNfigurator-installer.bat** ``as Administrator``
 	- This will install ``Python pre-requisites``. Take note of any errors.
 8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
 9. Execute **HoNfigurator-launcher.bat** ``as Administrator``
