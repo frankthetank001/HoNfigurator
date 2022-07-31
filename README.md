@@ -90,7 +90,7 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 7. open **Powershell** ``as Administrator``
 	- ``pip install -r honfigurator-main\dependencies\requirements.txt``
 8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
-9. Execute **HoNfigurator.py** ``as Administrator``
+9. Execute **HoNfigurator-launcher.bat** ``as Administrator``
 10. Fill in the basic information requirements (defaults will be remembered):
 	- Server host ``(example: T4NK)``
 	- Location ``(example: AUSTRALIA)``
