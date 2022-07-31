@@ -87,8 +87,8 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 		- ``select option to install for all users``
 		- ``Add python to path/environment variables``
 		- ``disable PATH length constraints``
-7. open **Powershell** ``as Administrator``
-	- ``pip install -r honfigurator-main\dependencies\requirements.txt``
+7. Execute **HoNfigurator-installer** ``as Administrator``
+	- This will install ``Python pre-requisites``. Take note of any errors.
 8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
 9. Execute **HoNfigurator-launcher.bat** ``as Administrator``
 10. Fill in the basic information requirements (defaults will be remembered):
