@@ -95,7 +95,7 @@ class initialise():
         sp.Popen([self.nssm, "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
 
     def parse_config(self,filename):
-        svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort" "14235","svr_proxyRemoteVoicePort","svr_voicePortEnd" "14535","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort"]
+        svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort"]
         COMMENT_CHAR = '#'
         OPTION_CHAR =  ' '
         options = {}
@@ -141,7 +141,7 @@ class initialise():
             temp_port = int(temp_port)
             temp_port = temp_port + iter
             startup.update({i:temp_port})
-        startup.update({"man_enableProxy":"true"})
+        startup.update({"man_enableProxy":"false"})
         startup.update({"svr_name":serverHoster + " " + str(svr_identifier)})
         startup.update({"svr_location":location})
         startup.update({"svr_ip":svr_ip})
