@@ -70,6 +70,21 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 	```
 	!startNew <svr_identifier> Example: !startNew T4NK-1 
 	```
+#### Coming soon!
+- Multi-Guild support
+	Create a link in the current guild and channel. Repeat this across different channels or even different Discord servers.
+	```
+	!createlink <svr_hoster> Example: !createlink T4NK
+	```
+	Synchronize all discord bot updates across all channels/discord servers.
+	```
+	!sync <svr_hoster> Example: !sync T4NK
+	```
+	```
+	Destroy the link in the current discord/channel
+	```
+	!destroylink <svr_hoster> Example: !destroylink T4NK
+	```
 
 ## Installation
 These are to be performed on game servers only.
