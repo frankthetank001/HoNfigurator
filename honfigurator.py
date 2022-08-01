@@ -14,6 +14,8 @@ import shutil
 from tkinter import PhotoImage
 import ctypes
 from tkinter import END
+import distutils
+from distutils import dir_util
 
 #
 #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
@@ -228,7 +230,9 @@ class initialise():
             initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-            shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\cogs\\dataManager.py", f'{self.sdc_home_dir}\\cogs\\dataManager.py')
+            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\cogs\\", f'{self.sdc_home_dir}\\cogs\\')
+            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\icons\\", f'{self.sdc_home_dir}\\icons\\')
+            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\config\\", f'{self.sdc_home_dir}\\config\\')
             shutil.copy(configLoc,f"{self.sdc_home_dir}\\config\\sdc.ini")
             #shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
             print("Done!")
@@ -416,9 +420,9 @@ class gui():
         applet = ttk
         app.title("HoNfigurator")
         #   importing icon
-        honico = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\honico.png")
+        honico = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\icons\\honico.png")
         app.iconphoto(False, honico) 
-        honlogo = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\logo.png")
+        honlogo = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\icons\\logo.png")
         #colors
         maincolor = '#14283A'
         titlecolor = 'black'

@@ -745,7 +745,7 @@ class hsl(commands.Bot):
                     stripColor = discord.Color.orange()
                     pushEmbed = await hsl.manageEmbed(hsl)
                     await mainEmbed.edit(embed = pushEmbed)
-
+                    await asyncio.sleep(30)
                     honShell.stopSERVER()
                     print("RESTARTING AS LOBBY HAS BEEN RESET")
                     #
