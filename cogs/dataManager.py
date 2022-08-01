@@ -39,7 +39,7 @@ class mData():
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_region_short']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
-        self.confDict.update({"hon_file_name":f"hon_server_{self.confDict['svr_id']}.exe"})
+        self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
         self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\messages"})

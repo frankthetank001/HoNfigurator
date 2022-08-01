@@ -201,7 +201,9 @@ class initialise():
         if not exists(f"{self.sdc_home_dir}\\config"):
             print(f"creating: {self.sdc_home_dir}\\config ...")
             os.makedirs(f"{self.sdc_home_dir}\\config")
-        
+        if not exists(f"{self.sdc_home_dir}\\icons"):
+            print(f"creating: {self.sdc_home_dir}\\icons ...")
+            os.makedirs(f"{self.sdc_home_dir}\\icons")
         if not exists(f"{self.sdc_home_dir}\\cogs"):
             print(f"creating: {self.sdc_home_dir}\\cogs ...")
             os.makedirs(f"{self.sdc_home_dir}\\cogs")
