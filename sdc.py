@@ -746,12 +746,13 @@ class hsl(commands.Bot):
                     stripColor = discord.Color.orange()
                     pushEmbed = await hsl.manageEmbed(hsl)
                     await mainEmbed.edit(embed = pushEmbed)
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(15)
                     honShell.stopSERVER()
                     print("RESTARTING AS LOBBY HAS BEEN RESET")
                     #
                     #   Code is stuck waiting for server to turn off
                     while checkStat < 0:
+                        await asyncio.sleep(1)
                         checkStat = check.checkRAM()
                     #
                     #   Once detects server is offline with above code start the server

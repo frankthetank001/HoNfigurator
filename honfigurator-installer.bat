@@ -1,2 +1,2 @@
 cd /d %~dp0
-pip install -r honfigurator-main\dependencies\requirements.txt
+pip install -r dependencies\requirements.txt
