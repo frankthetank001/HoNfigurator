@@ -224,6 +224,7 @@ class serverDATA():
             global tempcount
             
             gameLoc = serverDATA.grabData(self,"getLogList_Game")
+            total_games_played = serverDATA.grabData(self,"TotalGamesPlayed")
             total_games_played_prev_int = int(total_games_played_prev)
             total_games_played_int = int(total_games_played)
             print ("about to check game started")
