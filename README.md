@@ -21,15 +21,15 @@ This will configure and deploy 2x hon servers in the following SERVER_HOME locat
 <hon_directory>\instances\hon_server_1\		= SERVER_1_HOME
 <hon_directory>\instances\hon_server_2\		= SERVER_2_HOME
 ```
-``startup.cfg`` and ``game_settings_local.cfg`` automatically created for each server and deployed to the appropriate "HOME" location for that HoN server.
+``startup.cfg`` is automatically created for each server and deployed to the appropriate "HOME" location for that HoN server.
 
 Networking details such as the server ports will be automatically assigned based on the server number.
 
-- server 1: ``server port 11000``
-- server 2: ``server port 12000``
+- server 1: ``server port 10000``
+- server 2: ``server port 11000``
 - etc
 
-A list of ports will be provided during deployment so you can port forward if required.
+A list of ports will be provided at the end of deployment so you can port forward if required.
 
 ## Adminbot - Discord Integration
 Upon success of creating the required directories and configurations, HoNfigurator will deploy a python discord bot ``sdc.py`` and relevant config files, to the home directory of each server.
@@ -63,29 +63,8 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 
 ### How to Use
 - In discord, create a channel for server status updates. This should be dedicated to use by the bot.
-- Commands:
-	- Check if an existing Embed message exists, if not, creates a Embed message in the current channel, and updates itself continuously.
-	```
-	!startbot <svr_identifier> Example: !startbot T4NK-1 
-	```
-	- Use this to move the bot to a new channel.
-	```
-	!startNew <svr_identifier> Example: !startNew T4NK-1 
-	```
-#### Coming soon!
-- Multi-Guild support
-	- Create a link in the current guild and channel. Repeat this across different channels or even different Discord servers.
-	```
-	!createlink <svr_hoster> Example: !createlink T4NK
-	```
-	- Synchronize all discord bot updates across all channels/discord servers.
-	```
-	!sync <svr_hoster> Example: !sync T4NK
-	```
-	- Destroy the link in the current discord/channel
-	```
-	!destroylink <svr_hoster> Example: !destroylink T4NK
-	```
+- An overview of commands below, assuming the ``hoster`` field was set to ``T4NK``
+![bothelp](https://user-images.githubusercontent.com/82205454/183851795-3bad4f0b-dca9-496f-96c3-8719dabb873e.png)
 
 ## Installation
 These are to be performed on game servers only.
