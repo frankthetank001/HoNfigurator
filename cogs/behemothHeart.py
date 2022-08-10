@@ -215,9 +215,9 @@ class heartbeat(commands.Cog):
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
             try:
                 if alive:
-                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓")
+                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓",delete_after=5)
                 else:
-                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart stopped! :broken_heart:")
+                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart stopped! :broken_heart:",delete_after=5)
             except: print(traceback.format_exc())
     
 def setup(bot):
