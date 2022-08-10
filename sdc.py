@@ -674,7 +674,7 @@ class hsl(commands.Cog):
                     #
                     #   only admins can force stop.
                     #elif (react.emoji.name == "🛑") and processed_data_dict['discord_admin'] in modRole:
-                    elif (react.emoji.name == "🛑") and react.author.id in processed_data_dict['discord_admin']:
+                    elif (react.emoji.name == "🛑") and react.member.id in processed_data_dict['discord_admin']:
                         if svr_cmd.forceSERVER():
                             await ctx.invoke(bot.get_command('stopheart'))
                         if len(embed_log) == 0:
