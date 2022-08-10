@@ -9,9 +9,11 @@ It is dynamic in the sense that based on the total amount of servers you require
 The total number of servers supported is limited by the total number of logical processors, as the server runs best as 1 server per CPU core.
 
 ### Servers get deployed in the following mannner:
-1. Open **HoNfigurator.py** ``as Administrator``
+1. Open **HoNfigurator-launcher.bat** ``as Administrator``
 2. Fill in the basic information requirements (defaults will be remembered):
-6. Select to deploy single or all servers 
+3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
+4. Select to deploy single or all servers.
+5. Servers will automatically start and you will receive a message from your bot.
 
 ### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
@@ -62,13 +64,27 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 ### How to Use
 - In discord, create a channel for server status updates. This should be dedicated to use by the bot.
 - Commands:
-	Check if an existing Embed message exists, if not, creates a Embed message in the current channel, and updates itself continuously.
+	- Check if an existing Embed message exists, if not, creates a Embed message in the current channel, and updates itself continuously.
 	```
 	!startbot <svr_identifier> Example: !startbot T4NK-1 
 	```
-	Use this to move the bot to a new channel.
+	- Use this to move the bot to a new channel.
 	```
 	!startNew <svr_identifier> Example: !startNew T4NK-1 
+	```
+#### Coming soon!
+- Multi-Guild support
+	- Create a link in the current guild and channel. Repeat this across different channels or even different Discord servers.
+	```
+	!createlink <svr_hoster> Example: !createlink T4NK
+	```
+	- Synchronize all discord bot updates across all channels/discord servers.
+	```
+	!sync <svr_hoster> Example: !sync T4NK
+	```
+	- Destroy the link in the current discord/channel
+	```
+	!destroylink <svr_hoster> Example: !destroylink T4NK
 	```
 
 ## Installation
