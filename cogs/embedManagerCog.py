@@ -43,7 +43,7 @@ svr_port = server_data_dict['svr_port']
 svr_port = svr_port.strip('"')
 svr_proxy_enabled = server_data_dict['man_enableProxy']
 
-default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [ตัวเกมส์ภาษาไทย](https://www.mediafire.com/file/0i5h5gfl8yc5tw6/HonClientFix+(TH).exe/file)'
+default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [ตัวเกมส์ภาษาไทย](https://www.mediafire.com/file/rguveza1boran4h/HonClientFix_TH.rar/file)'
 #default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.last_restart}"
 
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
