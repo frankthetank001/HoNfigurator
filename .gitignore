@@ -1,2 +1,4 @@
-
-config/sdc.ini
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+config/local_config.ini

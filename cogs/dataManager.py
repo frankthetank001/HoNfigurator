@@ -15,19 +15,26 @@ import socket
 from os.path import exists
 from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
+import hashlib
+import shutil
+#import cogs.server_status as svrcmd
 
-config = configparser.ConfigParser()
+conf_parse_global = configparser.ConfigParser()
+conf_parse_local = configparser.ConfigParser()
 
 class mData():
-    def __init__(self,configFile):
-        #   Read in config file from the honfigurator repo location
-        #config.read(os.path.dirname(os.path.realpath(__file__))+"\\..\\config\\sdc.ini")
-        
-        config.read(configFile)
+    def __init__(self):
+        return
+    
+    #def returnDict(self,configFile):      
+    def returnDict(self):
+        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
         self.confDict = {}
-        for option in config.options("OPTIONS"):
-            self.confDict.update({option:config['OPTIONS'][option]})
-        #
+        for option in conf_parse_local.options("OPTIONS"):
+            self.confDict.update({option:conf_parse_local['OPTIONS'][option]})
+        for option in conf_parse_global.options("OPTIONS"):
+            self.confDict.update({option:conf_parse_global['OPTIONS'][option]})
         #   some variables which we will use
         self.svr_id = self.confDict['svr_id']
         #
@@ -37,7 +44,7 @@ class mData():
         self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\Documents\Heroes of Newerth x64\game\logs"})
         self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\sdc"})
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
-        self.confDict.update({"svr_identifier":f"{self.confDict['svr_region_short']}-{self.confDict['svr_id']}"})
+        self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
@@ -45,17 +52,20 @@ class mData():
         self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\messages"})
         self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\messages\message{self.confDict['svr_identifier']}.txt"})
         self.confDict.update({"svr_ip":mData.getData(self,"svr_ip")})
-        #self.confDict.update({"svr_port":f"1{self.svr_id}000"})
-        #self.confDict.update({"svr_port":f"1{self.svr_id}000"})
         self.confDict.update({"svr_dns":mData.getData(self,"DNSName")})
         self.confDict.update({"python_location":mData.getData(self,"pythonLoc")})
         self.confDict.update({"svr_affinity":mData.getData(self,"cores")})
         self.confDict.update({"last_restart_loc":mData.getData(self,"lastRestartLoc")})
         self.confDict.update({"incr_port":mData.getData(self,"incr_port")})
+        self.confDict.update({"game_dll_hash":mData.getData(self,"gameDllHash")})
+        self.confDict.update({"total_games_played":mData.getData(self,"TotalGamesPlayed")})
+        #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
 
-        return
-    
-    def returnDict(self):
+        gameDllHash = mData.getData(self,"gameDllHash")
+        if gameDllHash == "70e841d98e59dfe9347e24260719e1b7b590ebb8":
+            self.confDict.update({"player_count_exe":f"{self.confDict['hon_directory']}eko-old.exe"})
+        else:
+            self.confDict.update({"player_count_exe":f"{self.confDict['hon_directory']}eko-pid.exe"})
         return self.confDict
     def getData(self, dtype):
         if dtype == "hon":
@@ -64,8 +74,6 @@ class mData():
             external_ip = urllib.request.urlopen('https://4.ident.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
-            #print(self.confDict)
-            cores = []
             #print(self.svr_id)
             self.svr_id = int(self.svr_id)
             #
@@ -79,14 +87,7 @@ class mData():
         if dtype == "pythonLoc":
             return sp.getoutput('where python')
         if dtype == "port":
-            #   re implementing once port is more dynamic.
-            # for proc in psutil.process_iter():
-            #         #if proc.name() == serverDATA.grabData(self,"honFilename"):
-            #         if proc.pid == honP:
-            #             for c in proc.connections(kind='udp'):
-            #                 port = "%s:%s" % (c.laddr)
-            #                 port = port.split(":")
-            #                 return port[1]
+            #   Now that we find the port from the startup.cfg file, this data method should check that it is listening.
             return f"1{self.svr_id}000"
         if dtype == "incr_port":
             incr_port = 0
@@ -98,7 +99,7 @@ class mData():
             return incr_port
         if dtype == "DNSName":
             try:
-                dns = socket.gethostbyaddr(self.svr_ip)
+                dns = socket.gethostbyaddr(self.confDict['svr_ip'])
                 dns = dns[0]
                 #print("DNS: "+dns)
                 return dns
@@ -107,6 +108,27 @@ class mData():
         if dtype == "lastRestartLoc":
             tmp = f"{self.confDict['sdc_home_dir']}\\last_restart_time"
             return tmp
+        if dtype == "gameDllHash":
+            #
+            # 3d97c3fb6121219344cfabe8dfcc608fac122db4 = new DLL
+            # 70e841d98e59dfe9347e24260719e1b7b590ebb8 = old DLL
+            #
+            sha1 = hashlib.sha1()
+            #   
+            #   make a hash object
+            #   open file for reading in binary mode
+            with open(self.confDict['svr_k2dll'],'rb') as file:
+                #   loop till the end of the file
+                chunk = 0
+                while chunk != b'':
+                    #   read only 1024 bytes at a time
+                    chunk = file.read(1024)
+                    sha1.update(chunk)
+            gameDllHash = sha1.hexdigest()
+            print(gameDllHash)
+            #
+            #    return the hex representation of digest
+            return gameDllHash
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'
@@ -114,10 +136,7 @@ class mData():
         options = {}
         f = open(filename)
         for line in f:
-            #for i in svr_options:
-                #if i in line:
-            #First, remove comments:
-            # remove garbage
+            #   remove garbage
             line=line.replace("SetSave ","")
             #line=line.replace('"','')
             if COMMENT_CHAR in line:
