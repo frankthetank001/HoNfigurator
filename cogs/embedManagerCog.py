@@ -265,7 +265,7 @@ class embedManager(commands.Cog):
             created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |   กำลังสร้างห้อง",description=default_description, color=stripColor_selected)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             if self.server_status['host'] != "empty":
-                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอผู้เล่น ({self.server_status['host']})สร้างห้องเพิ่มเริ่มเกมส์..\nภายใน 60 วินาที```")
+                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอผู้เล่น ({self.server_status['host']})สร้างห้องเพิ่มเริ่มเกมส์..\nภายใน 30 วินาที```")
             else:
                 created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอหัวห้องเชื่อมต่อสำเร็จ..\nภายใน 30 วินาที```")
             created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
