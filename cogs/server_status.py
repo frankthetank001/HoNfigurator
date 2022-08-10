@@ -12,8 +12,8 @@ import asyncio
 
 processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
-#os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
-#os.chdir(processed_data_dict['hon_logs_dir'])
+os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
+os.chdir(processed_data_dict['hon_logs_dir'])
 #
 #   hooks onto hon.exe and manages hon
 class honCMD():
