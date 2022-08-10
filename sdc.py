@@ -104,6 +104,7 @@ class hsl(commands.Cog):
                 logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
+                    await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
                 except: print(traceback.format_exc())
                 # await user.send("hello")
             except discord.errors.Forbidden:
