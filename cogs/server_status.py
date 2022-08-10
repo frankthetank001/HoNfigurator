@@ -79,6 +79,7 @@ class honCMD():
             self.embed_updated = False
             self.lobby_created = False
             self.last_restart = honCMD.getData(self,"lastRestart")
+            honCMD().getData("update_last_restarted")
             #
             #   Initialise some variables upon hon server starting
             #self.available_maps = honCMD().getData("availMaps")
