@@ -135,7 +135,7 @@ class hsl(commands.Cog):
             await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
             await ctx.invoke(bot.get_command('startheart'))
         except UnboundLocalError:
-            temp_log = f"[ERROR] No message context found, please run ``!createlinks {svr_hoster}`` in your discord channel."
+            temp_log = f"[ERROR] No message context found, please run ``!createlinks {svr_hoster}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
             try:
                 await discord_admin.send(temp_log)
             except discord.errors.Forbidden:
@@ -630,6 +630,9 @@ class hsl(commands.Cog):
         global waited
         if svr_id == 1:
             embed = await ctx.invoke(bot.get_command('helpembed'))
+            try:
+                await ctx.message.delete()
+            except: print(traceback.format_exc())
             try:
                 await discord_admin.send(embed=embed)
             except: print(traceback.format_exc())
