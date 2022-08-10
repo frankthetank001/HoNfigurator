@@ -13,9 +13,9 @@ The total number of servers supported is limited by the total number of logical 
 2. Fill in the basic information requirements (defaults will be remembered):
 3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
 4. Select to deploy single or all servers.
-5. Servers will automatically start and you will receive a message from your bot.
+5. Servers will automatically start and you will receive a message from your bot with the next steps.
 
-### Example: If 2 total servers selected
+#### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
 ```
 <hon_directory>\instances\hon_server_1\		= SERVER_1_HOME
@@ -63,8 +63,11 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 
 ### How to Use
 - In discord, create a channel for server status updates. This should be dedicated to use by the bot.
-- An overview of commands below, assuming the ``hoster`` field was set to ``T4NK``
+- Use the ``!portalhelp`` command to be sent an overview of the available commands. The commands will be customised to your set up.
 ![bothelp](https://user-images.githubusercontent.com/82205454/183851795-3bad4f0b-dca9-496f-96c3-8719dabb873e.png)
+- Use the ``!createlinks <identifier>`` command  in the discord channel which you wish to receive updates in.
+- Repeat the above to any other discord guilds or channels where you also want the server status displayed.
+- All subscribed channels will be kept up to date with the same server status messages.
 
 ## Installation
 These are to be performed on game servers only.
@@ -99,3 +102,5 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 		- Configures all servers within the ``total servers range``
 	- ``Configure SINGLE server``
 		- Configures single server by selected ``server ID``.
+11. Example of full configuration below:
+![Config Options](https://user-images.githubusercontent.com/82205454/183896906-13467995-57ba-4022-a7ff-a8df7035f296.png)
