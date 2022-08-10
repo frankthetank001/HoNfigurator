@@ -14,6 +14,7 @@ The total number of servers supported is limited by the total number of logical 
 3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
 4. Select to deploy single or all servers.
 5. Servers will automatically start and you will receive a message from your bot with the next steps.
+6. Servers will be each assigned to their own CPU core, and given a ``low`` process priority unless a game is running, in which case it is set to ``high``
 
 #### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
@@ -43,7 +44,7 @@ Adminbot resides in each ``SERVER_HOME`` directory, and it will act as a layer o
 
 Adminbot parses game log files, looks out for sinister events, and gives real-time game status updates to discord guilds via embedded messages. The purpose of this is to provide game server security and a "window" into any running games on your servers so that it is easily visible from just looking at the discord chat where it is deployed.
 
-### Security/Uptime Features
+### Security/Uptime/Availability Features
 - [x] After a game has finished, or a lobby has been closed, server is automatically restarted.
 - [x] If someone tries to start games on your server with invalid parameters (such as an invalid map/mode) this can crash your server.
 		- Server restarts in this instance, and saves a log with the clients IP address for analysis so they may be blocked if required.
