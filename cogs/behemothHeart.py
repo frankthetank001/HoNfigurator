@@ -214,7 +214,7 @@ class heartbeat(commands.Cog):
             if hoster == self.processed_data_dict['svr_hoster']:
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
             try:
-                if self.alive:
+                if alive:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓")
                 else:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart stopped! :broken_heart:")
