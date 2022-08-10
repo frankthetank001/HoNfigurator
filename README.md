@@ -96,6 +96,7 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 	- Total Servers. ``Limited by total CPU cores``
 	- Discord Admin Role ``(example: AUS Server Admins)``
 	- Discord Bot Token
+	- Masterserver host
 	- Masterserver User
 	- Master Password
 	- ``Configure ALL servers`` button
