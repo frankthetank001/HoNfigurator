@@ -630,7 +630,9 @@ class hsl(commands.Cog):
         global waited
         if svr_id == 1:
             embed = await ctx.invoke(bot.get_command('helpembed'))
-            await ctx.send(embed=embed)
+            try:
+                await discord_admin.send(embed=embed)
+            except: print(traceback.format_exc())
     """
 
         Button commands
