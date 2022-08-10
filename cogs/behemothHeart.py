@@ -7,7 +7,7 @@ import traceback
 svr_state = svrcmd.honCMD()
 hard_reset = False
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
-
+alive = True
 global embed_log
 
 class heartbeat(commands.Cog):
@@ -34,8 +34,11 @@ class heartbeat(commands.Cog):
     @bot.command()
     async def startheart(self,ctx):
         global embed_log
+        global alive
+        
+        alive = True
         test = self.bot.get_cog("embedManager")
-        self.alive = True
+        # alive = True
         self.server_status = svrcmd.honCMD().getStatus()
         self.available_maps = svr_state.getData("availMaps")
         self.server_status.update({'server_restarting':False})
@@ -54,7 +57,7 @@ class heartbeat(commands.Cog):
         x = 0
         #   this is the start of the heartbeat
         #   anything below is looping
-        while self.alive == True:
+        while alive == True:
             counter_heartbeat+=1
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
@@ -182,15 +185,26 @@ class heartbeat(commands.Cog):
     
     @bot.command()
     async def stopheart(self,ctx):
-        self.alive = False
+        global alive
+        alive = False
     @bot.command()
     async def statusheart(self,ctx):
-        return self.alive
+        return alive
     @bot.command()
     async def giveCPR(self,ctx,hoster):
-        if hoster == self.server_status['svr_hoster'] or hoster == self.server_status['svr_identifier']:
-            if not self.alive:
-                await ctx.invoke(bot.get_command('startheart'))
+        if hoster == self.processed_data_dict['svr_hoster'] or hoster == self.processed_data_dict['svr_identifier']:
+            try:
+                await ctx.message.delete()
+            except: print(traceback.format_exc())
+            if not alive:
+                await ctx.invoke(bot.get_command('startheart'),ctx)
+    @bot.command()
+    async def pullPlug(self,ctx,hoster):
+        if hoster == self.processed_data_dict['svr_identifier']:
+            try:
+                await ctx.message.delete()
+            except: print(traceback.format_exc())
+            await ctx.invoke(bot.get_command('stopheart'),ctx)
     @bot.command()
     async def heartbeat(self,ctx,hoster):
         if hoster == self.processed_data_dict['svr_hoster'] or hoster == self.processed_data_dict['svr_identifier']:

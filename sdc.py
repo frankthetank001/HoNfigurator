@@ -626,7 +626,7 @@ class hsl(commands.Cog):
             await ctx.author.send("changing edit")
     
     @bot.command()
-    async def help(ctx):
+    async def portalhelp(ctx):
         global waited
         if svr_id == 1:
             embed = await ctx.invoke(bot.get_command('helpembed'))
@@ -660,8 +660,8 @@ class hsl(commands.Cog):
                         heart = await ctx.invoke(bot.get_command('statusheart'))
                         if svr_cmd.startSERVER():
                             await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
-                            if not heart:
-                                await ctx.invoke(bot.get_command('startheart'))
+                        if not heart:
+                            await ctx.invoke(bot.get_command('startheart'))
                         
                     #
                     #   Sends the stop server command
