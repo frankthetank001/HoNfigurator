@@ -731,12 +731,13 @@ class gui():
         c1=0
         c2=1
         for config_item in config_startup:
+            value = config_startup[config_item].strip('"')
             valuename = f"tab2{config_item}"
             startup_values = []
             i+=1
             applet.Label(tab2, text=config_item,background=maincolor,foreground='white').grid(column=c1, row=i,sticky="e",padx=[5,0])
             valuename = applet.Entry(tab2,foreground=textcolor,width=10)
-            valuename.insert(0,config_startup[config_item])
+            valuename.insert(0,value)
             valuename.grid(column= c2, row = i,sticky="w",pady=4,padx=[5,5])
             startup_values.append(valuename)
             if i == 22:
