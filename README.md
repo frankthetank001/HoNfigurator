@@ -68,9 +68,8 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 ![bothelp](https://user-images.githubusercontent.com/82205454/183851795-3bad4f0b-dca9-496f-96c3-8719dabb873e.png)
 - Use the ``!createlinks <identifier>`` command  in the discord channel which you wish to receive updates in.
 - Repeat the above to any other discord guilds or channels where you also want the server status displayed.
-- All subscribed channels will be kept up to date with the same server status messages.
+- All subscribed channels will be kept up to date with the same server status messages. And personalised event logs sent to your inbox
 ![server status](https://user-images.githubusercontent.com/82205454/184092422-aae67753-7417-4d3b-8b1f-045e13d46615.png)
-Personalised event log example:
 ![events](https://user-images.githubusercontent.com/82205454/184092512-5f141db7-627e-4851-a0cf-35a5ee7b4056.png)
 
 ## Installation
