@@ -188,9 +188,8 @@ class hsl(commands.Cog):
                 await ctx.message.delete()
             except: pass
             if hoster == svr_hoster:
-                if not waited:
-                    await asyncio.sleep(svr_id_delay)
-                    waited = True
+                await asyncio.sleep(svr_id_delay)
+                waited = True
             try:
                 await ctx.invoke(bot.get_command('desync'),svr_hoster)
             except: print(traceback.format_exc())
@@ -402,6 +401,7 @@ class hsl(commands.Cog):
             if hoster == svr_hoster:
                 if not waited:
                     await asyncio.sleep(svr_id_delay)
+                    waited = True
             embed_id_list = [ctx.guild.id, ctx.channel.id]
             for embed in embed_ids:
                 try:
@@ -516,6 +516,7 @@ class hsl(commands.Cog):
             except: pass
             if not waited:
                 await asyncio.sleep(svr_id_delay)
+                waited = True
             #await ctx.message.delete()
             #await asyncio.sleep(svr_id_delay)
             #
