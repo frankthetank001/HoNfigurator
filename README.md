@@ -70,6 +70,7 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 - Repeat the above to any other discord guilds or channels where you also want the server status displayed.
 - All subscribed channels will be kept up to date with the same server status messages. And personalised event logs sent to your inbox
 ![server status](https://user-images.githubusercontent.com/82205454/184092422-aae67753-7417-4d3b-8b1f-045e13d46615.png)
+
 ![events](https://user-images.githubusercontent.com/82205454/184092512-5f141db7-627e-4851-a0cf-35a5ee7b4056.png)
 
 ## Installation
