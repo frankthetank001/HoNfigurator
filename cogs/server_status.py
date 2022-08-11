@@ -60,7 +60,7 @@ class honCMD():
             #
             #   Start the HoN Server!
             print("starting service")
-            self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver","honmasterserver.com"])
+            self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
             #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
             server_status_dict.update({'hon_exe':self.honEXE})
             self.honP = self.honEXE.pid
