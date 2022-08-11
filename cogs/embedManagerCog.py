@@ -293,7 +293,7 @@ class embedManager(commands.Cog):
             created_embed.add_field(name="Host: ", value=f"{self.server_status['host']}",inline=True)
             created_embed.add_field(name="Map: ", value=f"{self.server_status['map']}",inline=True)
             created_embed.add_field(name="Mode: ", value=f"{self.server_status['mode']}",inline=True)
-            created_embed.add_field(name="Slots: ", value=f"{self.server_status['slots']}",inline=True)
+            created_embed.add_field(name="Slots: ", value=f"{playercount}/{self.server_status['slots']}",inline=True)
             created_embed.add_field(name="Spectators: ", value=f"{self.server_status['spectators']}",inline=True)
             created_embed.add_field(name="Referees: ", value=f"{self.server_status['referees']}",inline=True)
             #   
