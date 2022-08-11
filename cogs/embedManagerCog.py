@@ -219,7 +219,7 @@ class embedManager(commands.Cog):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
 
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Ready for host...",description=default_description, color=stripColor_online)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  OPEN",description=default_description, color=stripColor_online)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         if svr_dns is None:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_ip}:{svr_port}\n```",inline=True)
@@ -262,7 +262,7 @@ class embedManager(commands.Cog):
             #
             #   BASE EMBED: embed when server has been selected by a player
             #   server selected not hosted
-            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Hosted",description=default_description, color=stripColor_selected)
+            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  SELECTING GAME SETTINGS",description=default_description, color=stripColor_selected)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             if self.server_status['host'] != "empty":
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['host']}) to begin the game..\n60 seconds until kick```")
@@ -282,18 +282,18 @@ class embedManager(commands.Cog):
             #   
             #   Lobby online
             if self.game_started == False: 
-                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Player Count: {playercount}/{self.server_status['total_slots']}",description=default_description, color=stripColor_lobby)
+                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  LOOKING FOR PLAYERS",description=default_description, color=stripColor_lobby)
             #   
             #   Match in progress
             elif self.game_started == True:
-                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Player Count: {playercount}/{self.server_status['total_slots']}",description=default_description, color=stripColor_ingame)
+                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  MATCH IN PROGRESS",description=default_description, color=stripColor_ingame)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             #   
             #   Lobby online or match in progress
             created_embed.add_field(name="Host: ", value=f"{self.server_status['host']}",inline=True)
             created_embed.add_field(name="Map: ", value=f"{self.server_status['map']}",inline=True)
             created_embed.add_field(name="Mode: ", value=f"{self.server_status['mode']}",inline=True)
-            created_embed.add_field(name="Slots: ", value=f"{self.server_status['slots']}",inline=True)
+            created_embed.add_field(name="Slots: ", value=f"{playercount}/{self.server_status['slots']}",inline=True)
             created_embed.add_field(name="Spectators: ", value=f"{self.server_status['spectators']}",inline=True)
             created_embed.add_field(name="Referees: ", value=f"{self.server_status['referees']}",inline=True)
             #   
