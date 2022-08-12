@@ -45,7 +45,7 @@ class heartbeat(commands.Cog):
         self.server_status.update({'server_starting':False})
         self.server_status.update({'hard_reset':False})
 
-        restart_timer = 1
+        restart_timer = 2
         counter_heartbeat = 0
         counter_hosted = 0
         counter_gamecheck = 0
@@ -211,11 +211,12 @@ class heartbeat(commands.Cog):
             try:
                 await ctx.message.delete()
             except: pass
+            playercount = svrcmd.honCMD().playerCount()
             if hoster == self.processed_data_dict['svr_hoster']:
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
             try:
                 if alive:
-                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓",delete_after=5)
+                    await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓 {playercount} players connected",delete_after=5)
                 else:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart stopped! :broken_heart:",delete_after=5)
             except: print(traceback.format_exc())
