@@ -44,7 +44,7 @@ svr_port = svr_port.strip('"')
 svr_proxy_enabled = server_data_dict['man_enableProxy']
 
 default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://www.mediafire.com/file/4xdih1yy54y4qah/HonClientFix.exe/file)'
-default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.last_restart}"
+default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.last_restart}"
 
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
 os.chdir(processed_data_dict['hon_logs_dir'])
@@ -93,7 +93,7 @@ class embedManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server_status = svr_state.getStatus()
-        #self.total_games_played = self.server_status['total_games_played_prev']
+        #self.total_games_played_prev = self.server_status['total_games_played_prev_prev']
         self.total_games_played = svr_state.getData("TotalGamesPlayed")
         self.server_status.update({'total_games_played':self.total_games_played})
         self.event_log = ""
@@ -110,7 +110,7 @@ class embedManager(commands.Cog):
         sent_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Syncing..",description=default_description, color=stripColor_init)
         sent_embed.set_author(name=self.server_status['discord_admin_name'])
         #name='\u200b' to hide title
-        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
         sent_embed.set_thumbnail(url=init)
         #sent_embed_obj = await ctx.send(file=attachment_init, embed=sent_embed)
         sent_embed_obj = await ctx.send(embed=sent_embed)
@@ -196,7 +196,7 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -208,7 +208,7 @@ class embedManager(commands.Cog):
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Starting Server..",description=default_description, color=stripColor_starting)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -227,7 +227,7 @@ class embedManager(commands.Cog):
         else:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_dns}:{svr_port}\n```",inline=True)
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -268,7 +268,7 @@ class embedManager(commands.Cog):
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['host']}) to begin the game..\n60 seconds until kick```")
             else:
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host to begin the game..\n60 seconds until kick```")
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
             created_embed.set_thumbnail(url=hosted)
             try:
                 await rec_embed.edit(embed=created_embed)
@@ -305,7 +305,7 @@ class embedManager(commands.Cog):
             elif self.game_started == True:
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
                 created_embed.add_field(name=f"Match in progress",value=f"```\nPlease wait until the game is over..\nElapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
             if self.server_status['map'] == "caldavar" or self.server_status['map'] == "caldavar_old" or self.server_status['map'] == "caldavar_reborn":
                 created_embed.set_thumbnail(url=map_caldavar)
             elif self.server_status['map'] == "midwars" or self.server_status['map'] == "midwars_pbt" or self.server_status['map'] == "midwars_reborn":
