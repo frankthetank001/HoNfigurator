@@ -267,7 +267,7 @@ class embedManager(commands.Cog):
             if self.server_status['host'] != "empty":    
                 created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nผู้เล่น({self.server_status['host']})กำลังสร้างห้อง..\nกรุณารอภายใน 60 วินาที```") 
             else:
-                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอหัวห้องเชื่อมต่อสำเร็จ..\nภายใน 30 วินาที```")
+                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอหัวห้องเชื่อมต่อสำเร็จ..\nภายใน 60 วินาที```")
             created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played_prev']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
             created_embed.set_thumbnail(url=hosted)
             try:
