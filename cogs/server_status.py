@@ -23,7 +23,7 @@ class honCMD():
         return
 
     def playerCount(self):
-        check = subprocess.Popen([processed_data_dict['player_count_exe'],processed_data_dict['hon_file_name']],stdout=subprocess.PIPE, text=True)
+        check = subprocess.Popen([processed_data_dict['player_count_exe_loc'],processed_data_dict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
         check.terminate()
         return i
@@ -53,65 +53,70 @@ class honCMD():
    #   Starts server
     def startSERVER(self):
         #playercount = playercount()
-        if self.playerCount() < 0:
-            #   reload dictionary
-            #self.total_games_played_prev = honCMD.getData(self,"TotalGamesPlayed")
-            #server_status_dict.update[{'total_games_played_prev':honCMD.getData(self,"TotalGamesPlayed")}]
-            #
-            #   Start the HoN Server!
-            print("starting service")
-            self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver","honmasterserver.com"])
-            #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
-            server_status_dict.update({'hon_exe':self.honEXE})
-            self.honP = self.honEXE.pid
-            server_status_dict.update({'hon_pid':self.honP})
-            #server_status_dict.update({"hon_pid":self.honP})
-            honPID = psutil.Process(pid=self.honEXE.pid)
-            server_status_dict.update({'hon_pid_hook':honPID})
-            honPID.cpu_affinity([processed_data_dict['svr_affinity']])
+        if self.playerCount() < 0 :
+            returnlist = []
+            free_mem = psutil.virtual_memory().free
+            if free_mem > 1000000000:
+                ram = True
+                #   reload dictionary
+                #self.total_games_played_prev = honCMD.getData(self,"TotalGamesPlayed")
+                #server_status_dict.update[{'total_games_played_prev':honCMD.getData(self,"TotalGamesPlayed")}]
+                #
+                #   Start the HoN Server!
+                print("starting service")
+                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
+                #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
+                server_status_dict.update({'hon_exe':self.honEXE})
+                self.honP = self.honEXE.pid
+                server_status_dict.update({'hon_pid':self.honP})
+                #server_status_dict.update({"hon_pid":self.honP})
+                honPID = psutil.Process(pid=self.honEXE.pid)
+                server_status_dict.update({'hon_pid_hook':honPID})
+                honPID.cpu_affinity([processed_data_dict['svr_affinity']])
 
-            self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
-            
-            self.first_run = True
-            self.just_collected = False
-            self.game_started = False
-            self.tempcount = -5
-            self.embed_updated = False
-            self.lobby_created = False
-            self.last_restart = honCMD.getData(self,"lastRestart")
-            honCMD().getData("update_last_restarted")
-            #
-            #   Initialise some variables upon hon server starting
-            #self.available_maps = honCMD().getData("availMaps")
-            server_status_dict.update({"last_restart":self.last_restart})
-            server_status_dict.update({"first_run":self.first_run})
-            server_status_dict.update({"just_collected":self.just_collected})
-            server_status_dict.update({"game_started":self.game_started})
-            server_status_dict.update({"tempcount":self.tempcount})
-            server_status_dict.update({"embed_updated":self.embed_updated})
-            server_status_dict.update({"lobby_created":self.lobby_created})
-            server_status_dict.update({"map":"empty"})
-            server_status_dict.update({"mode":"empty"})
-            server_status_dict.update({"host":"empty"})
-            server_status_dict.update({"version":"empty"})
-            server_status_dict.update({"spectators":0})
-            server_status_dict.update({"slots":"empty"})
-            server_status_dict.update({"referees":0})
-            server_status_dict.update({"client_ip":"empty"})
-            server_status_dict.update({"priority_realtime":False})
-            server_status_dict.update({"restart_required":False})
-            server_status_dict.update({"game_log_location":"empty"})
-            server_status_dict.update({"slave_log_location":"empty"})
-            server_status_dict.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
-            #server_status_dict.update({'tempcount':-5})
-            server_status_dict.update({"server_ready":False})
-            server_status_dict.update({'elapsed_duration':0})
-            server_status_dict.update({'pending_restart':False})
-            server_status_dict.update({'server_ready':False})
-            server_status_dict.update({'server_starting':True})
-            #self.server_status.update({'restarting_server':False})
-
-            return True 
+                self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
+                
+                self.first_run = True
+                self.just_collected = False
+                self.game_started = False
+                self.tempcount = -5
+                self.embed_updated = False
+                self.lobby_created = False
+                self.last_restart = honCMD.getData(self,"lastRestart")
+                honCMD().getData("update_last_restarted")
+                #
+                #   Initialise some variables upon hon server starting
+                #self.available_maps = honCMD().getData("availMaps")
+                server_status_dict.update({"last_restart":self.last_restart})
+                server_status_dict.update({"first_run":self.first_run})
+                server_status_dict.update({"just_collected":self.just_collected})
+                server_status_dict.update({"game_started":self.game_started})
+                server_status_dict.update({"tempcount":self.tempcount})
+                server_status_dict.update({"embed_updated":self.embed_updated})
+                server_status_dict.update({"lobby_created":self.lobby_created})
+                server_status_dict.update({"map":"empty"})
+                server_status_dict.update({"mode":"empty"})
+                server_status_dict.update({"host":"empty"})
+                server_status_dict.update({"version":"empty"})
+                server_status_dict.update({"spectators":0})
+                server_status_dict.update({"slots":"empty"})
+                server_status_dict.update({"referees":0})
+                server_status_dict.update({"client_ip":"empty"})
+                server_status_dict.update({"priority_realtime":False})
+                server_status_dict.update({"restart_required":False})
+                server_status_dict.update({"game_log_location":"empty"})
+                server_status_dict.update({"slave_log_location":"empty"})
+                server_status_dict.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
+                #server_status_dict.update({'tempcount':-5})
+                server_status_dict.update({"server_ready":False})
+                server_status_dict.update({'elapsed_duration':0})
+                server_status_dict.update({'pending_restart':False})
+                server_status_dict.update({'server_ready':False})
+                server_status_dict.update({'server_starting':True})
+                #self.server_status.update({'restarting_server':False})
+                return True
+            else:
+                return False
     #
     #   Stop server
     def stopSERVER(self):

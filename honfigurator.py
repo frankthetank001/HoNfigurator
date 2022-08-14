@@ -18,10 +18,18 @@ import distutils
 from distutils import dir_util
 import subprocess
 import traceback
+import sys
 
-config_global = os.path.dirname(os.path.realpath(__file__))+"\\config\\global_config.ini"
-config_default = os.path.dirname(os.path.realpath(__file__))+"\\config\\default_config.ini"
-config_local = os.path.dirname(os.path.realpath(__file__))+"\\config\\local_config.ini"
+# determine if application is a script file or frozen exe
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+
+
+config_global = os.path.abspath(application_path)+"\\config\\global_config.ini"
+config_default = f"{os.path.abspath(application_path)}\\config\\default_config.ini"
+config_local = os.path.abspath(application_path)+"\\config\\local_config.ini"
 if not exists(config_local):
     shutil.copy(config_default,config_local)
 
@@ -34,7 +42,6 @@ global hon_api_updated
 #   Otherwise taskbar icon will be python shell icon
 myappid = 'honfiguratoricon.1.0' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-
 hon_api_updated = False
 players_connected = False
 
@@ -62,8 +69,8 @@ class initialise():
         self.svr_total = self.dataDict['svr_total']
         self.bot_token = self.dataDict['token']
         self.pythonLoc = self.dataDict['python_location']
-        self.master_user = self.dataDict['master_user']
-        self.master_pass = self.dataDict['master_pass']
+        # self.master_user = self.dataDict['master_user']
+        # self.master_pass = self.dataDict['master_pass']
         self.service_name_bot = f"adminbot{self.svr_id}"
         self.service_name_api = "honserver-registration"
         if exists(config_global):
@@ -79,8 +86,14 @@ class initialise():
         #     config = configparser.ConfigParser()
         #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
         # return
+    def KOTF(self):
+        app_svr_desc = subprocess.Popen([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
+        result = str(app_svr_desc.stdout.read())
+        app_svr_desc.terminate()
+        return result
+        
     def get_startupcfg(self):
-        config_startup = dmgr.mData().parse_config(os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.ini")
+        config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
         return config_startup
     def get_service(service_name):
         service = None
@@ -93,7 +106,7 @@ class initialise():
             #print(str(ex))
         return service
     def playerCount(self):
-        check = subprocess.Popen([self.dataDict['player_count_exe'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
+        check = subprocess.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
         check.terminate()
         return i
@@ -148,37 +161,8 @@ class initialise():
         temFile = f"{self.sdc_home_dir}\\pending_restart"
         with open(temFile, "w") as f:
             f.write("True")
-    def parse_config(self,filename):
-        svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort"]
-        COMMENT_CHAR = '#'
-        OPTION_CHAR =  ' '
-        options = {}
-        f = open(filename)
-        for line in f:
-            for i in svr_options:
-                if i in line:
-                    #First, remove comments:
-                    # remove garbage
-                    line=line.replace("SetSave ","")
-                    line=line.strip(" \"0\"\n")
-                    line=line.replace('"','')
-                    if COMMENT_CHAR in line:
-                        # split on comment char, keep only the part before
-                        line, comment = line.split(COMMENT_CHAR, 1)
-                    # Second, find lines with an option=value:
-                    if OPTION_CHAR in line:
-                        # split on option char:
-                        option, value = line.split(OPTION_CHAR, 1)
-                        # strip spaces:
-                        option = option.strip()
-                        value = value.strip()
-                        # store in dictionary:
-                        options[option] = value
-                        print (option +": "+ value)
-        f.close()
-        return options
 
-    def create_config(self,filename,serverID,serverHoster,location,svr_total,svr_ip):
+    def create_config(self,filename,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
         print("customising startup.cfg with the following values")
@@ -187,7 +171,7 @@ class initialise():
         print("svr_location: " + str(location))
         print("svr_total: " + str(svr_total))
         print("svr_ip: " + str(svr_ip))
-        #self.startup = dmgr.mData.parse_config(self,os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.ini")
+        #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
         networking = ["svr_port","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart"]
         for i in networking:
             temp_port = self.startup[i]
@@ -196,11 +180,12 @@ class initialise():
             temp_port = temp_port + iter
             self.startup.update({i:f'"{temp_port}"'})
         self.startup.update({"man_enableProxy":"false"})
-        self.startup.update({"svr_name":serverHoster + " " + str(svr_identifier)})
-        self.startup.update({"svr_location":location})
-        self.startup.update({"svr_ip":svr_ip})
-        self.startup.update({"svr_login":self.master_user})
-        self.startup.update({"svr_password":self.master_pass})
+        self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
+        self.startup.update({"svr_location":f'"{location}"'})
+        self.startup.update({"svr_ip":f'"{svr_ip}"'})
+        self.startup.update({"svr_login":f'"{master_user}"'})
+        self.startup.update({"svr_password":f'"{master_pass}"'})
+        self.startup.update({"svr_desc":f'"{svr_desc}"'})
         print (temp_port)
         dmgr.mData.setData(NULL,filename,self.startup)
         return True
@@ -267,7 +252,7 @@ class initialise():
         #   Check if startup.cfg exists.
         if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
             print(f"Server is already configured, checking values for {self.service_name_bot}...")
-            initialise.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
+            dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
         if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
         #   below commented as we are no longer using game_settings_local.cfg
         #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
@@ -275,108 +260,119 @@ class initialise():
                 #guilog.insert(END,"==========================================\n")
                 guilog.insert(END,f"FORCE or UPDATE DETECTED, APPLYING v{self.bot_version}\n")
                 #guilog.insert(END,"==========================================\n")
+            #
+            #    Kongor testing
+            if self.dataDict['master_server'] == "kongor.online:666":
+                if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe"):
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                    print("copying server exe...")
+            if self.dataDict['master_server'] == "honmasterserver.com":
+                if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\HON_SERVER_1.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                    print("copying server exe...")
+            self.secrets = initialise.KOTF(self)
+            self.svr_desc = self.secrets.split(',')[0]
+            self.svr_desc = self.svr_desc.replace('\n','')
+            self.master_user = self.secrets.split(',')[1]
+            self.master_user = self.master_user.replace('\n','')
+            self.master_pass = self.secrets.split(',')[2]
+            self.master_pass = self.master_pass.replace('\n','')
             if not exists(f"{self.hon_game_dir}\\startup.cfg"):
             #   below commented as we are no longer using game_settings_local.cfg
             # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
             # for i in config:
-            #     if exists(os.path.dirname(os.path.realpath(__file__))+"\\"+i):
-            #         shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\"+i,self.sdc_home_dir+"\\"+i)
-            shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-            #shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\cogs\\", f'{self.sdc_home_dir}\\cogs\\')
-            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\config\\", f'{self.sdc_home_dir}\\config\\')
+            #     if exists(os.path.abspath(application_path)+"\\"+i):
+            #         shutil.copy(os.path.abspath(application_path)+"\\"+i,self.sdc_home_dir+"\\"+i)
+            shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
+            #shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
+            distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\cogs\\", f'{self.sdc_home_dir}\\cogs\\')
+            distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config\\", f'{self.sdc_home_dir}\\config\\')
             #
             #   FIX BELOW
-            distutils.dir_util.copy_tree(os.path.dirname(os.path.realpath(__file__))+"\\icons\\", f'{self.sdc_home_dir}\\icons\\')
-            #shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\multiguild.py", f'{self.sdc_home_dir}\\multiguild.py')
+            distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\icons\\", f'{self.sdc_home_dir}\\icons\\')
+            #shutil.copy(os.path.abspath(application_path)+"\\multiguild.py", f'{self.sdc_home_dir}\\multiguild.py')
             #shutil.copy(configLoc,f"{self.sdc_home_dir}\\config\\sdc.ini")
-            #shutil.copy(os.path.dirname(os.path.realpath(__file__))+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
+            #shutil.copy(os.path.abspath(application_path)+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
             print("Done!")
             print("Checking and creating required dependencies...")
-            if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
-                shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\HON_SERVER_1.exe",f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe")
-                print("copying server exe...")
-            #if not exists(f"{self.hon_directory}\\API_HON_SERVER.exe"):
-            # shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
-            print("copying master server registration API...")
-            if not exists(f"{self.hon_directory}\\eko-pid.exe"):
-                shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\eko-pid.exe",f"{self.hon_directory}\\eko-pid.exe")
+            #
+            #
+            if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
                 print("copying other dependencies...")
-            if not exists(f"{self.hon_directory}\\eko-name.exe"):
-                shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\eko-name.exe",f"{self.hon_directory}\\eko-name.exe")
             if not exists(f"{self.hon_directory}\\nssm.exe"):
-                shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\nssm.exe",f"{self.hon_directory}\\nssm.exe")
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.hon_directory}\\nssm.exe")
             print("Done!")
-        service_api = initialise.get_service(self.service_name_api)
-        if service_api:
-            #print("HON Registration API STATUS: " + self.service_name_api)
-            if service_api['status'] == 'running' or service_api['status'] == 'paused':
-                if force_update != True and bot_needs_update != True:
-                    guilog.insert(END,"HON Registration API STATUS: RUNNING\n")
-                elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
-                    initialise.stop_service(self,self.service_name_api)
-                    time.sleep(1)
-                    service_api = initialise.get_service(self.service_name_api)
-                    if service_api['status'] == 'stopped':
+        if self.dataDict['master_server'] == "honmasterserver.com":
+            service_api = initialise.get_service(self.service_name_api)
+            if service_api:
+                #print("HON Registration API STATUS: " + self.service_name_api)
+                if service_api['status'] == 'running' or service_api['status'] == 'paused':
+                    if force_update != True and bot_needs_update != True:
+                        guilog.insert(END,"HON Registration API STATUS: RUNNING\n")
+                    elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
+                        initialise.stop_service(self,self.service_name_api)
+                        time.sleep(1)
+                        service_api = initialise.get_service(self.service_name_api)
+                        if service_api['status'] == 'stopped':
+                            try:
+                                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
+                            except PermissionError:
+                                guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                                print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                            except: print(traceback.format_exc())
+                        if initialise.configure_service_api(self,self.service_name_api):
+                            hon_api_updated = True
+                        time.sleep(1)
+                        initialise.start_service(self,self.service_name_api)
+                else:
+                    if (force_update ==True or bot_needs_update == True) and hon_api_updated !=True:
                         try:
-                            shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
+                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                         except PermissionError:
-                            guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                            guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n")
                             print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
                         except: print(traceback.format_exc())
-                    if initialise.configure_service_api(self,self.service_name_api):
-                        hon_api_updated = True
-                    time.sleep(1)
-                    initialise.start_service(self,self.service_name_api)
+                        #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
+                        if initialise.configure_service_api(self,self.service_name_api):
+                            hon_api_updated = True
+                        time.sleep(1)
+                        initialise.start_service(self,self.service_name_api)
+                    else:
+                        print("Windows Service STARTING...")
+                        initialise.start_service(self,self.service_name_api)
+                        service_api = initialise.get_service(self.service_name_api)
+                    if service_api['status'] == 'running':
+                        guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
+                    else:
+                        guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
+                    print("==========================================")
             else:
-                if (force_update ==True or bot_needs_update == True) and hon_api_updated !=True:
-                    try:
-                        shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
-                    except PermissionError:
-                        guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n")
-                        print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
-                    except: print(traceback.format_exc())
-                    #shutil.copy(os.path.dirname(os.path.realpath(__file__))+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
-                    if initialise.configure_service_api(self,self.service_name_api):
-                        hon_api_updated = True
-                    time.sleep(1)
-                    initialise.start_service(self,self.service_name_api)
-                else:
-                    print("Windows Service STARTING...")
-                    initialise.start_service(self,self.service_name_api)
-                    service_api = initialise.get_service(self.service_name_api)
+                bot_needs_update = True
+                print("==========================================")
+                print(f"Creating hon server registration API: {self.service_name_api}..")
+                print("==========================================")
+                initialise.create_service_api(self,self.service_name_api)
+                print("starting service.. " + self.service_name_api)
+                initialise.start_service(self,self.service_name_api)
+                print("==========================================")
+                print("HON Registration API STATUS: " + self.service_name_api)
+                service_api = initialise.get_service(self.service_name_api)
                 if service_api['status'] == 'running':
                     guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                 else:
                     guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
                 print("==========================================")
-        else:
-            bot_needs_update = True
-            print("==========================================")
-            print(f"Creating hon server registration API: {self.service_name_api}..")
-            print("==========================================")
-            initialise.create_service_api(self,self.service_name_api)
-            print("starting service.. " + self.service_name_api)
-            initialise.start_service(self,self.service_name_api)
-            print("==========================================")
-            print("HON Registration API STATUS: " + self.service_name_api)
-            service_api = initialise.get_service(self.service_name_api)
-            if service_api['status'] == 'running':
-                guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
-            else:
-                guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
-            print("==========================================")
         
         service_bot = initialise.get_service(self.service_name_bot)
         if service_bot:
             print(f"HONSERVER STATUS: {self.service_name_bot}")
-            #service_bot = initialise.get_service(self.service_name_bot)
             if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
                 guilog.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
                 if force_update == True or bot_needs_update == True:
@@ -386,7 +382,7 @@ class initialise():
                     svr_state = svrcmd.honCMD()
                     svr_state.getDataDict()
                     playercount = initialise.playerCount(self)
-                    if playercount <= 0:
+                    if playercount == 0:
                         print("No players connected, safe to restart...")
                         initialise.restart_service(self,self.service_name_bot)
                     else:
@@ -417,10 +413,7 @@ class initialise():
             print("==========================================")
             print(f"HONSERVER STATUS: {self.service_name_bot}")
         if force_update == True or bot_first_launch == True or bot_needs_update == True:
-            #guilog.insert(END,"==============================================\n")
-            #guilog.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
             if players_connected == True:
-                #playercount = svr_state.playerCount()
                 guilog.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
             print("==========================================")
@@ -440,18 +433,29 @@ class gui():
         self.dataDict = self.initdict.returnDict()
         print (self.dataDict)
         return
-    # def getConfDict(self):
-    #     self.dataDict = dmgr.mData()
-    #     print (self.dataDict)
     def corecount(self):
         cores = []
         for i in range(multiprocessing.cpu_count()):
             cores.append(i+1)
         return cores
     def regions(self):
-        return [["US - West","US - East","Thailand","Australia","Malaysia"],["USW","USE","TH","AUS","MY"]]
-    
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,master_user,master_pass,force_update,botmatches):
+        return [["US - West","US - East","Thailand","Australia","Malaysia"],["USW","USE","AU","AU","AU"]]
+    def masterserver(self):
+        return ["kongor.online:666","honmasterserver.com"]
+    def reg_def_link(self,var,index,mode):
+        reglist = self.regions()
+        svrloc = str(self.svr_loc.get()).lower()
+        for reg in reglist[0]:
+            if svrloc == reg.lower():
+                self.svr_loc.set(reglist[0][reglist[0].index(reg)])
+                self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+    def svr_num_link(self,var,index,mode):
+        if self.svr_id_var.get() == "(for single server)":
+            return
+        elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
+            self.svr_id_var.set(self.svr_total_var.get())
+
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,botmatches):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -461,7 +465,6 @@ class gui():
 
         if identifier == "single":
             print()
-            #guilog.insert(END,"==========================================\n")
             print(f"Selected option to configure adminbot-server{serverid}\n")
             print("==========================================")
             #
@@ -478,8 +481,6 @@ class gui():
             conf_local.set("OPTIONS","hon_directory",hondirectory)
             conf_local.set("OPTIONS","discord_admin",discordadmin)
             conf_local.set("OPTIONS","master_server",master_server)
-            conf_local.set("OPTIONS","master_user",master_user)
-            conf_local.set("OPTIONS","master_pass",master_pass)
             conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
             with open(config_local, "w") as a:
                 conf_local.write(a)
@@ -513,8 +514,6 @@ class gui():
                 conf_local.set("OPTIONS","hon_directory",hondirectory)
                 conf_local.set("OPTIONS","discord_admin",discordadmin)
                 conf_local.set("OPTIONS","master_server",master_server)
-                conf_local.set("OPTIONS","master_user",master_user)
-                conf_local.set("OPTIONS","master_pass",master_pass)
                 conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
                 with open(config_local, "w") as c:
                     conf_local.write(c)
@@ -530,11 +529,7 @@ class gui():
                 initialise().configureEnvironment(self,force_update)
         #guilog.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
         return
-    def svr_num_link(self,var,index,mode):
-        if self.svr_id_var.get() == "(for single server)":
-            return
-        elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
-            self.svr_id_var.set(self.svr_total_var.get())
+
     #def botCount(self,num_of_bots):
         # for i in range(0,num_of_bots):
         #     for i in range(0,num_of_bots):
@@ -546,32 +541,15 @@ class gui():
         #         self.bot_cmd_buttons[i][0].grid(column=int(column1),row=row,sticky='e',padx=[60,0],pady=[10,0])
         #         self.bot_cmd_buttons[i][1].grid(column=column2,row=row,sticky='w',padx=[0,20],pady=[10,0])
         #         self.bot_cmd_buttons[i][1].configure(textvariable=self.bot_cmd_buttons[i][2])
-            
-                
-    def regions(self):
-        return [["US - West","US - East","Thailand","Australia","Malaysia"],["USW","USE","TH","AUS","MY"]]
-    def reg_def_link(self,var,index,mode):
-        reglist = self.regions()
-        svrloc = str(self.svr_loc.get()).lower()
-        #svrid = str(self.svr_reg_code.get()).lower()
-        for reg in reglist[0]:
-            if svrloc == reg.lower():
-                self.svr_loc.set(reglist[0][reglist[0].index(reg)])
-                self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
-    def startServer(self):
-        
-        return
-    def testfunc(self):
-        print(self.forceupdate.get())
     def creategui(self):
         global guilog
         app = tk.Tk()
         applet = ttk
         app.title("HoNfigurator")
         #   importing icon
-        honico = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\icons\\honico.png")
+        honico = PhotoImage(file = os.path.abspath(application_path)+f"\\icons\\honico.png")
         app.iconphoto(False, honico) 
-        honlogo = PhotoImage(file = os.path.dirname(os.path.realpath(__file__))+f"\\icons\\logo.png")
+        honlogo = PhotoImage(file = os.path.abspath(application_path)+f"\\icons\\logo.png")
         config_startup = initialise.get_startupcfg(self)
         #colors
         maincolor = '#14283A'
@@ -613,7 +591,7 @@ class gui():
         tab2 = ttk.Frame(tabgui)
         #tab3 = ttk.Frame(tabgui)
         tabgui.add(tab1,text="Server Setup")
-        tabgui.add(tab2,text="Advanced Server Setup")
+        #tabgui.add(tab2,text="Advanced Server Setup")
         #tabgui.add(tab3,text="Discord Integration")
         
         """
@@ -662,29 +640,19 @@ class gui():
         self.svr_total_var.trace_add('write', self.svr_num_link)
         #   HoN Directory
         applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
-        tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=40)
+        tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
         tab1_hondird.insert(0,self.dataDict['hon_directory'])
         tab1_hondird.grid(column= 1, row = 7,sticky="w",pady=4)
         #  HoN master server
+        self.master_server = tk.StringVar(app,self.dataDict['master_server'])
         applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=8,sticky="e",padx=[20,0])
-        tab1_masterserver = applet.Entry(tab1,foreground=textcolor,width=40)
-        tab1_masterserver.insert(0,self.dataDict['master_server'])
+        tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
         tab1_masterserver.grid(column= 1, row = 8,sticky="w",pady=4)
-        #   HoN master server user
-        applet.Label(tab1, text="masterserver user:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
-        tab1_masteruser = applet.Entry(tab1,foreground=textcolor,width=40)
-        tab1_masteruser.insert(0,self.dataDict['master_user'])
-        tab1_masteruser.grid(column= 1, row = 9,sticky="w",pady=4)
-        #   HoN master user password
-        applet.Label(tab1, text="masterserver pass:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
-        tab1_masterpass = applet.Entry(tab1,foreground=textcolor,width=40)
-        tab1_masterpass.insert(0,self.dataDict['master_pass'])
-        tab1_masterpass.grid(column= 1, row = 10,sticky="w",pady=4)
         #   force update
-        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-        tab1_forceupdate_btn.grid(column= 1, row = 11,sticky="w",pady=4)
+        tab1_forceupdate_btn.grid(column= 1, row = 9,sticky="w",pady=4)
         #
         #
         
@@ -707,22 +675,22 @@ class gui():
         tab1_botmatches_btn.grid(column= 4, row = 4,sticky="w",pady=4)
         #   bot version
         applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
-        applet.Label(tab1,text=self.dataDict['bot_version'],background=maincolor,foreground='white').grid(column= 4, row = 5,sticky="w",pady=4)
+        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 5,sticky="w",pady=4)
         print(self.forceupdate.get())
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=12,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get(),self.botmatches.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.botmatches.get()))
         tab1_singlebutton.grid(columnspan=3, column=1, row=13,stick='n',padx=[0,10],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get(),self.botmatches.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.botmatches.get()))
         tab1_allbutton.grid(columnspan=4, column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
         
         """
         
         This is the advanced server setup tab
-        
+        ui
         """
         #   
         #   message
@@ -731,12 +699,13 @@ class gui():
         c1=0
         c2=1
         for config_item in config_startup:
+            value = config_startup[config_item].strip('"')
             valuename = f"tab2{config_item}"
             startup_values = []
             i+=1
             applet.Label(tab2, text=config_item,background=maincolor,foreground='white').grid(column=c1, row=i,sticky="e",padx=[5,0])
             valuename = applet.Entry(tab2,foreground=textcolor,width=10)
-            valuename.insert(0,config_startup[config_item])
+            valuename.insert(0,value)
             valuename.grid(column= c2, row = i,sticky="w",pady=4,padx=[5,5])
             startup_values.append(valuename)
             if i == 22:
@@ -769,7 +738,5 @@ class gui():
         # self.botCount(20)
         tabgui.select(0)
         app.mainloop()
-    def hellotest(self):
-        print("hello")
 test = gui()
 test.creategui()

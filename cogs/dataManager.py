@@ -5,6 +5,7 @@
 """
 import configparser
 from fileinput import filename
+from queue import Empty
 from unittest.mock import DEFAULT
 from asyncio.windows_events import NULL
 import urllib.request
@@ -17,6 +18,9 @@ from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
 import shutil
+import re
+import wmi
+
 #import cogs.server_status as svrcmd
 
 conf_parse_global = configparser.ConfigParser()
@@ -39,33 +43,47 @@ class mData():
         self.svr_id = self.confDict['svr_id']
         #
         #   Update the dictionary with some processed data
-        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_directory']}..\hon_server_instances\Hon_Server_{self.confDict['svr_id']}"})
-        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_directory']}..\hon_server_instances\Hon_Server_{self.confDict['svr_id']}\Documents\Heroes of Newerth x64\game"})
-        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\Documents\Heroes of Newerth x64\game\logs"})
-        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\sdc"})
+        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
+        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
+        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\\sdc"})
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
-        self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
+        self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
+        #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
+        #   Kongor testing
+        if self.confDict['master_server'] == "honmasterserver.com":
+            self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
+        elif self.confDict['master_server'] == "kongor.online:666":
+            self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
+        #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
-        self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\messages"})
-        self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\messages\message{self.confDict['svr_identifier']}.txt"})
+        self.confDict.update({"svr_cgame_dll":f"{self.confDict['hon_directory']}game\\cgame_x64.dll"})
+        self.confDict.update({"svr_game_shared_dll":f"{self.confDict['hon_directory']}game\\game_shared_x64.dll"})
+        self.confDict.update({"svr_game_dll":f"{self.confDict['hon_directory']}game\\game_x64.dll"})
+        self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\\messages"})
+        self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\message{self.confDict['svr_identifier']}.txt"})
         self.confDict.update({"svr_ip":mData.getData(self,"svr_ip")})
         self.confDict.update({"svr_dns":mData.getData(self,"DNSName")})
         self.confDict.update({"python_location":mData.getData(self,"pythonLoc")})
         self.confDict.update({"svr_affinity":mData.getData(self,"cores")})
         self.confDict.update({"last_restart_loc":mData.getData(self,"lastRestartLoc")})
         self.confDict.update({"incr_port":mData.getData(self,"incr_port")})
-        self.confDict.update({"game_dll_hash":mData.getData(self,"gameDllHash")})
         self.confDict.update({"total_games_played":mData.getData(self,"TotalGamesPlayed")})
         #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
-
+        self.game_config = mData.parse_config(self,f"{self.confDict['hon_game_dir']}\\startup.cfg")
         gameDllHash = mData.getData(self,"gameDllHash")
-        if gameDllHash == "70e841d98e59dfe9347e24260719e1b7b590ebb8":
-            self.confDict.update({"player_count_exe":f"{self.confDict['hon_directory']}eko-old.exe"})
-        else:
-            self.confDict.update({"player_count_exe":f"{self.confDict['hon_directory']}eko-pid.exe"})
+        if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
+            self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-70.exe"})
+            self.confDict.update({"player_count_exe":"pingplayerconnected-70.exe"})
+        elif gameDllHash == "3D97C3FB6121219344CFABE8DFCC608FAC122DB4":
+            self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-3D.exe"})
+            self.confDict.update({"player_count_exe":"pingplayerconnected-3D.exe"})
+        elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
+            self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
     def getData(self, dtype):
         if dtype == "hon":
@@ -74,7 +92,6 @@ class mData():
             external_ip = urllib.request.urlopen('https://4.ident.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
-            #print(self.svr_id)
             self.svr_id = int(self.svr_id)
             #
             #   Get total cores, logical included
@@ -82,7 +99,6 @@ class mData():
             #
             #   Set affinity of the hon process to total cores - server ID
             affinity = total_cores - self.svr_id
-            #print("AFFINITY" + str(affinity))
             return affinity
         if dtype == "pythonLoc":
             return sp.getoutput('where python')
@@ -101,7 +117,6 @@ class mData():
             try:
                 dns = socket.gethostbyaddr(self.confDict['svr_ip'])
                 dns = dns[0]
-                #print("DNS: "+dns)
                 return dns
             except:
                 print("no DNS lookup for host.")
@@ -114,20 +129,16 @@ class mData():
             # 70e841d98e59dfe9347e24260719e1b7b590ebb8 = old DLL
             #
             sha1 = hashlib.sha1()
-            #   
-            #   make a hash object
-            #   open file for reading in binary mode
             with open(self.confDict['svr_k2dll'],'rb') as file:
-                #   loop till the end of the file
+            #   loop till the end of the file
                 chunk = 0
                 while chunk != b'':
                     #   read only 1024 bytes at a time
                     chunk = file.read(1024)
                     sha1.update(chunk)
-            gameDllHash = sha1.hexdigest()
-            print(gameDllHash)
-            #
-            #    return the hex representation of digest
+            hash = sha1.hexdigest()
+            hash = hash.upper()
+            gameDllHash = hash
             return gameDllHash
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
@@ -156,8 +167,8 @@ class mData():
         #print(options)
         f.close()
         return options
+    
     def setData(self,filename,dict):
-        #configGame = mData.parse_config(self,"c:\\temp\\admintools\\admintools\\config\\honfig.ini")
         if exists(filename):
             os.chmod(filename,stat.S_IWRITE )
         with open(filename, 'w') as startup:
