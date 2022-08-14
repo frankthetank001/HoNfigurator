@@ -47,10 +47,11 @@ class heartbeat(commands.Cog):
 
         restart_timer = 2
         counter_heartbeat = 0
+        counter_heartbeat_attempts = 0
         counter_hosted = 0
         counter_gamecheck = 0
         counter_lobbycheck = 0
-        threshold_heartbeat = 15    # how long to wait before break from heartbeat to update embeds
+        threshold_heartbeat = 30    # how long to wait before break from heartbeat to update embeds
         threshold_hosted = 60   # how long we wait for someone to host a game without starting
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
@@ -112,7 +113,7 @@ class heartbeat(commands.Cog):
                             print(traceback.format_exc())
                             print("most likely due to using auto-sync")
                         svr_state.restartSERVER()
-                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                        self.server_status.update({'tempcount':-5})    # force the heartbeat
 
                 if counter_lobbycheck == threshold_lobbycheck:
                     counter_lobbycheck=0
@@ -164,10 +165,14 @@ class heartbeat(commands.Cog):
             #   break out from the heartbeat every threshold_heartbeat if we're in a game
             if counter_heartbeat == threshold_heartbeat:
                 counter_heartbeat=0
+                counter_heartbeat_attempts +=1
                 if playercount >= 1 and self.server_status['game_started'] == True:
                     self.server_status.update({'tempcount':-5})   # force an update
                     # if self.server_status['lobby_created'] == True and self.server_status['game_started'] == False:
                     #     break
+                if counter_heartbeat_attempts == 4 and playercount > 0:
+                    counter_heartbeat_attempts = 0
+                    self.server_status.update({'tempcount':-5})   # force an update
             #   
             #   if nothing new has happened, sit here and take a break for a bit. Every 15 seconds we leave the idle mode in case something has changed and we missed it.
             if playercount == self.server_status['tempcount'] and self.server_status['just_collected'] != True and (not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:

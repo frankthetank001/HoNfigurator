@@ -38,12 +38,16 @@ svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
 #server_data_dict = dmgr.parse_config(f"{processed_data_dict['hon_game_dir']}\\startup.cfg")
 server_data_dict = dmgr.parse_config(f"{hon_game_dir}\\startup.cfg")
 svr_name = server_data_dict['svr_name']
+svr_name = svr_name.strip('"')
 svr_location = server_data_dict['svr_location']
 svr_port = server_data_dict['svr_port']
 svr_port = svr_port.strip('"')
 svr_proxy_enabled = server_data_dict['man_enableProxy']
 
-default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://www.mediafire.com/file/4xdih1yy54y4qah/HonClientFix.exe/file)'
+if processed_data_dict['master_server'] == "honmasterserver.com":
+    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://www.mediafire.com/file/4xdih1yy54y4qah/HonClientFix.exe/file)'
+elif processed_data_dict['master_server'] == "kongor.online:666":
+    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [Kongor Online](http://kongor.online:555)  |  [Kongor Client Fix](https://www.mediafire.com/file/ryeblwp3pgxfb4j/HonClientFix-kongor.exe/file)'
 default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.last_restart}"
 
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
@@ -107,7 +111,7 @@ class embedManager(commands.Cog):
     """
     @bot.command()
     async def initiateEmbed(self,ctx):
-        sent_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Syncing..",description=default_description, color=stripColor_init)
+        sent_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Syncing..",description=default_description, color=stripColor_init)
         sent_embed.set_author(name=self.server_status['discord_admin_name'])
         #name='\u200b' to hide title
         sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
@@ -193,7 +197,7 @@ class embedManager(commands.Cog):
     @bot.command()
     async def offlineEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Offline",description=default_description, color=stripColor_offline)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
         created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
@@ -206,7 +210,7 @@ class embedManager(commands.Cog):
     async def startingEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  Starting Server..",description=default_description, color=stripColor_starting)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Starting Server..",description=default_description, color=stripColor_starting)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         try:
@@ -219,7 +223,7 @@ class embedManager(commands.Cog):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
 
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  OPEN",description=default_description, color=stripColor_online)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  OPEN",description=default_description, color=stripColor_online)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         if svr_dns is None:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_ip}:{svr_port}\n```",inline=True)
@@ -238,7 +242,7 @@ class embedManager(commands.Cog):
     async def restartEmbed(self,rec_embed):
         #self.server_status.update({'restarting_server':True})
         #embedManager.__init__(self,bot)
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}                           RESTARTING SERVER...", color=stripColor_restart)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                           RESTARTING SERVER...", color=stripColor_restart)
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -262,7 +266,7 @@ class embedManager(commands.Cog):
             #
             #   BASE EMBED: embed when server has been selected by a player
             #   server selected not hosted
-            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  SELECTING GAME SETTINGS",description=default_description, color=stripColor_selected)
+            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  SELECTING GAME SETTINGS",description=default_description, color=stripColor_selected)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             if self.server_status['host'] != "empty":
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['host']}) to begin the game..\n60 seconds until kick```")
@@ -282,11 +286,11 @@ class embedManager(commands.Cog):
             #   
             #   Lobby online
             if self.game_started == False: 
-                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  LOOKING FOR PLAYERS",description=default_description, color=stripColor_lobby)
+                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  LOOKING FOR PLAYERS",description=default_description, color=stripColor_lobby)
             #   
             #   Match in progress
             elif self.game_started == True:
-                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  MATCH IN PROGRESS",description=default_description, color=stripColor_ingame)
+                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  MATCH IN PROGRESS",description=default_description, color=stripColor_ingame)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             #   
             #   Lobby online or match in progress
@@ -304,7 +308,7 @@ class embedManager(commands.Cog):
             #   Match in progress
             elif self.game_started == True:
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
-                created_embed.add_field(name=f"Match in progress",value=f"```\nPlease wait until the game is over..\nElapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
+                created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
             if self.server_status['map'] == "caldavar" or self.server_status['map'] == "caldavar_old" or self.server_status['map'] == "caldavar_reborn":
                 created_embed.set_thumbnail(url=map_caldavar)
@@ -342,16 +346,16 @@ class embedManager(commands.Cog):
     async def helpembed(self, ctx):
         created_embed = discord.Embed(title="Commands for bot",description='', color=stripColor_help)
         created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_hoster']}``: ", value=f"        Creates links for **ALL** {processed_data_dict['svr_hoster']} servers in this discord",inline=False)
-        created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_identifier']}``: ", value=f"        Creates links for just the **SINGLE** {processed_data_dict['svr_identifier']} server in this discord",inline=False)
+        created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_id_w_total']}``: ", value=f"        Creates links for just the **SINGLE** {processed_data_dict['svr_id_w_total']} server in this discord",inline=False)
         created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_hoster']}``: ", value=f"        Removes links/messages for **ALL** {processed_data_dict['svr_hoster']} servers in every discord",inline=False)
-        created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_identifier']}``: ", value=f"        Removes links/messages for **SINGLE** {processed_data_dict['svr_identifier']} server in every discord",inline=False)
+        created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_id_w_total']}``: ", value=f"        Removes links/messages for **SINGLE** {processed_data_dict['svr_id_w_total']} server in every discord",inline=False)
         created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_hoster']}``: ", value=f"        Removes links/messages for **ALL** {processed_data_dict['svr_hoster']} servers in this discord server only",inline=False)
-        created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_identifier']}``: ", value=f"        Removes link/message for **SINGLE** {processed_data_dict['svr_identifier']} server in this discord server only",inline=False)
+        created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_id_w_total']}``: ", value=f"        Removes link/message for **SINGLE** {processed_data_dict['svr_id_w_total']} server in this discord server only",inline=False)
         created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_hoster']}``: ", value=f"        checks the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
-        created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_identifier']}``: ", value=f"        checks the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
-        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
-        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
-        created_embed.add_field(name=f"``!pullplug {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Stops the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
+        created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_id_w_total']}``: ", value=f"        checks the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
+        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
+        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
+        created_embed.add_field(name=f"``!pullplug {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Stops the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
         return created_embed
 
     @bot.command()

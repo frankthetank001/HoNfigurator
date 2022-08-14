@@ -28,7 +28,7 @@ processed_data_dict = dmgr.returnDict()
 
 svr_id = processed_data_dict['svr_id']
 svr_id = int(svr_id)
-svr_id_delay = svr_id * 7
+svr_id_delay = svr_id * 20
 #svr_id_delay = 0
 svr_identifier = processed_data_dict['svr_identifier']
 svr_hoster = processed_data_dict['svr_hoster']
@@ -129,7 +129,37 @@ class hsl(commands.Cog):
             except: print(traceback.format_exc())
         # await ctx.invoke(bot.get_command('getStatus'))
         try:
-            srvcmd.honCMD().startSERVER()
+            result = srvcmd.honCMD().startSERVER()
+            if result == True:
+                if len(embed_log) == 0:
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    try:
+                        if owner_reachable:
+                            embedObj = await discord_admin.send(embed=temp_log)
+                        else:
+                            embedObj = await ctx.author.send(embed=temp_log)
+                    except: print(traceback.format_exc())
+                    embed_log.append(embedObj)
+                    #hsl.LastEmbedLog(embed_log)
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Server Started."))
+                try:
+                    await embed_log[0].edit(embed=logEmbed)
+                except: print(traceback.format_exc())
+            elif result == False:
+                if len(embed_log) == 0:
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    try:
+                        if owner_reachable:
+                            embedObj = await discord_admin.send(embed=temp_log)
+                        else:
+                            embedObj = await ctx.author.send(embed=temp_log)
+                    except: print(traceback.format_exc())
+                    embed_log.append(embedObj)
+                    #hsl.LastEmbedLog(embed_log)
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[ERR] Not enough free RAM."))
+                try:
+                    await embed_log[0].edit(embed=logEmbed)
+                except: print(traceback.format_exc())
         except: print(traceback.format_exc())
         try:
             await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
@@ -498,6 +528,8 @@ class hsl(commands.Cog):
                     embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                 embedFile.close()
             except: print(traceback.format_exc())
+            if hoster == svr_hoster:
+                waited = False
 
 
     @bot.command()
@@ -514,9 +546,10 @@ class hsl(commands.Cog):
             try:
                 await ctx.message.delete()
             except: pass
-            if not waited:
-                await asyncio.sleep(svr_id_delay)
-                waited = True
+            if hoster == svr_hoster:
+                if not waited:
+                    await asyncio.sleep(svr_id_delay)
+                    waited = True
             #await ctx.message.delete()
             #await asyncio.sleep(svr_id_delay)
             #
@@ -605,6 +638,8 @@ class hsl(commands.Cog):
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
+            if hoster == svr_hoster:
+                waited = False
     """
     
     testing the edit functionality
