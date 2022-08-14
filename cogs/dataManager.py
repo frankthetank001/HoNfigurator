@@ -45,7 +45,7 @@ class mData():
         #   Update the dictionary with some processed data
         self.confDict.update({"hon_home_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
         self.confDict.update({"hon_game_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\Heroes of Newerth x64\game\logs"})
+        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
         self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\\sdc"})
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
