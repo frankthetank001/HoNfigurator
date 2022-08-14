@@ -286,7 +286,7 @@ class embedManager(commands.Cog):
             #   
             #   Lobby online
             if self.game_started == False: 
-                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  รอผู้เล่นสร้างห้อง",description=default_description, color=stripColor_lobby)
+                created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  รอผู้เล่นเพื่อเริ่มเกมส์",description=default_description, color=stripColor_lobby)
             #   
             #   Match in progress
             elif self.game_started == True:
