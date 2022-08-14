@@ -156,7 +156,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[ERR] Not enough free RAM."))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[ERR] Not enough free RAM or server already running."))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
