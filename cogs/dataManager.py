@@ -53,7 +53,10 @@ class mData():
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
-        self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
+        if self.confDict['master_server'] == "honmasterserver.com":
+            self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
+        elif self.confDict['master_server'] == "kongor.online:666":
+            self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
