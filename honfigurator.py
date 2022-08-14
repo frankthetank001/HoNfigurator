@@ -73,13 +73,6 @@ class initialise():
         # self.master_pass = self.dataDict['master_pass']
         self.service_name_bot = f"adminbot{self.svr_id}"
         self.service_name_api = "honserver-registration"
-        self.secrets = initialise.KOTF(self)
-        self.svr_desc = self.secrets.split(',')[0]
-        self.svr_desc = self.svr_desc.replace('\n','')
-        self.master_user = self.secrets.split(',')[1]
-        self.master_user = self.master_user.replace('\n','')
-        self.master_pass = self.secrets.split(',')[2]
-        self.master_pass = self.master_pass.replace('\n','')
         if exists(config_global):
             config = configparser.ConfigParser()
             config.read(config_global)
@@ -267,6 +260,23 @@ class initialise():
                 #guilog.insert(END,"==========================================\n")
                 guilog.insert(END,f"FORCE or UPDATE DETECTED, APPLYING v{self.bot_version}\n")
                 #guilog.insert(END,"==========================================\n")
+            #
+            #    Kongor testing
+            if self.dataDict['master_server'] == "kongor.online:666":
+                if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe"):
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                    print("copying server exe...")
+            if self.dataDict['master_server'] == "honmasterserver.com":
+                if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\HON_SERVER_1.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                    print("copying server exe...")
+            self.secrets = initialise.KOTF(self)
+            self.svr_desc = self.secrets.split(',')[0]
+            self.svr_desc = self.svr_desc.replace('\n','')
+            self.master_user = self.secrets.split(',')[1]
+            self.master_user = self.master_user.replace('\n','')
+            self.master_pass = self.secrets.split(',')[2]
+            self.master_pass = self.master_pass.replace('\n','')
             if not exists(f"{self.hon_game_dir}\\startup.cfg"):
             #   below commented as we are no longer using game_settings_local.cfg
             # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
@@ -291,12 +301,6 @@ class initialise():
             #shutil.copy(os.path.abspath(application_path)+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
             print("Done!")
             print("Checking and creating required dependencies...")
-            #
-            #    Kongor testing
-            if self.dataDict['master_server'] == "kongor.online:666":
-                if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
-                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe")
-                    print("copying server exe...")
             #
             #
             if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}"):
