@@ -100,8 +100,9 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 	- Discord Admin Role ``(example: AUS Server Admins)``
 	- Discord Bot Token
 	- Masterserver host
-	- Masterserver User
-	- Master Password
+	- Core Assignment
+		- one logical core per server - ``Default``
+		- two logical cores per server
 	- ``Configure ALL servers`` button
 		- Configures all servers within the ``total servers range``
 	- ``Configure SINGLE server``
