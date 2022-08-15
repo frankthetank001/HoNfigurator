@@ -434,7 +434,7 @@ class gui():
         print (self.dataDict)
         return
     def coreassign(self):
-        return ["single","two"]
+        return ["one","two"]
     def corecount(self):
         cores = []
         for i in range(multiprocessing.cpu_count()):
