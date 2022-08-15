@@ -73,9 +73,10 @@ class initialise():
         # self.master_pass = self.dataDict['master_pass']
         self.service_name_bot = f"adminbot{self.svr_id}"
         self.service_name_api = "honserver-registration"
-        if exists(config_global):
+        deployed_config = self.sdc_home_dir+"\\config\\global_config.ini"
+        if exists(deployed_config):
             config = configparser.ConfigParser()
-            config.read(config_global)
+            config.read(deployed_config)
             self.ver_existing = config['OPTIONS']['bot_version']
             try:
                 self.ver_existing = float(self.ver_existing)
@@ -186,7 +187,6 @@ class initialise():
         self.startup.update({"svr_login":f'"{master_user}"'})
         self.startup.update({"svr_password":f'"{master_pass}"'})
         self.startup.update({"svr_desc":f'"{svr_desc}"'})
-        print (temp_port)
         dmgr.mData.setData(NULL,filename,self.startup)
         return True
 
@@ -435,6 +435,10 @@ class gui():
         return
     def coreassign(self):
         return ["one","two"]
+    def incrementport(self):
+        return["100","200","500","1000"]
+    def priorityassign(self):
+        return ["normal","high","realtime"]
     def corecount(self):
         cores = []
         for i in range(multiprocessing.cpu_count()):
@@ -457,7 +461,7 @@ class gui():
         elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
             self.svr_id_var.set(self.svr_total_var.get())
 
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,botmatches):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -485,6 +489,8 @@ class gui():
             conf_local.set("OPTIONS","master_server",master_server)
             conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
             conf_local.set("OPTIONS","core_assignment",core_assignment)
+            conf_local.set("OPTIONS","process_priority",process_priority)
+            conf_local.set("OPTIONS","incr_port_by",increment_port)
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -519,6 +525,8 @@ class gui():
                 conf_local.set("OPTIONS","master_server",master_server)
                 conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
                 conf_local.set("OPTIONS","core_assignment",core_assignment)
+                conf_local.set("OPTIONS","process_priority",process_priority)
+                conf_local.set("OPTIONS","incr_port_by",increment_port)
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -613,7 +621,7 @@ class gui():
         #   Simple Server data
         applet.Label(tab1, text="Hon Server Data",background=maincolor,foreground='white').grid(columnspan=1,column=1, row=1,sticky="w")
         #   hoster
-        applet.Label(tab1, text="Server Hoster:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
+        applet.Label(tab1, text="Server Name:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
         tab1_hosterd = applet.Entry(tab1,foreground=textcolor)
         tab1_hosterd.insert(0,self.dataDict['svr_hoster'])
         tab1_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4)
@@ -652,16 +660,26 @@ class gui():
         applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=8,sticky="e",padx=[20,0])
         tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
         tab1_masterserver.grid(column= 1, row = 8,sticky="w",pady=4)
+        #  one or two cores
+        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
+        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
+        tab1_core_assign.grid(column= 1, row = 9,sticky="w",pady=4)
+        #  one or two cores
+        self.priority = tk.StringVar(app,self.dataDict['process_priority'])
+        applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
+        tab1_priority = applet.Combobox(tab1,foreground=textcolor,value=self.priorityassign(),textvariable=self.priority)
+        tab1_priority.grid(column= 1, row = 10,sticky="w",pady=4)
+        #  increment ports
+        self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
+        applet.Label(tab1, text="Increment each server port by:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+        tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port)
+        tab1_increment_port.grid(column= 1, row = 11,sticky="w",pady=4)
         #   force update
-        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-        tab1_forceupdate_btn.grid(column= 1, row = 9,sticky="w",pady=4)
-        #  HoN master server
-        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
-        applet.Label(tab1, text="Cores Assigned per Server:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
-        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
-        tab1_core_assign.grid(column= 1, row = 10,sticky="w",pady=4)
+        tab1_forceupdate_btn.grid(column= 1, row = 12,sticky="w",pady=4)
         #
         #
         
@@ -689,12 +707,12 @@ class gui():
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
-        guilog.grid(columnspan=6,column=0,row=12,sticky="n")
+        guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.botmatches.get()))
-        tab1_singlebutton.grid(columnspan=3, column=1, row=13,stick='n',padx=[0,10],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.botmatches.get()))
-        tab1_allbutton.grid(columnspan=4, column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
+        tab1_singlebutton.grid(columnspan=3, column=1, row=14,stick='n',padx=[0,10],pady=[20,10])
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
+        tab1_allbutton.grid(columnspan=4, column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
         
         """
         

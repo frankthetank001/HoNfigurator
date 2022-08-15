@@ -51,6 +51,10 @@ class mData():
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         if 'core_assignment' not in self.confDict:
             self.confDict.update({'core_assignment':'one'})
+        if 'process_priority' not in self.confDict:
+            self.confDict.update({'process_priority':'realtime'})
+        if 'incr_port_by' not in self.confDict:
+            self.confDict.update({'incr_port_by':1000})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -117,8 +121,8 @@ class mData():
             incr_port = 0
             for i in range(0,self.svr_id):
                 i +=1
-                incr_port = 1000 * i
-                incr_port = int(incr_port)
+                incr_val = int(self.confDict['incr_port_by'])
+                incr_port = incr_val * i
             print("port iteration: " +str(incr_port))
             return incr_port
         if dtype == "DNSName":

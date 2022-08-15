@@ -30,7 +30,12 @@ class honCMD():
 
     def changePriority(self,priority_realtime):
         if priority_realtime:
-            self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
+            if processed_data_dict['process_priority'] == "normal":
+                self.server_status['hon_pid_hook'].nice(psutil.NORMAL_PRIORITY_CLASS)
+            elif processed_data_dict['process_priority'] == "high":
+                self.server_status['hon_pid_hook'].nice(psutil.HIGH_PRIORITY_CLASS)
+            elif processed_data_dict['process_priority'] == "realtime":
+                self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
             print("priority set to realtime")
             self.server_status.update({'priority_realtime':True})
         else:
