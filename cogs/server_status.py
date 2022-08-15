@@ -72,7 +72,7 @@ class honCMD():
                 #server_status_dict.update({"hon_pid":self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 server_status_dict.update({'hon_pid_hook':honPID})
-                honPID.cpu_affinity([processed_data_dict['svr_affinity']])
+                honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
