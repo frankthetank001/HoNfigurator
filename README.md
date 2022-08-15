@@ -14,7 +14,7 @@ The total number of servers supported is limited by the total number of logical 
 3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
 4. Select to deploy single or all servers.
 5. Servers will automatically start and you will receive a message from your bot with the next steps.
-6. Servers will be each assigned to their own CPU core, and given a ``low`` process priority unless a game is running, in which case it is set to ``high``
+6. Servers will be each assigned to their own CPU core, and given a ``low`` process priority unless a game is running, in which case it is set to ``realtime``
 
 #### Example: If 2 total servers selected
 This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
