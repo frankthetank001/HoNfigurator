@@ -456,9 +456,25 @@ class gui():
         return["100","200","500","1000"]
     def priorityassign(self):
         return ["normal","high","realtime"]
+    def coreadjust(self,var,index,mode):
+        total_cores = psutil.cpu_count(logical = True)
+        half_core_count = total_cores / 2
+        half_core_count = int(half_core_count)
+        core_assignment = str(self.core_assign.get()).lower()
+        if core_assignment == "one":
+            return
+        elif core_assignment == "two" and int(self.svr_total_var.get()) > half_core_count:
+            self.svr_total_var.set(half_core_count)
     def corecount(self):
         cores = []
-        for i in range(multiprocessing.cpu_count()):
+        total_cores = psutil.cpu_count(logical = True)
+        half_core_count = total_cores / 2
+        half_core_count = int(half_core_count)
+        if self.dataDict['core_assignment'] == "two":
+            #for i in range(half_core_count):
+                #cores.append(i+1)
+            self.svr_total_var.set(half_core_count)
+        for i in range(total_cores):
             cores.append(i+1)
         return cores
     def regions(self):
@@ -477,6 +493,8 @@ class gui():
             return
         elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
             self.svr_id_var.set(self.svr_total_var.get())
+        # elif str(self.core_assign.get()).lower() == "two":
+        #     self.svr_total_var.set()
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,increment_port):
         global config_local
         global config_global
@@ -633,6 +651,18 @@ class gui():
         #   title
         logolabel_tab1 = applet.Label(tab1,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
+        #   server total    
+        self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
+        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e")
+        tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var)
+        tab1_servertd.grid(column= 1 , row = 6,sticky="w",pady=4)
+        self.svr_total_var.trace_add('write', self.coreadjust)
+        #  one or two cores
+        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
+        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
+        tab1_core_assign.grid(column= 1, row = 9,sticky="w",pady=4)
+        self.core_assign.trace_add('write', self.coreadjust)
         #   
         #   Simple Server data
         applet.Label(tab1, text="Hon Server Data",background=maincolor,foreground='white').grid(columnspan=1,column=1, row=1,sticky="w")
@@ -660,12 +690,7 @@ class gui():
         tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
         tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4)
         self.svr_id_var.trace_add('write', self.svr_num_link)
-        #   server total    
-        self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
-        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e")
-        tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var)
-        tab1_servertd.grid(column= 1 , row = 6,sticky="w",pady=4)
-        self.svr_total_var.trace_add('write', self.svr_num_link)
+        
         #   HoN Directory
         applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
         tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
@@ -676,11 +701,7 @@ class gui():
         applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=8,sticky="e",padx=[20,0])
         tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
         tab1_masterserver.grid(column= 1, row = 8,sticky="w",pady=4)
-        #  one or two cores
-        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
-        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
-        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
-        tab1_core_assign.grid(column= 1, row = 9,sticky="w",pady=4)
+        
         #  one or two cores
         self.priority = tk.StringVar(app,self.dataDict['process_priority'])
         applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
