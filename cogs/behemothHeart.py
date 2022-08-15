@@ -98,7 +98,7 @@ class heartbeat(commands.Cog):
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     svr_state.restartSELF()
 
-            if playercount == 1:
+            if playercount >= 1 and self.server_status['lobby_created'] == False:
                 if self.server_status['lobby_created'] == False:
                     counter_hosted+=1
                     counter_lobbycheck+=1
@@ -117,16 +117,8 @@ class heartbeat(commands.Cog):
 
                 if counter_lobbycheck == threshold_lobbycheck:
                     counter_lobbycheck=0
-                    #   
-                    #   this is the part where the server has been selected, so we need to parse the game logs carefully now to catch lobby information
-                    # hardSlave = svr_state.getData("loadHardSlave")
-                    # softSlave = svr_state.getData("loadSoftSlave")
-                    #if (str(softSlave) != str(hardSlave)) or self.server_status['first_run'] == True:
                     if self.server_status['first_run'] == True:
                         svr_state.getData("GameCheck")
-                        #print("Just collected: "+str(self.just_collected))
-                        # print(state)
-                        #self.server_status.update({'tempcount':-5})
                         if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
                             svr_state.changePriority(True)
             #

@@ -17,9 +17,7 @@ from os.path import exists
 from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
-import shutil
-import re
-import wmi
+import multiprocessing
 
 #import cogs.server_status as svrcmd
 
@@ -51,6 +49,8 @@ class mData():
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
+        if 'core_assignment' not in self.confDict:
+            self.confDict.update({'core_assignment':'one'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -96,9 +96,17 @@ class mData():
             #
             #   Get total cores, logical included
             total_cores = psutil.cpu_count(logical = True)
-            #
-            #   Set affinity of the hon process to total cores - server ID
-            affinity = total_cores - self.svr_id
+            if self.confDict['core_assignment'] == 'two':
+                affinity = [0,0]
+                #
+                #   Set affinity of the hon process to total cores - server ID
+                affinity[0] = total_cores - self.svr_id
+                affinity[1] = affinity[0] - 1
+            else:
+                affinity = [0,0]
+                affinity[0] = total_cores - self.svr_id
+                affinity[1] = total_cores - self.svr_id
+            print("CPU Affinity: "+str(affinity))
             return affinity
         if dtype == "pythonLoc":
             return sp.getoutput('where python')

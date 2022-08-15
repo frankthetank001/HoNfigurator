@@ -433,6 +433,8 @@ class gui():
         self.dataDict = self.initdict.returnDict()
         print (self.dataDict)
         return
+    def coreassign(self):
+        return ["single","two"]
     def corecount(self):
         cores = []
         for i in range(multiprocessing.cpu_count()):
@@ -455,7 +457,7 @@ class gui():
         elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
             self.svr_id_var.set(self.svr_total_var.get())
 
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,botmatches):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,botmatches):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -482,6 +484,7 @@ class gui():
             conf_local.set("OPTIONS","discord_admin",discordadmin)
             conf_local.set("OPTIONS","master_server",master_server)
             conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+            conf_local.set("OPTIONS","core_assignment",core_assignment)
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -515,6 +518,7 @@ class gui():
                 conf_local.set("OPTIONS","discord_admin",discordadmin)
                 conf_local.set("OPTIONS","master_server",master_server)
                 conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+                conf_local.set("OPTIONS","core_assignment",core_assignment)
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -653,6 +657,11 @@ class gui():
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
         tab1_forceupdate_btn.grid(column= 1, row = 9,sticky="w",pady=4)
+        #  HoN master server
+        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
+        applet.Label(tab1, text="Cores Assigned per Server:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
+        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
+        tab1_core_assign.grid(column= 1, row = 10,sticky="w",pady=4)
         #
         #
         
@@ -682,9 +691,9 @@ class gui():
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=12,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.botmatches.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.botmatches.get()))
         tab1_singlebutton.grid(columnspan=3, column=1, row=13,stick='n',padx=[0,10],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.botmatches.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.botmatches.get()))
         tab1_allbutton.grid(columnspan=4, column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
         
         """
