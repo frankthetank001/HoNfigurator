@@ -120,7 +120,6 @@ class mData():
         if dtype == "incr_port":
             incr_port = 0
             for i in range(0,self.svr_id):
-                i +=1
                 incr_val = int(self.confDict['incr_port_by'])
                 incr_port = incr_val * i
             print("port iteration: " +str(incr_port))

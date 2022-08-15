@@ -1,4 +1,5 @@
 
+from asyncio.subprocess import DEVNULL
 import tkinter as tk
 from tkinter import *
 from tkinter import getboolean, ttk
@@ -189,7 +190,20 @@ class initialise():
         self.startup.update({"svr_desc":f'"{svr_desc}"'})
         dmgr.mData.setData(NULL,filename,self.startup)
         return True
-
+    def configure_firewall(self):
+        try:
+            check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{self.dataDict['hon_file_name']}\"")
+            if check_rule == 0:
+                add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{self.dataDict['hon_file_name']}\" new program=\"{self.dataDict['hon_exe']}\" dir=in action=allow")
+                print("firewall rule modified.")
+                return True
+            elif check_rule == 1:
+                add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{self.dataDict['hon_file_name']}\" program=\"{self.dataDict['hon_exe']}\" dir=in action=allow")
+                print("firewall rule added.")
+                return True
+        except: 
+            print(traceback.format_exc())
+            return False
     def configureEnvironment(self,configLoc,force_update):
         global hon_api_updated
         global players_connected
@@ -253,12 +267,13 @@ class initialise():
         if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
             print(f"Server is already configured, checking values for {self.service_name_bot}...")
             dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
+        firewall = initialise.configure_firewall(self)
         if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
         #   below commented as we are no longer using game_settings_local.cfg
         #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
             if bot_needs_update or force_update == True:
                 #guilog.insert(END,"==========================================\n")
-                guilog.insert(END,f"FORCE or UPDATE DETECTED, APPLYING v{self.bot_version}\n")
+                guilog.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
                 #guilog.insert(END,"==========================================\n")
             #
             #    Kongor testing
@@ -416,13 +431,15 @@ class initialise():
             if players_connected == True:
                 guilog.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+            guilog.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+            if firewall:
+                guilog.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}")
             print("==========================================")
         else:
             print("==========================================")
             guilog.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
             guilog.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
             #guilog.insert(END,"==============================================\n")
-        guilog.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
         bot_needs_update = False
         players_connected = False
 
@@ -460,7 +477,6 @@ class gui():
             return
         elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
             self.svr_id_var.set(self.svr_total_var.get())
-
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,increment_port):
         global config_local
         global config_global
