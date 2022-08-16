@@ -346,16 +346,16 @@ class embedManager(commands.Cog):
     async def helpembed(self, ctx):
         created_embed = discord.Embed(title="Commands for bot",description='', color=stripColor_help)
         created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_hoster']}``: ", value=f"        Creates links for **ALL** {processed_data_dict['svr_hoster']} servers in this discord",inline=False)
-        created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_id_w_total']}``: ", value=f"        Creates links for just the **SINGLE** {processed_data_dict['svr_id_w_total']} server in this discord",inline=False)
+        created_embed.add_field(name=f"``!createlinks {processed_data_dict['svr_identifier']}``: ", value=f"        Creates links for just the **SINGLE** {processed_data_dict['svr_identifier']} server in this discord",inline=False)
         created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_hoster']}``: ", value=f"        Removes links/messages for **ALL** {processed_data_dict['svr_hoster']} servers in every discord",inline=False)
-        created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_id_w_total']}``: ", value=f"        Removes links/messages for **SINGLE** {processed_data_dict['svr_id_w_total']} server in every discord",inline=False)
+        created_embed.add_field(name=f"``!destroylinks {processed_data_dict['svr_identifier']}``: ", value=f"        Removes links/messages for **SINGLE** {processed_data_dict['svr_identifier']} server in every discord",inline=False)
         created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_hoster']}``: ", value=f"        Removes links/messages for **ALL** {processed_data_dict['svr_hoster']} servers in this discord server only",inline=False)
-        created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_id_w_total']}``: ", value=f"        Removes link/message for **SINGLE** {processed_data_dict['svr_id_w_total']} server in this discord server only",inline=False)
+        created_embed.add_field(name=f"``!destroylinkshere {processed_data_dict['svr_identifier']}``: ", value=f"        Removes link/message for **SINGLE** {processed_data_dict['svr_identifier']} server in this discord server only",inline=False)
         created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_hoster']}``: ", value=f"        checks the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
-        created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_id_w_total']}``: ", value=f"        checks the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
-        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
-        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
-        created_embed.add_field(name=f"``!pullplug {processed_data_dict['svr_id_w_total']}``: ", value=f"        EMERGENCY! Stops the heartbeat of **SINGLE** {processed_data_dict['svr_id_w_total']} server",inline=False)
+        created_embed.add_field(name=f"``!heartbeat {processed_data_dict['svr_identifier']}``: ", value=f"        checks the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
+        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
+        created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
+        created_embed.add_field(name=f"``!pullplug {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Stops the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
         return created_embed
 
     @bot.command()
