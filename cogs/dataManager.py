@@ -77,7 +77,8 @@ class mData():
         self.confDict.update({"incr_port":mData.getData(self,"incr_port")})
         self.confDict.update({"total_games_played":mData.getData(self,"TotalGamesPlayed")})
         #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
-        self.game_config = mData.parse_config(self,f"{self.confDict['hon_game_dir']}\\startup.cfg")
+        if exists(f"{self.confDict['hon_game_dir']}\\startup.cfg"):
+            self.game_config = mData.parse_config(self,f"{self.confDict['hon_game_dir']}\\startup.cfg")
         gameDllHash = mData.getData(self,"gameDllHash")
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-70.exe"})
