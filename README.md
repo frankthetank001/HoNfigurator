@@ -103,6 +103,9 @@ Details on how to clone a repository found here: https://docs.github.com/en/repo
 	- Core Assignment
 		- one logical core per server - ``Default``
 		- two logical cores per server
+	- Increment Port (starts at 10000_
+		- the value to increment the port number by for each subsequent server.
+		- server1 (10000), server2 (11000), etc..
 	- ``Configure ALL servers`` button
 		- Configures all servers within the ``total servers range``
 	- ``Configure SINGLE server``
