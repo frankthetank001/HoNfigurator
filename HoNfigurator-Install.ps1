@@ -1,8 +1,15 @@
 ## Install Chocolatey package manager ##
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
+cls
+
+Write-Output "
+--------------------------------------
+HoNfigurator All in One install script
+--------------------------------------
+"
 
 ## Install required software with chocolatey - this will also install the dependencies for these programs ##
-Write-Output "Installaing dependencies from Chocolatey"
+Write-Output "Installing dependencies from Chocolatey"
 choco install python3 -y 2>&1 | Write-Verbose  ## Python 3 - to run the HoNfigurator launcher install
 choco install git -y 2>&1 | Write-Verbose ## Github Cli - clone the required repos
 choco install nssm -y 2>&1 | Write-Verbose ## Non-Sucking Service Manager - for automating server restarts
@@ -13,7 +20,7 @@ Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 refreshenv 2>&1 | Write-Verbose
 
 ## Download HoN client ##
-Write-Output "Downloading HoN Client to current directory. Please be patient - do NOT cancel"
+Write-Output "Downloading HoN Client to current directory. This may take some time - 6.3GB"
 $URL="https://store3.gofile.io/download/direct/a254d73c-9fe5-489f-85e5-92ac4bc6b084/HoN-Client-x64-CLEAN.zip"
 $ZIP="HoN-Client-x64.zip"
 $progressPreference = 'silentlyContinue'
@@ -37,6 +44,7 @@ rm $WS -r -force
 Write-Output "Cloning HoNfigurator files"
 $hondir=Get-Location
 git clone https://github.com/frankthetank001/HoNfigurator 2>&1 | Write-Verbose
+Write-Output "Installing python dependencies"
 pip install -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
 ac -Path .\HoNfigurator\config\default_config.ini -Value "
 hon_directory = $hondir\HoN-Client-x64-CLEAN\"
