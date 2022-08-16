@@ -1,4 +1,4 @@
 discord.py
 psutil
 wmi
-get_mac
+getmac
