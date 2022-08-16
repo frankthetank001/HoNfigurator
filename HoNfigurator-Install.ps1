@@ -3,9 +3,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 cls
 
 Write-Output "
---------------------------------------
-HoNfigurator All in One install script
---------------------------------------
+-----------------------------------------------------
+HoNfigurator All in One server install script
+The launcher will run once the install has completed
+-----------------------------------------------------
 "
 
 ## Install required software with chocolatey - this will also install the dependencies for these programs ##
@@ -49,5 +50,5 @@ pip install -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
 ac -Path .\HoNfigurator\config\default_config.ini -Value "
 hon_directory = $hondir\HoN-Client-x64-CLEAN\"
 py .\HoNfigurator\honfigurator.py
-Write-Output "-Launching HoNfigurator - you may now close this window"
+Write-Output "Launching HoNfigurator - you may now close this window"
 pause
