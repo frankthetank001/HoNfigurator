@@ -6,17 +6,21 @@ Write-Output "Installaing dependencies from Chocolatey"
 choco install python3 -y 2>&1 | Write-Verbose  ## Python 3 - to run the HoNfigurator launcher install
 choco install git -y 2>&1 | Write-Verbose ## Github Cli - clone the required repos
 choco install nssm -y 2>&1 | Write-Verbose ## Non-Sucking Service Manager - for automating server restarts
+
+## Refresh environemnt variables after installation of dependencies ##
+$env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."   
+Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 refreshenv 2>&1 | Write-Verbose
 
 ## Download HoN client ##
-Write-Output "-Downloading HoN Client to current directory. Please be patient - do NOT cancel"
+Write-Output "Downloading HoN Client to current directory. Please be patient - do NOT cancel"
 $URL="https://store3.gofile.io/download/direct/a254d73c-9fe5-489f-85e5-92ac4bc6b084/HoN-Client-x64-CLEAN.zip"
 $ZIP="HoN-Client-x64.zip"
 $progressPreference = 'silentlyContinue'
 Invoke-WebRequest -URI $URL -OutFile $ZIP
 
 ## Extract HoN Client ##
-Write-Output "-Extracting HoN Client to current directory"
+Write-Output "Extracting HoN Client to current directory"
 Expand-Archive -Path $ZIP -DestinationPath $pwd 2>&1 | Write-Verbose
 rm $ZIP
 
@@ -37,7 +41,5 @@ pip install -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
 ac -Path .\HoNfigurator\config\default_config.ini -Value "
 hon_directory = $hondir\HoN-Client-x64-CLEAN\"
 py .\HoNfigurator\honfigurator.py
-
-
 Write-Output "-Launching HoNfigurator - you may now close this window"
 pause
