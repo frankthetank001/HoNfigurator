@@ -288,21 +288,25 @@ class initialise():
             #
             #    Kongor testing
             if self.dataDict['master_server'] == "honmasterserver.com":
-                if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
-                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\HON_SERVER_1.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
-                    print("copying server exe...")
+                if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
+                    try:
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                        print("copying server exe...")
+                    except: print("server in use, can't replace exe, will try again when server is stopped.")
             if self.dataDict['master_server'] == "kongor.online:666":
-                if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe"):
-                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
-                    print("copying server exe...")
-                self.secrets = initialise.KOTF(self)
-                if self.secrets:
-                    self.svr_desc = self.secrets.split(',')[0]
-                    self.svr_desc = self.svr_desc.replace('\n','')
-                    self.master_user = self.secrets.split(',')[1]
-                    self.master_user = self.master_user.replace('\n','')
-                    self.master_pass = self.secrets.split(',')[2]
-                    self.master_pass = self.master_pass.replace('\n','')
+                if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
+                    try:
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                        print("copying server exe...")
+                    except: print("server in use, can't replace exe, will try again when server is stopped.")
+            self.secrets = initialise.KOTF(self)
+            if self.secrets:
+                self.svr_desc = self.secrets.split(',')[0]
+                self.svr_desc = self.svr_desc.replace('\n','')
+                self.master_user = self.secrets.split(',')[1]
+                self.master_user = self.master_user.replace('\n','')
+                self.master_pass = self.secrets.split(',')[2]
+                self.master_pass = self.master_pass.replace('\n','')
             if not exists(f"{self.hon_game_dir}\\startup.cfg"):
             #   below commented as we are no longer using game_settings_local.cfg
             # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
@@ -317,7 +321,15 @@ class initialise():
             #         shutil.copy(os.path.abspath(application_path)+"\\"+i,self.sdc_home_dir+"\\"+i)
             shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
             #shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-            distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\cogs\\", f'{self.sdc_home_dir}\\cogs\\')
+            src_folder = os.path.abspath(application_path)+"\\cogs\\"
+            dst_folder = f'{self.sdc_home_dir}\\cogs\\'
+            for file_name in os.listdir(src_folder):
+                src_file = src_folder+file_name
+                dst_file = dst_folder+file_name
+                if os.path.isfile(src_file):
+                    shutil.copy(src_file, dst_file)
+                    print('copied', file_name)
+            #shutil.copy(os.path.abspath(application_path)+"\\cogs\\*", f'{self.sdc_home_dir}\\cogs\\')
             distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config\\", f'{self.sdc_home_dir}\\config\\')
             #
             #   FIX BELOW
@@ -410,7 +422,18 @@ class initialise():
                     playercount = initialise.playerCount(self)
                     if playercount == 0:
                         print("No players connected, safe to restart...")
-                        initialise.restart_service(self,self.service_name_bot)
+                        initialise.stop_service(self,self.service_name_bot)
+                        if self.dataDict['master_server'] == "honmasterserver.com":
+                            try:
+                                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                                print("copying server exe...")
+                            except Exception as e: print(e + "can't replace exe.")
+                        if self.dataDict['master_server'] == "kongor.online:666":
+                            try:
+                                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                                print("copying server exe...")
+                            except Exception as e: print(e + "can't replace exe.")
+                        initialise.start_service(self,self.service_name_bot)
                     else:
                         players_connected = True
                         initialise.schedule_restart(self)
@@ -489,7 +512,7 @@ class gui():
             cores.append(i+1)
         return cores
     def regions(self):
-        return [["US - West","US - East","Thailand","Australia","Malaysia"],["USW","USE","AU","AU","AU"]]
+        return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","AU","AU","AU","RU","EU","BR"]]
     def masterserver(self):
         return ["kongor.online:666","honmasterserver.com"]
     def reg_def_link(self,var,index,mode):
