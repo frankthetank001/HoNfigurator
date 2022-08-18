@@ -20,6 +20,10 @@ from distutils import dir_util
 import subprocess
 import traceback
 import sys
+import win32com.client
+import datetime
+from pygit2 import Repository
+import git
 
 # determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
@@ -103,7 +107,88 @@ class initialise():
             print("ERROR GETTING MAC ADDR")
             guilog.insert(END,"ERROR GETTING MAC ADDR")
             return False
-        
+    def getstatus_updater(self,auto_update,selected_branch):
+        TASK_ENUM_HIDDEN = 1
+        TASK_STATE = {0: 'Unknown',
+                    1: 'Disabled',
+                    2: 'Queued',
+                    3: 'Ready',
+                    4: 'Running'}
+
+        scheduler = win32com.client.Dispatch('Schedule.Service')
+        scheduler.Connect()
+
+        n = 0
+        folders = [scheduler.GetFolder('\\')]
+        while folders:
+            folder = folders.pop(0)
+            folders += list(folder.GetFolders(0))
+            tasks = list(folder.GetTasks(TASK_ENUM_HIDDEN))
+            for task in tasks:
+                if task.name == "HoNfigurator Updater":
+                    # settings = task.Definition.Settings
+                    # print('Path       : %s' % task.Path)
+                    # print('Hidden     : %s' % settings.Hidden)
+                    # print('State      : %s' % TASK_STATE[task.State])
+                    # print('Last Run   : %s' % task.LastRunTime)
+                    # print('Last Result: %s\n' % task.LastTaskResult)
+                    if TASK_STATE[task.State] == "Ready" and auto_update == False:
+                        p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        return True
+                    elif TASK_STATE[task.State] == "Disabled" and auto_update == True:
+                        p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        return False
+                    return
+            else: 
+                if auto_update == True:
+                    initialise.register_updater(self,selected_branch)
+                    return True
+                else:
+                    return False
+
+    def disable_updater(self):
+        print("disabled")
+    def enable_updater(self):
+        print("enabled")
+    def register_updater(self,selected_branch):
+        subprocess.run(f'schtasks.exe /create /RU "NT AUTHORITY\SYSTEM" /RL HIGHEST /SC HOURLY /TN "test" /TR "{application_path}\\Dependencies\\Reg_Schd_task.bat" /F')
+    def register_updater2(self,selected_branch):
+        scheduler = win32com.client.Dispatch('Schedule.Service')
+        scheduler.Connect()
+        root_folder = scheduler.GetFolder('\\')
+        task_def = scheduler.NewTask(0)
+
+        # Create trigger
+        start_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
+        TASK_TRIGGER_TIME = 1
+        trigger = task_def.Triggers.Create(TASK_TRIGGER_TIME)
+        trigger.StartBoundary = start_time.isoformat()
+
+        # Create action
+        TASK_ACTION_EXEC = 0
+        action = task_def.Actions.Create(TASK_ACTION_EXEC)
+        action.ID = 'DO NOTHING'
+        action.Path = 'cmd.exe'
+        action.Arguments = 'git pull'
+        action.WorkingDirectory = application_path
+
+        # Set parameters
+        task_def.RegistrationInfo.Description = f'Updates HoNfigurator from the {selected_branch}'
+        task_def.Settings.Enabled = True
+        task_def.Settings.StopIfGoingOnBatteries = False
+
+        # Register task
+        # If task already exists, it will be updated
+        TASK_CREATE_OR_UPDATE = 6
+        TASK_LOGON_SERVICE_ACCOUNT = 6
+        #TASK_RUNLEVEL_HIGHEST = 1
+        root_folder.RegisterTaskDefinition(
+            'HoNfigurator Updater',  # Task name
+            task_def,
+            TASK_CREATE_OR_UPDATE,
+            'NT AUTHORITY\SYSTEM',  # No user
+            '',  # No password
+            TASK_LOGON_SERVICE_ACCOUNT)
     def get_startupcfg(self):
         config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
         return config_startup
@@ -461,6 +546,19 @@ class gui():
         self.dataDict = self.initdict.returnDict()
         print (self.dataDict)
         return
+    def git_current_branch(self):
+        current_branch = Repository('.').head.shorthand  # 'master'
+        return current_branch
+    def git_all_branches(self):
+        repositories = []
+        repo = git.Repo('.')
+        remote_refs = repo.remote().refs
+        for refs in remote_refs:
+            repos = refs.name.replace('origin/','')
+            repositories.append(repos)
+            if 'HEAD' in repositories:
+                repositories.remove(repos)
+        return repositories
     def coreassign(self):
         return ["one","two"]
     def incrementport(self):
@@ -506,13 +604,22 @@ class gui():
             self.svr_id_var.set(self.svr_total_var.get())
         # elif str(self.core_assign.get()).lower() == "two":
         #     self.svr_total_var.set()
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,auto_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
+        if auto_update:
+            updater_status = initialise.getstatus_updater(self,auto_update,selected_branch)
+        #if updater_status == False and autoupdate == True:
+        # if autoupdate == True:
+        #     initialise.register_updater(self)
+        # else:
+        #     initialise.disable_updater(self)
+
+
 
         if identifier == "single":
             print()
@@ -536,6 +643,7 @@ class gui():
             conf_local.set("OPTIONS","core_assignment",core_assignment)
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
+            conf_local.set("OPTIONS","auto_update",str(auto_update))
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -572,6 +680,7 @@ class gui():
                 conf_local.set("OPTIONS","core_assignment",core_assignment)
                 conf_local.set("OPTIONS","process_priority",process_priority)
                 conf_local.set("OPTIONS","incr_port_by",increment_port)
+                conf_local.set("OPTIONS","auto_update",(auto_update))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -602,7 +711,7 @@ class gui():
         global guilog
         app = tk.Tk()
         applet = ttk
-        app.title("HoNfigurator")
+        app.title(f"HoNfigurator v{self.dataDict['bot_version']} by @{self.dataDict['bot_author']}")
         #   importing icon
         honico = PhotoImage(file = os.path.abspath(application_path)+f"\\icons\\honico.png")
         app.iconphoto(False, honico) 
@@ -660,7 +769,7 @@ class gui():
         simple server setup tab
         """
         #   title
-        logolabel_tab1 = applet.Label(tab1,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+        logolabel_tab1 = applet.Label(tab1,text=f"HoNfigurator",background=maincolor,foreground='white',image=honlogo)
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
         #   server total    
         self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
@@ -748,18 +857,30 @@ class gui():
         self.botmatches = tk.BooleanVar(app)
         tab1_botmatches_btn = applet.Checkbutton(tab1,variable=self.botmatches)
         tab1_botmatches_btn.grid(column= 4, row = 4,sticky="w",pady=4)
+        #   auto update
+        applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
+        self.autoupdate = tk.BooleanVar(app)
+        if self.dataDict['auto_update'] == 'True':
+            self.autoupdate.set(True)
+        tab1_autoupdate_btn = applet.Checkbutton(tab1,variable=self.autoupdate)
+        tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
+        #   branch select
+        self.git_branch = tk.StringVar(app,self.git_current_branch())
+        applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+        tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
+        tab1_git_branch.grid(column= 4, row = 6,sticky="w",pady=4)
         #   bot version
-        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
-        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 5,sticky="w",pady=4)
+        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
+        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
         print(self.forceupdate.get())
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_singlebutton.grid(columnspan=3, column=1, row=14,stick='n',padx=[0,10],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_allbutton.grid(columnspan=4, column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
         
         """

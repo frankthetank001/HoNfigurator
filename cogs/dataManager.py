@@ -55,6 +55,8 @@ class mData():
             self.confDict.update({'process_priority':'realtime'})
         if 'incr_port_by' not in self.confDict:
             self.confDict.update({'incr_port_by':1000})
+        if 'auto_update' not in self.confDict:
+            self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
