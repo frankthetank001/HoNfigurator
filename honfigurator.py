@@ -289,7 +289,7 @@ class initialise():
             #    Kongor testing
             if self.dataDict['master_server'] == "honmasterserver.com":
                 if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe"):
-                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\HON_SERVER_1.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
                     print("copying server exe...")
             if self.dataDict['master_server'] == "kongor.online:666":
                 if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe"):
