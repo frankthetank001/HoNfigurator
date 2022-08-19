@@ -150,13 +150,80 @@ class initialise():
         print("disabled")
     def enable_updater(self):
         print("enabled")
-    def register_updater(self,selected_branch):
-        subprocess.run(f'schtasks.exe /create /RU "NT AUTHORITY\SYSTEM" /RL HIGHEST /SC HOURLY /TN "test" /TR "{application_path}\\Dependencies\\Reg_Schd_task.bat" /F')
+    def register_updater1(self,selected_branch):
+        computer_name = "" #leave all blank for current computer, current user
+        computer_username = ""
+        computer_userdomain = ""
+        computer_password = ""
+        action_id = "Test Task" #arbitrary action ID
+        action_path = r"c:\windows\system32\calc.exe" #executable path (could be python.exe)
+        action_arguments = r'' #arguments (could be something.py)
+        action_workdir = r"c:\windows\system32" #working directory for action executable
+        author = "Someone" #so that end users know who you are
+        description = "testing task" #so that end users can identify the task
+        task_id = "Test Task"
+        task_hidden = False #set this to True to hide the task in the interface
+        username = "SYSTEM"
+        password = ""
+        run_flags = "TASK_RUN_NO_FLAGS" #see dict below, use in combo with username/password
+        #define constants
+        TASK_TRIGGER_DAILY = 2
+        TASK_CREATE_OR_UPDATE = 6
+        TASK_ACTION_EXEC = 0
+        RUNFLAGSENUM = {
+            "TASK_RUN_NO_FLAGS"              : 0,
+            "TASK_RUN_AS_SELF"               : 1,
+            "TASK_RUN_IGNORE_CONSTRAINTS"    : 2,
+            "TASK_RUN_USE_SESSION_ID"        : 4,
+            "TASK_RUN_USER_SID"              : 8 
+        }
+
+        #connect to the scheduler (Vista/Server 2008 and above only)
+        scheduler = win32com.client.Dispatch("Schedule.Service")
+        scheduler.Connect(computer_name or None, computer_username or None, computer_userdomain or None, computer_password or None)
+        rootFolder = scheduler.GetFolder("\\")
+
+        #(re)define the task
+        taskDef = scheduler.NewTask(0)
+        colTriggers = taskDef.Triggers
+        trigger = colTriggers.Create(TASK_TRIGGER_DAILY)
+        trigger.DaysInterval = 100
+        trigger.StartBoundary = "2100-01-01T08:00:00-00:00" #never start
+        trigger.Enabled = False
+
+        colActions = taskDef.Actions
+        action = colActions.Create(TASK_ACTION_EXEC)
+        action.ID = action_id
+        action.Path = action_path
+        action.WorkingDirectory = action_workdir
+        action.Arguments = action_arguments
+
+        info = taskDef.RegistrationInfo
+        info.Author = author
+        info.Description = description
+
+        settings = taskDef.Settings
+        settings.Enabled = False
+        settings.Hidden = task_hidden
+
+        #register the task (create or update, just keep the task name the same)
+        result = rootFolder.RegisterTaskDefinition(task_id, taskDef, TASK_CREATE_OR_UPDATE, "System", "", RUNFLAGSENUM[run_flags] ) #username, password
+
+        #run the task once
+        task = rootFolder.GetTask(task_id)
+        task.Enabled = True
+        runningTask = task.Run("")
+        task.Enabled = False
     def register_updater2(self,selected_branch):
+        subprocess.run(f'schtasks.exe /create /RU "NT AUTHORITY\SYSTEM" /RL HIGHEST /SC HOURLY /TN "test" /TR "{application_path}\\Dependencies\\Reg_Schd_task.bat" /F')
+    def register_updater(self,selected_branch):
         scheduler = win32com.client.Dispatch('Schedule.Service')
         scheduler.Connect()
         root_folder = scheduler.GetFolder('\\')
         task_def = scheduler.NewTask(0)
+        #set the user name
+        user_name = "System"
+        password = None
 
         # Create trigger
         start_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
@@ -173,21 +240,27 @@ class initialise():
         action.WorkingDirectory = application_path
 
         # Set parameters
+        TASK_RUNLEVEL_HIGHEST = 1
+        TASK_LOGON_SERVICE_ACCOUNT = 5
         task_def.RegistrationInfo.Description = f'Updates HoNfigurator from the {selected_branch}'
         task_def.Settings.Enabled = True
         task_def.Settings.StopIfGoingOnBatteries = False
+        task_def.Principal.UserID = user_name
+        task_def.Principal.DisplayName = user_name
+        task_def.Principal.LogonType = TASK_LOGON_SERVICE_ACCOUNT
+        task_def.Principal.RunLevel = TASK_RUNLEVEL_HIGHEST
 
         # Register task
         # If task already exists, it will be updated
         TASK_CREATE_OR_UPDATE = 6
-        TASK_LOGON_SERVICE_ACCOUNT = 6
+        #TASK_LOGON_SERVICE_ACCOUNT = 6
         #TASK_RUNLEVEL_HIGHEST = 1
         root_folder.RegisterTaskDefinition(
             'HoNfigurator Updater',  # Task name
             task_def,
             TASK_CREATE_OR_UPDATE,
-            'NT AUTHORITY\SYSTEM',  # No user
-            '',  # No password
+            'System',  # No user
+            None,  # No password
             TASK_LOGON_SERVICE_ACCOUNT)
     def get_startupcfg(self):
         config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
