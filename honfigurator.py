@@ -97,11 +97,11 @@ class initialise():
             return result
         elif rc == 1:
             print("ERROR CHECKING HASHES, you may have issues connecting to the masterserver")
-            guilog.insert(END,"ERROR CHECKING HASHES, you may have issues connecting to the masterserver")
+            guilog.insert(END,"ERROR CHECKING HASHES, you may have issues connecting to the masterserver\n")
             return False
         elif rc == 3:
             print("ERROR GETTING MAC ADDR")
-            guilog.insert(END,"ERROR GETTING MAC ADDR")
+            guilog.insert(END,"ERROR GETTING MAC ADDR\n")
             return False
         
     def get_startupcfg(self):
@@ -477,7 +477,7 @@ class initialise():
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
             guilog.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
             if firewall:
-                guilog.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}")
+                guilog.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}\n")
             print("==========================================")
         else:
             print("==========================================")
@@ -582,6 +582,7 @@ class gui():
             #     conf_global.write(b)
             # b.close()
             initialise().configureEnvironment(self,force_update)
+            hon_api_updated = False
         if identifier == "all":
             #guilog.insert(END,"==========================================\n")
             print("Selected option to configure ALL servers\n")
@@ -617,6 +618,7 @@ class gui():
                 #     conf_global.write(d)
                 # d.close()
                 initialise().configureEnvironment(self,force_update)
+                hon_api_updated = False
         #guilog.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
         return
 
