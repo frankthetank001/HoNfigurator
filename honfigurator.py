@@ -122,7 +122,7 @@ class initialise():
         i = int(check.stdout.read())
         if i == -1 and self.dataDict['master_server'] == "honmasterserver.com":
             try:
-                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ONLINE_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
         elif i == -1 and self.dataDict['master_server'] == "kongor.online:666":
