@@ -222,30 +222,17 @@ class initialise():
         task.Enabled = True
         runningTask = task.Run("")
     def update_repository(self,selected_branch):
-        #   load changes from stash in case there are any
-        # stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-        # print(stash.stdout)
-        # print(stash.stderr)
         current_branch = Repository('.').head.shorthand  # 'master'
         if selected_branch != current_branch:
-            # old_stash = subprocess.run(["git","stash"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-            # print(old_stash.stdout)
-            # print(old_stash.stderr)
             checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
             if checkout.returncode == 0:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
                 guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
-                # stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-                # print(stash.stdout)
-                # print(stash.stderr)
                 print(f"Updating selected repository: {selected_branch} branch")
-                # repo = git.Repo(application_path)
-                # o = repo.remotes.origin
-                # result = o.pull()
-                # print(result)
                 output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                os.execl(sys.executable, sys.executable, *sys.argv)
                 return output.returncode
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
