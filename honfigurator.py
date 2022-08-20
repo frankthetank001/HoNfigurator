@@ -150,20 +150,20 @@ class initialise():
         print("disabled")
     def enable_updater(self):
         print("enabled")
-    def register_updater1(self,selected_branch):
+    def register_updater(self,selected_branch):
         computer_name = "" #leave all blank for current computer, current user
         computer_username = ""
         computer_userdomain = ""
         computer_password = ""
-        action_id = "Test Task" #arbitrary action ID
-        action_path = r"c:\windows\system32\calc.exe" #executable path (could be python.exe)
-        action_arguments = r'' #arguments (could be something.py)
-        action_workdir = r"c:\windows\system32" #working directory for action executable
-        author = "Someone" #so that end users know who you are
-        description = "testing task" #so that end users can identify the task
-        task_id = "Test Task"
+        #action_id = "HoNfigurator Updater" #arbitrary action ID
+        action_path = r"c:\windows\system32\cmd.exe" #executable path (could be python.exe)
+        action_arguments = "/c \"git pull\"" #arguments (could be something.py)
+        action_workdir = application_path #working directory for action executable
+        author = "" #so that end users know who you are
+        description = f'Updates HoNfigurator from the {selected_branch} branch' #so that end users can identify the task
+        task_id = "HoNfigurator Updater"
         task_hidden = False #set this to True to hide the task in the interface
-        username = "SYSTEM"
+        username = ""
         password = ""
         run_flags = "TASK_RUN_NO_FLAGS" #see dict below, use in combo with username/password
         #define constants
@@ -189,11 +189,11 @@ class initialise():
         trigger = colTriggers.Create(TASK_TRIGGER_DAILY)
         trigger.DaysInterval = 100
         trigger.StartBoundary = "2100-01-01T08:00:00-00:00" #never start
-        trigger.Enabled = False
+        trigger.Enabled = True
 
         colActions = taskDef.Actions
         action = colActions.Create(TASK_ACTION_EXEC)
-        action.ID = action_id
+        #action.ID = action_id
         action.Path = action_path
         action.WorkingDirectory = action_workdir
         action.Arguments = action_arguments
@@ -203,27 +203,57 @@ class initialise():
         info.Description = description
 
         settings = taskDef.Settings
-        settings.Enabled = False
+        settings.Enabled = True
         settings.Hidden = task_hidden
 
         #register the task (create or update, just keep the task name the same)
-        result = rootFolder.RegisterTaskDefinition(task_id, taskDef, TASK_CREATE_OR_UPDATE, "System", "", RUNFLAGSENUM[run_flags] ) #username, password
+        result = rootFolder.RegisterTaskDefinition(task_id, taskDef, TASK_CREATE_OR_UPDATE, "", "", RUNFLAGSENUM[run_flags] ) #username, password
 
         #run the task once
         task = rootFolder.GetTask(task_id)
         task.Enabled = True
         runningTask = task.Run("")
-        task.Enabled = False
+    def update_repository(self,selected_branch):
+        #   load changes from stash in case there are any
+        stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+        print(stash.stdout)
+        print(stash.stderr)
+        #if selected_branch != self.dataDict['github_branch']:
+        stash = subprocess.run(["git","stash"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+        print(stash.stdout)
+        print(stash.stderr)
+        checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+        if checkout.returncode == 0:
+            print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}:{checkout.returncode}")
+            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}:{checkout.returncode}")
+        else:
+            print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}:{checkout.returncode}")
+            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stderr}:{checkout.returncode}")
+            if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
+                print("stashing local changes..")
+                    
+
+        print(f"Updating selected repository: {selected_branch} branch")
+        # repo = git.Repo(application_path)
+        # o = repo.remotes.origin
+        # result = o.pull()
+        # print(result)
+        output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+        print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+        guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+        return output.returncode
+
+
     def register_updater2(self,selected_branch):
         subprocess.run(f'schtasks.exe /create /RU "NT AUTHORITY\SYSTEM" /RL HIGHEST /SC HOURLY /TN "test" /TR "{application_path}\\Dependencies\\Reg_Schd_task.bat" /F')
-    def register_updater(self,selected_branch):
+    def register_updater1(self,selected_branch):
         scheduler = win32com.client.Dispatch('Schedule.Service')
         scheduler.Connect()
         root_folder = scheduler.GetFolder('\\')
         task_def = scheduler.NewTask(0)
         #set the user name
-        user_name = "System"
-        password = None
+        user_name = ""
+        password = ""
 
         # Create trigger
         start_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
@@ -234,34 +264,37 @@ class initialise():
         # Create action
         TASK_ACTION_EXEC = 0
         action = task_def.Actions.Create(TASK_ACTION_EXEC)
-        action.ID = 'DO NOTHING'
+        #action.ID = 'DO NOTHING'
         action.Path = 'cmd.exe'
-        action.Arguments = 'git pull'
+        action.Arguments = "'/c \"git pull\"'"
         action.WorkingDirectory = application_path
 
         # Set parameters
         TASK_RUNLEVEL_HIGHEST = 1
+        task_exec = TASK_RUNLEVEL_HIGHEST
         TASK_LOGON_SERVICE_ACCOUNT = 5
+        TASK_LOGON_NONE = 0
+        TASK_LOGON_INTERACTIVE_TOKEN = 3
+        task_logon = TASK_LOGON_INTERACTIVE_TOKEN
+        
         task_def.RegistrationInfo.Description = f'Updates HoNfigurator from the {selected_branch}'
         task_def.Settings.Enabled = True
         task_def.Settings.StopIfGoingOnBatteries = False
         task_def.Principal.UserID = user_name
         task_def.Principal.DisplayName = user_name
-        task_def.Principal.LogonType = TASK_LOGON_SERVICE_ACCOUNT
-        task_def.Principal.RunLevel = TASK_RUNLEVEL_HIGHEST
+        task_def.Principal.LogonType = task_logon
+        task_def.Principal.RunLevel = task_exec
 
         # Register task
         # If task already exists, it will be updated
         TASK_CREATE_OR_UPDATE = 6
-        #TASK_LOGON_SERVICE_ACCOUNT = 6
-        #TASK_RUNLEVEL_HIGHEST = 1
-        root_folder.RegisterTaskDefinition(
+        result = root_folder.RegisterTaskDefinition(
             'HoNfigurator Updater',  # Task name
             task_def,
             TASK_CREATE_OR_UPDATE,
-            'System',  # No user
-            None,  # No password
-            TASK_LOGON_SERVICE_ACCOUNT)
+            user_name,  # No user
+            password,  # No password
+            task_logon)
     def get_startupcfg(self):
         config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
         return config_startup
@@ -703,6 +736,8 @@ class gui():
             if svrloc == reg.lower():
                 self.svr_loc.set(reglist[0][reglist[0].index(reg)])
                 self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+    def git_checkout(self,selected_branch):
+        test
     def svr_num_link(self,var,index,mode):
         if self.svr_id_var.get() == "(for single server)":
             return
@@ -717,15 +752,18 @@ class gui():
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
-        if auto_update:
-            updater_status = initialise.getstatus_updater(self,auto_update,selected_branch)
+        # if auto_update:
+        #     updater_status = initialise.getstatus_updater(self,auto_update,selected_branch)
+
         #if updater_status == False and autoupdate == True:
         # if autoupdate == True:
         #     initialise.register_updater(self)
         # else:
         #     initialise.disable_updater(self)
-
-
+        if 'github_branch' not in self.dataDict:
+            self.dataDict.update({'github_branch':selected_branch})
+        if identifier == "update" or selected_branch != self.dataDict['github_branch']:
+            update = initialise.update_repository(self,selected_branch)
 
         if identifier == "single":
             print()
@@ -750,6 +788,7 @@ class gui():
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
             conf_local.set("OPTIONS","auto_update",str(auto_update))
+            conf_local.set("OPTIONS","github_branch",str(selected_branch))
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -788,6 +827,7 @@ class gui():
                 conf_local.set("OPTIONS","process_priority",process_priority)
                 conf_local.set("OPTIONS","incr_port_by",increment_port)
                 conf_local.set("OPTIONS","auto_update",(auto_update))
+                conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -977,6 +1017,8 @@ class gui():
         applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
         tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
         tab1_git_branch.grid(column= 4, row = 6,sticky="w",pady=4)
+        # self.git_branch.trace_add('write', self.svr_num_link)
+
         #   bot version
         applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
         applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
@@ -987,9 +1029,11 @@ class gui():
         guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
         tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_singlebutton.grid(columnspan=3, column=1, row=14,stick='n',padx=[0,10],pady=[20,10])
+        tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
         tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_allbutton.grid(columnspan=4, column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
+        tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
+        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.sendData("update",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
         
         """
         
