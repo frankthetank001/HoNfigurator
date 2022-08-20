@@ -4,3 +4,4 @@ wmi
 getmac
 pygit2
 gitpython
+python-hosts

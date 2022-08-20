@@ -24,6 +24,7 @@ import win32com.client
 import datetime
 from pygit2 import Repository
 import git
+from python_hosts import Hosts, HostsEntry
 
 # determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
@@ -92,6 +93,13 @@ class initialise():
         #     config = configparser.ConfigParser()
         #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
         # return
+    def add_hosts_entry(self):
+        hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
+        hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
+        hosts.write()
+        add_entry = HostsEntry(entry_type='ipv4', address='73.185.77.188', names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
+        hosts.add([add_entry])
+        hosts.write()
     def KOTF(self):
         app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
         rc = app_svr_desc.returncode
@@ -768,19 +776,13 @@ class gui():
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
-        # if auto_update:
-        #     updater_status = initialise.getstatus_updater(self,auto_update,selected_branch)
-
-        #if updater_status == False and autoupdate == True:
-        # if autoupdate == True:
-        #     initialise.register_updater(self)
-        # else:
-        #     initialise.disable_updater(self)
         if 'github_branch' not in self.dataDict:
             self.dataDict.update({'github_branch':selected_branch})
         if identifier == "update" or selected_branch != self.dataDict['github_branch']:
             update = initialise.update_repository(self,selected_branch)
             guilog.insert(END,"==========================================\n")
+        # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
+        initialise.add_hosts_entry(self)
 
         if identifier == "single":
             print()
