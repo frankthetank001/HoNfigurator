@@ -233,8 +233,8 @@ class initialise():
             # print(old_stash.stderr)
             checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
             if checkout.returncode == 0:
-                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}:{checkout.returncode}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}:{checkout.returncode}")
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
                 # stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
                 # print(stash.stdout)
                 # print(stash.stderr)
@@ -248,7 +248,7 @@ class initialise():
                 guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 return output.returncode
             else:
-                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}:{checkout.returncode}")
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
                 guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                     print()
