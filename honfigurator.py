@@ -232,7 +232,9 @@ class initialise():
                 output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-                os.execv(sys.argv[0], sys.argv)
+                #os.execv(sys.argv[0], sys.argv)
+                python = sys.executable
+                os.execl(python, python, * sys.argv)
                 return output.returncode
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
