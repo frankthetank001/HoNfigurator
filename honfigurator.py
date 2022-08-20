@@ -780,7 +780,7 @@ class gui():
             guilog.insert(END,"==========================================\n")
             if update:
                 gui.popup_bonus()
-                #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+                os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
         # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         initialise.add_hosts_entry(self)
 
