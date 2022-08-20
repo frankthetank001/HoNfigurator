@@ -220,34 +220,44 @@ class initialise():
         # print(stash.stderr)
         current_branch = Repository('.').head.shorthand  # 'master'
         if selected_branch != current_branch:
-            stash = subprocess.run(["git","stash"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-            print(stash.stdout)
-            print(stash.stderr)
+            # old_stash = subprocess.run(["git","stash"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+            # print(old_stash.stdout)
+            # print(old_stash.stderr)
             checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
             if checkout.returncode == 0:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}:{checkout.returncode}")
                 guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}:{checkout.returncode}")
-                stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-                print(stash.stdout)
-                print(stash.stderr)
+                # stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+                # print(stash.stdout)
+                # print(stash.stderr)
+                print(f"Updating selected repository: {selected_branch} branch")
+                # repo = git.Repo(application_path)
+                # o = repo.remotes.origin
+                # result = o.pull()
+                # print(result)
+                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                return output.returncode
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}:{checkout.returncode}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stderr}:{checkout.returncode}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
-                    print("stashing local changes..")
+                    print()
+        else:
+            print(f"Updating selected repository: {selected_branch} branch")
+            # repo = git.Repo(application_path)
+            # o = repo.remotes.origin
+            # result = o.pull()
+            # print(result)
+            output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+            print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            return output.returncode
         # if selected_branch == current_branch:
         #     stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
         #     print(stash.stdout)
         #     print(stash.stderr)
-        print(f"Updating selected repository: {selected_branch} branch")
-        # repo = git.Repo(application_path)
-        # o = repo.remotes.origin
-        # result = o.pull()
-        # print(result)
-        output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
-        print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-        guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-        return output.returncode
 
 
     def register_updater2(self,selected_branch):
@@ -770,6 +780,7 @@ class gui():
             self.dataDict.update({'github_branch':selected_branch})
         if identifier == "update" or selected_branch != self.dataDict['github_branch']:
             update = initialise.update_repository(self,selected_branch)
+            guilog.insert(END,"==========================================\n")
 
         if identifier == "single":
             print()
