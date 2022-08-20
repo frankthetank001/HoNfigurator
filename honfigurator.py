@@ -354,7 +354,9 @@ class initialise():
             #
             #
             # if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}" or force_update == True or bot_needs_update == True):
-            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
+            try:
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
+            except Exception as e: print(e)
             print("copying other dependencies...")
             if not exists(f"{self.hon_directory}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.hon_directory}\\nssm.exe")
