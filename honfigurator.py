@@ -233,13 +233,13 @@ class initialise():
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 #os.execv(sys.argv[0], sys.argv)
-                os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-                return output.returncode
+                return True
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
                 guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                     print()
+                return False
         else:
             print(f"Updating selected repository: {selected_branch} branch")
             # repo = git.Repo(application_path)
@@ -737,6 +737,15 @@ class gui():
         for i in range(total_cores):
             cores.append(i+1)
         return cores
+    def popup_bonus():
+        win = tk.Toplevel()
+        win.wm_title("Window")
+
+        l = tk.Label(win, text="Input")
+        l.grid(row=0, column=0)
+
+        b = ttk.Button(win, text="Okay", command=win.destroy)
+        b.grid(row=1, column=0)
     def regions(self):
         return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","AU","AU","AU","RU","EU","BR"]]
     def masterserver(self):
@@ -769,6 +778,9 @@ class gui():
         if identifier == "update" or selected_branch != self.dataDict['github_branch']:
             update = initialise.update_repository(self,selected_branch)
             guilog.insert(END,"==========================================\n")
+            if update:
+                gui.popup_bonus()
+                #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
         # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         initialise.add_hosts_entry(self)
 
