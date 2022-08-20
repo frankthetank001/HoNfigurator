@@ -746,6 +746,7 @@ class gui():
 
         b = ttk.Button(win, text="Okay", command=win.destroy)
         b.grid(row=1, column=0)
+        win.mainloop(1)
     def regions(self):
         return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","AU","AU","AU","RU","EU","BR"]]
     def masterserver(self):
