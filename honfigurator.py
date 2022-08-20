@@ -120,12 +120,12 @@ class initialise():
     def playerCount(self):
         check = subprocess.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
-        if i == -1 and self.dataDict['master_server'] == "honmasterserver.com":
+        if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
             try:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
-        elif i == -1 and self.dataDict['master_server'] == "kongor.online:666":
+        elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
             try:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
@@ -301,12 +301,14 @@ class initialise():
                 if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
             if self.dataDict['master_server'] == "kongor.online:666":
                 if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
             self.secrets = initialise.KOTF(self)
@@ -351,9 +353,9 @@ class initialise():
             print("Checking and creating required dependencies...")
             #
             #
-            if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}"):
-                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
-                print("copying other dependencies...")
+            # if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}" or force_update == True or bot_needs_update == True):
+            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
+            print("copying other dependencies...")
             if not exists(f"{self.hon_directory}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.hon_directory}\\nssm.exe")
             print("Done!")
@@ -430,7 +432,7 @@ class initialise():
                     svr_state = svrcmd.honCMD()
                     svr_state.getDataDict()
                     playercount = initialise.playerCount(self)
-                    if playercount == 0:
+                    if playercount == 0 or playercount == -3:
                         print("No players connected, safe to restart...")
                         initialise.stop_service(self,self.service_name_bot)
                         if self.dataDict['master_server'] == "honmasterserver.com":
