@@ -661,6 +661,7 @@ class gui():
             output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            guilog.insert(END,"==========================================\n")
             #os.execv(sys.argv[0], sys.argv)
             try:
                 if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
@@ -673,6 +674,7 @@ class gui():
             guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
             if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                 print()
+            guilog.insert(END,"==========================================\n")
             self.git_branch.set(current_branch)
             return False
         
@@ -685,7 +687,7 @@ class gui():
         hondirectory = os.path.join(hondirectory, '')
         if 'github_branch' not in self.dataDict:
             self.dataDict.update({'github_branch':selected_branch})
-        if identifier == "update" or selected_branch != self.dataDict['github_branch']:
+        if identifier == "update":
             update = initialise.update_repository(self,selected_branch)
             guilog.insert(END,"==========================================\n")
             # if update:
