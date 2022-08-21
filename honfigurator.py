@@ -721,10 +721,15 @@ class gui():
         half_core_count = total_cores / 2
         half_core_count = int(half_core_count)
         core_assignment = str(self.core_assign.get()).lower()
+        selected_id = str(self.svr_id_var.get())
         if core_assignment == "one":
+            if int(self.svr_total_var.get()) == half_core_count:
+                self.svr_total_var.set(total_cores)
             return
         elif core_assignment == "two" and int(self.svr_total_var.get()) > half_core_count:
             self.svr_total_var.set(half_core_count)
+            if int(selected_id) > int(self.svr_total_var.get()):
+                self.svr_id_var.set(half_core_count)
     def corecount(self):
         cores = []
         total_cores = psutil.cpu_count(logical = True)
@@ -783,15 +788,16 @@ class gui():
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 #os.execv(sys.argv[0], sys.argv)
+                if gui.popup_bonus():
+                    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                 return True
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
                 guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                     print()
+                self.git_branch.set(current_branch)
                 return False
-        if gui.popup_bonus():
-            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
         
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,auto_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
@@ -1051,34 +1057,34 @@ class gui():
         self.botmatches = tk.BooleanVar(app)
         tab1_botmatches_btn = applet.Checkbutton(tab1,variable=self.botmatches)
         tab1_botmatches_btn.grid(column= 4, row = 4,sticky="w",pady=4)
-        #   auto update
-        applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
-        self.autoupdate = tk.BooleanVar(app)
-        if self.dataDict['auto_update'] == 'True':
-            self.autoupdate.set(True)
-        tab1_autoupdate_btn = applet.Checkbutton(tab1,variable=self.autoupdate)
-        tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
+        # #   auto update
+        # applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
+        # self.autoupdate = tk.BooleanVar(app)
+        # if self.dataDict['auto_update'] == 'True':
+        #     self.autoupdate.set(True)
+        # tab1_autoupdate_btn = applet.Checkbutton(tab1,variable=self.autoupdate)
+        # tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
         #   branch select
         self.git_branch = tk.StringVar(app,self.git_current_branch())
-        applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
         tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
-        tab1_git_branch.grid(column= 4, row = 6,sticky="w",pady=4)
+        tab1_git_branch.grid(column= 4, row = 5,sticky="w",pady=4)
         self.git_branch.trace_add('write', self.update_repository)
 
         #   bot version
-        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
-        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
+        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 6,sticky="w",pady=4)
         print(self.forceupdate.get())
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
-        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.sendData("update",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.autoupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.sendData("update",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
         
         """
@@ -1131,6 +1137,7 @@ class gui():
         # tab1_startall.grid(columnspan=4, column=1, row=9,stick='n',padx=[10,0],pady=[20,10])
         # self.botCount(20)
         tabgui.select(0)
+        self.update_repository(NULL,NULL,NULL)
         app.mainloop()
 test = gui()
 test.creategui()
