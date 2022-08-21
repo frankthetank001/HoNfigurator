@@ -799,7 +799,7 @@ class gui():
                 self.git_branch.set(current_branch)
                 return False
         
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,auto_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
