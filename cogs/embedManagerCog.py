@@ -114,7 +114,7 @@ class embedManager(commands.Cog):
         sent_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Syncing..",description=default_description, color=stripColor_init)
         sent_embed.set_author(name=self.server_status['discord_admin_name'])
         #name='\u200b' to hide title
-        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
+        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         sent_embed.set_thumbnail(url=init)
         #sent_embed_obj = await ctx.send(file=attachment_init, embed=sent_embed)
         sent_embed_obj = await ctx.send(embed=sent_embed)
@@ -200,7 +200,7 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -212,7 +212,7 @@ class embedManager(commands.Cog):
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Starting Server..",description=default_description, color=stripColor_starting)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -231,7 +231,7 @@ class embedManager(commands.Cog):
         else:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_dns}:{svr_port}\n```",inline=True)
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -272,7 +272,7 @@ class embedManager(commands.Cog):
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['host']}) to begin the game..\n60 seconds until kick```")
             else:
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host to begin the game..\n60 seconds until kick```")
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played_prev']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
             created_embed.set_thumbnail(url=hosted)
             try:
                 await rec_embed.edit(embed=created_embed)
