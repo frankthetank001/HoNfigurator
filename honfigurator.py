@@ -526,7 +526,7 @@ class gui():
             cores.append(i+1)
         return cores
     def regions(self):
-        return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","AU","AU","AU","RU","EU","BR"]]
+        return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","SEA","AU","SEA","RU","EU","BR"]]
     def masterserver(self):
         return ["kongor.online:666","honmasterserver.com"]
     def reg_def_link(self,var,index,mode):
