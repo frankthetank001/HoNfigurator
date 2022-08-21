@@ -788,7 +788,7 @@ class gui():
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             #os.execv(sys.argv[0], sys.argv)
-            if 'Updating' in output.stdout:
+            if 'Updating' in output.stdout or 'Switched to branch' in output.stdout:
                 if gui.popup_bonus():
                     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
             return True
