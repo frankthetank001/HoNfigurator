@@ -102,7 +102,7 @@ class mData():
             #   Get total cores, logical included
             total_cores = psutil.cpu_count(logical = True)
             if self.confDict['core_assignment'] == 'two':
-                total_cores +=2
+                total_cores +=1
                 affinity = [total_cores - self.svr_id,total_cores - self.svr_id - 1]
                 #
                 #   Set affinity of the hon process to total cores - server ID
