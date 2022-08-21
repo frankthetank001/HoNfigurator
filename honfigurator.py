@@ -694,7 +694,7 @@ class gui():
         #     #     gui.popup_bonus()
         #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
         # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
-        initialise.add_hosts_entry(self)
+        #initialise.add_hosts_entry(self)
 
         if identifier == "single":
             print()
