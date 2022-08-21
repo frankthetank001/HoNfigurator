@@ -214,6 +214,7 @@ class honCMD():
                                 server_status_dict.update({'game_started':True})
                                 server_status_dict.update({'tempcount':-5})
                                 return True
+                            
             return
         #
         #   Get the last restart time
@@ -370,7 +371,8 @@ class honCMD():
                     client_ip = client_ip[2].replace('\n','')
                     tempData.update({'client_ip':client_ip})
                     honCMD().updateStatus(tempData)
-                    print(client_ip)   
+                    print(client_ip)
+                    honCMD().updateStatus(tempData)
                 #
                 #   Arguments passed to server, and lobby starting
                 if "GAME_CMD_CREATE_GAME" in line:
@@ -431,6 +433,15 @@ class honCMD():
                     #server_status_dict.update[{"first_run":"true"}]
                     #server_status_dict.update[{'just_collected':self.just_collected}]
                     #server_status_dict.update[{'lobby_created':self.lobby_created}]
+                elif "Ascension: match info: request sent" in line:
+                    self.first_run = False
+                    self.just_collected = True
+                    self.lobby_created = True
+
+                    tempData.update({'first_run':self.first_run})
+                    tempData.update({'just_collected':self.just_collected})
+                    tempData.update({'lobby_created':self.lobby_created})
+                    tempData.update({'total_slots':total_slots})
             return tempData
         elif dtype == "ServerReadyCheck":
             tempData = {}

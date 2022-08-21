@@ -2,3 +2,6 @@ discord.py
 psutil
 wmi
 getmac
+pygit2
+gitpython
+python-hosts

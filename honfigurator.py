@@ -20,6 +20,11 @@ from distutils import dir_util
 import subprocess
 import traceback
 import sys
+import win32com.client
+import datetime
+from pygit2 import Repository
+import git
+from python_hosts import Hosts, HostsEntry
 
 # determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
@@ -88,6 +93,13 @@ class initialise():
         #     config = configparser.ConfigParser()
         #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
         # return
+    def add_hosts_entry(self):
+        hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
+        hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
+        hosts.write()
+        add_entry = HostsEntry(entry_type='ipv4', address='73.185.77.188', names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
+        hosts.add([add_entry])
+        hosts.write()
     def KOTF(self):
         app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
         rc = app_svr_desc.returncode
@@ -103,7 +115,198 @@ class initialise():
             print("ERROR GETTING MAC ADDR")
             guilog.insert(END,"ERROR GETTING MAC ADDR\n")
             return False
+    def getstatus_updater(self,auto_update,selected_branch):
+        TASK_ENUM_HIDDEN = 1
+        TASK_STATE = {0: 'Unknown',
+                    1: 'Disabled',
+                    2: 'Queued',
+                    3: 'Ready',
+                    4: 'Running'}
+
+        scheduler = win32com.client.Dispatch('Schedule.Service')
+        scheduler.Connect()
+
+        n = 0
+        folders = [scheduler.GetFolder('\\')]
+        while folders:
+            folder = folders.pop(0)
+            folders += list(folder.GetFolders(0))
+            tasks = list(folder.GetTasks(TASK_ENUM_HIDDEN))
+            for task in tasks:
+                if task.name == "HoNfigurator Updater":
+                    # settings = task.Definition.Settings
+                    # print('Path       : %s' % task.Path)
+                    # print('Hidden     : %s' % settings.Hidden)
+                    # print('State      : %s' % TASK_STATE[task.State])
+                    # print('Last Run   : %s' % task.LastRunTime)
+                    # print('Last Result: %s\n' % task.LastTaskResult)
+                    if TASK_STATE[task.State] == "Ready" and auto_update == False:
+                        p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        return True
+                    elif TASK_STATE[task.State] == "Disabled" and auto_update == True:
+                        p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        return False
+                    return
+            else: 
+                if auto_update == True:
+                    initialise.register_updater(self,selected_branch)
+                    return True
+                else:
+                    return False
+
+    def disable_updater(self):
+        print("disabled")
+    def enable_updater(self):
+        print("enabled")
+    def register_updater(self,selected_branch):
+        computer_name = "" #leave all blank for current computer, current user
+        computer_username = ""
+        computer_userdomain = ""
+        computer_password = ""
+        #action_id = "HoNfigurator Updater" #arbitrary action ID
+        action_path = r"c:\windows\system32\cmd.exe" #executable path (could be python.exe)
+        action_arguments = "/c \"git pull\"" #arguments (could be something.py)
+        action_workdir = application_path #working directory for action executable
+        author = "" #so that end users know who you are
+        description = f'Updates HoNfigurator from the {selected_branch} branch' #so that end users can identify the task
+        task_id = "HoNfigurator Updater"
+        task_hidden = False #set this to True to hide the task in the interface
+        username = ""
+        password = ""
+        run_flags = "TASK_RUN_NO_FLAGS" #see dict below, use in combo with username/password
+        #define constants
+        TASK_TRIGGER_DAILY = 2
+        TASK_CREATE_OR_UPDATE = 6
+        TASK_ACTION_EXEC = 0
+        RUNFLAGSENUM = {
+            "TASK_RUN_NO_FLAGS"              : 0,
+            "TASK_RUN_AS_SELF"               : 1,
+            "TASK_RUN_IGNORE_CONSTRAINTS"    : 2,
+            "TASK_RUN_USE_SESSION_ID"        : 4,
+            "TASK_RUN_USER_SID"              : 8 
+        }
+
+        #connect to the scheduler (Vista/Server 2008 and above only)
+        scheduler = win32com.client.Dispatch("Schedule.Service")
+        scheduler.Connect(computer_name or None, computer_username or None, computer_userdomain or None, computer_password or None)
+        rootFolder = scheduler.GetFolder("\\")
+
+        #(re)define the task
+        taskDef = scheduler.NewTask(0)
+        colTriggers = taskDef.Triggers
+        trigger = colTriggers.Create(TASK_TRIGGER_DAILY)
+        trigger.DaysInterval = 100
+        trigger.StartBoundary = "2100-01-01T08:00:00-00:00" #never start
+        trigger.Enabled = True
+
+        colActions = taskDef.Actions
+        action = colActions.Create(TASK_ACTION_EXEC)
+        #action.ID = action_id
+        action.Path = action_path
+        action.WorkingDirectory = action_workdir
+        action.Arguments = action_arguments
+
+        info = taskDef.RegistrationInfo
+        info.Author = author
+        info.Description = description
+
+        settings = taskDef.Settings
+        settings.Enabled = True
+        settings.Hidden = task_hidden
+
+        #register the task (create or update, just keep the task name the same)
+        result = rootFolder.RegisterTaskDefinition(task_id, taskDef, TASK_CREATE_OR_UPDATE, "", "", RUNFLAGSENUM[run_flags] ) #username, password
+
+        #run the task once
+        task = rootFolder.GetTask(task_id)
+        task.Enabled = True
+        runningTask = task.Run("")
+    def update_repository(self,selected_branch):
+        current_branch = Repository('.').head.shorthand  # 'master'
+        if selected_branch != current_branch:
+            checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+            if checkout.returncode == 0:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+                print(f"Updating selected repository: {selected_branch} branch")
+                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                #os.execv(sys.argv[0], sys.argv)
+                return True
+            else:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+                if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
+                    print()
+                return False
+        else:
+            print(f"Updating selected repository: {selected_branch} branch")
+            # repo = git.Repo(application_path)
+            # o = repo.remotes.origin
+            # result = o.pull()
+            # print(result)
+            output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+            print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            return output.returncode
+        # if selected_branch == current_branch:
+        #     stash = subprocess.run(["git","stash","pop"],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+        #     print(stash.stdout)
+        #     print(stash.stderr)
+
+
+    def register_updater2(self,selected_branch):
+        subprocess.run(f'schtasks.exe /create /RU "NT AUTHORITY\SYSTEM" /RL HIGHEST /SC HOURLY /TN "test" /TR "{application_path}\\Dependencies\\Reg_Schd_task.bat" /F')
+    def register_updater1(self,selected_branch):
+        scheduler = win32com.client.Dispatch('Schedule.Service')
+        scheduler.Connect()
+        root_folder = scheduler.GetFolder('\\')
+        task_def = scheduler.NewTask(0)
+        #set the user name
+        user_name = ""
+        password = ""
+
+        # Create trigger
+        start_time = datetime.datetime.now() + datetime.timedelta(minutes=5)
+        TASK_TRIGGER_TIME = 1
+        trigger = task_def.Triggers.Create(TASK_TRIGGER_TIME)
+        trigger.StartBoundary = start_time.isoformat()
+
+        # Create action
+        TASK_ACTION_EXEC = 0
+        action = task_def.Actions.Create(TASK_ACTION_EXEC)
+        #action.ID = 'DO NOTHING'
+        action.Path = 'cmd.exe'
+        action.Arguments = "'/c \"git pull\"'"
+        action.WorkingDirectory = application_path
+
+        # Set parameters
+        TASK_RUNLEVEL_HIGHEST = 1
+        task_exec = TASK_RUNLEVEL_HIGHEST
+        TASK_LOGON_SERVICE_ACCOUNT = 5
+        TASK_LOGON_NONE = 0
+        TASK_LOGON_INTERACTIVE_TOKEN = 3
+        task_logon = TASK_LOGON_INTERACTIVE_TOKEN
         
+        task_def.RegistrationInfo.Description = f'Updates HoNfigurator from the {selected_branch}'
+        task_def.Settings.Enabled = True
+        task_def.Settings.StopIfGoingOnBatteries = False
+        task_def.Principal.UserID = user_name
+        task_def.Principal.DisplayName = user_name
+        task_def.Principal.LogonType = task_logon
+        task_def.Principal.RunLevel = task_exec
+
+        # Register task
+        # If task already exists, it will be updated
+        TASK_CREATE_OR_UPDATE = 6
+        result = root_folder.RegisterTaskDefinition(
+            'HoNfigurator Updater',  # Task name
+            task_def,
+            TASK_CREATE_OR_UPDATE,
+            user_name,  # No user
+            password,  # No password
+            task_logon)
     def get_startupcfg(self):
         config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
         return config_startup
@@ -498,6 +701,19 @@ class gui():
         self.dataDict = self.initdict.returnDict()
         print (self.dataDict)
         return
+    def git_current_branch(self):
+        current_branch = Repository('.').head.shorthand  # 'master'
+        return current_branch
+    def git_all_branches(self):
+        repositories = []
+        repo = git.Repo('.')
+        remote_refs = repo.remote().refs
+        for refs in remote_refs:
+            repos = refs.name.replace('origin/','')
+            repositories.append(repos)
+            if 'HEAD' in repositories:
+                repositories.remove(repos)
+        return repositories
     def coreassign(self):
         return ["one","two"]
     def incrementport(self):
@@ -509,10 +725,15 @@ class gui():
         half_core_count = total_cores / 2
         half_core_count = int(half_core_count)
         core_assignment = str(self.core_assign.get()).lower()
+        selected_id = str(self.svr_id_var.get())
         if core_assignment == "one":
+            if int(self.svr_total_var.get()) == half_core_count:
+                self.svr_total_var.set(total_cores)
             return
         elif core_assignment == "two" and int(self.svr_total_var.get()) > half_core_count:
             self.svr_total_var.set(half_core_count)
+            if int(selected_id) > int(self.svr_total_var.get()):
+                self.svr_id_var.set(half_core_count)
     def corecount(self):
         cores = []
         total_cores = psutil.cpu_count(logical = True)
@@ -525,6 +746,19 @@ class gui():
         for i in range(total_cores):
             cores.append(i+1)
         return cores
+    def popup_bonus():
+        win = tk.Toplevel()
+        win.wm_title("Window")
+        var = tk.IntVar()
+
+        l = tk.Label(win, text="HoNfigurator will be updated.")
+        l.grid(row=0, column=0)
+
+        b = ttk.Button(win, text="Okay", command=lambda: var.set(1))
+        #b = ttk.Button(win, text="Okay", command=win.destroy())
+        b.grid(row=1, column=0)
+        b.wait_variable(var)
+        return True
     def regions(self):
         return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","SEA","AU","SEA","RU","EU","BR"]]
     def masterserver(self):
@@ -536,6 +770,8 @@ class gui():
             if svrloc == reg.lower():
                 self.svr_loc.set(reglist[0][reglist[0].index(reg)])
                 self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+    def git_checkout(self,selected_branch):
+        test
     def svr_num_link(self,var,index,mode):
         if self.svr_id_var.get() == "(for single server)":
             return
@@ -543,13 +779,47 @@ class gui():
             self.svr_id_var.set(self.svr_total_var.get())
         # elif str(self.core_assign.get()).lower() == "two":
         #     self.svr_total_var.set()
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,increment_port):
+    def update_repository(self,var,index,mode):
+        selected_branch = self.git_branch.get()
+        current_branch = Repository('.').head.shorthand  # 'master'
+        if selected_branch != current_branch:
+            checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+            if checkout.returncode == 0:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+                print(f"Updating selected repository: {selected_branch} branch")
+                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                #os.execv(sys.argv[0], sys.argv)
+                if gui.popup_bonus():
+                    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                return True
+            else:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+                if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
+                    print()
+                self.git_branch.set(current_branch)
+                return False
+        
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
+        if 'github_branch' not in self.dataDict:
+            self.dataDict.update({'github_branch':selected_branch})
+        if identifier == "update" or selected_branch != self.dataDict['github_branch']:
+            update = initialise.update_repository(self,selected_branch)
+            guilog.insert(END,"==========================================\n")
+            # if update:
+            #     gui.popup_bonus()
+            #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+        # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
+        initialise.add_hosts_entry(self)
 
         if identifier == "single":
             print()
@@ -573,6 +843,8 @@ class gui():
             conf_local.set("OPTIONS","core_assignment",core_assignment)
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
+            conf_local.set("OPTIONS","auto_update",str(auto_update))
+            conf_local.set("OPTIONS","github_branch",str(selected_branch))
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -610,6 +882,8 @@ class gui():
                 conf_local.set("OPTIONS","core_assignment",core_assignment)
                 conf_local.set("OPTIONS","process_priority",process_priority)
                 conf_local.set("OPTIONS","incr_port_by",increment_port)
+                conf_local.set("OPTIONS","auto_update",(auto_update))
+                conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -641,7 +915,7 @@ class gui():
         global guilog
         app = tk.Tk()
         applet = ttk
-        app.title("HoNfigurator")
+        app.title(f"HoNfigurator v{self.dataDict['bot_version']} by @{self.dataDict['bot_author']}")
         #   importing icon
         honico = PhotoImage(file = os.path.abspath(application_path)+f"\\icons\\honico.png")
         app.iconphoto(False, honico) 
@@ -699,7 +973,7 @@ class gui():
         simple server setup tab
         """
         #   title
-        logolabel_tab1 = applet.Label(tab1,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+        logolabel_tab1 = applet.Label(tab1,text=f"HoNfigurator",background=maincolor,foreground='white',image=honlogo)
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
         #   server total    
         self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
@@ -787,19 +1061,35 @@ class gui():
         self.botmatches = tk.BooleanVar(app)
         tab1_botmatches_btn = applet.Checkbutton(tab1,variable=self.botmatches)
         tab1_botmatches_btn.grid(column= 4, row = 4,sticky="w",pady=4)
+        # #   auto update
+        # applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
+        # self.autoupdate = tk.BooleanVar(app)
+        # if self.dataDict['auto_update'] == 'True':
+        #     self.autoupdate.set(True)
+        # tab1_autoupdate_btn = applet.Checkbutton(tab1,variable=self.autoupdate)
+        # tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
+        #   branch select
+        self.git_branch = tk.StringVar(app,self.git_current_branch())
+        applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
+        tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
+        tab1_git_branch.grid(column= 4, row = 5,sticky="w",pady=4)
+        self.git_branch.trace_add('write', self.update_repository)
+
         #   bot version
-        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
-        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 5,sticky="w",pady=4)
+        applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 6,sticky="w",pady=4)
         print(self.forceupdate.get())
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
-        tab1_singlebutton.grid(columnspan=3, column=1, row=14,stick='n',padx=[0,10],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.increment_port.get()))
-        tab1_allbutton.grid(columnspan=4, column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
+        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.sendData("update",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
         
         """
         
@@ -851,6 +1141,7 @@ class gui():
         # tab1_startall.grid(columnspan=4, column=1, row=9,stick='n',padx=[10,0],pady=[20,10])
         # self.botCount(20)
         tabgui.select(0)
+        self.update_repository(NULL,NULL,NULL)
         app.mainloop()
 test = gui()
 test.creategui()
