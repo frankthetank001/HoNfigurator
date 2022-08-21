@@ -12,6 +12,7 @@ from time import sleep
 import traceback
 
 bot = commands.Bot(command_prefix='!',case_insensitive=True)
+client = discord.Client(intents=discord.Intents.default())
 bot.remove_command("help")
 embed_ids=[]
 embed_obj=[]
