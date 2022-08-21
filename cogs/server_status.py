@@ -9,6 +9,7 @@ import time
 import shutil
 import sys
 import asyncio
+import re
 
 processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
@@ -99,17 +100,21 @@ class honCMD():
                 server_status_dict.update({"tempcount":self.tempcount})
                 server_status_dict.update({"embed_updated":self.embed_updated})
                 server_status_dict.update({"lobby_created":self.lobby_created})
-                server_status_dict.update({"map":"empty"})
-                server_status_dict.update({"mode":"empty"})
-                server_status_dict.update({"host":"empty"})
-                server_status_dict.update({"version":"empty"})
+                server_status_dict.update({"game_map":"empty"})
+                server_status_dict.update({"game_type":"empty"})
+                server_status_dict.update({"game_mode":"empty"})
+                server_status_dict.update({"game_host":"empty"})
+                server_status_dict.update({"game_name":"empty"})
+                server_status_dict.update({"game_version":"empty"})
                 server_status_dict.update({"spectators":0})
                 server_status_dict.update({"slots":"empty"})
                 server_status_dict.update({"referees":0})
                 server_status_dict.update({"client_ip":"empty"})
+                server_status_dict.update({"match_info_obtained":False})
                 server_status_dict.update({"priority_realtime":False})
                 server_status_dict.update({"restart_required":False})
                 server_status_dict.update({"game_log_location":"empty"})
+                server_status_dict.update({"match_log_location":"empty"})
                 server_status_dict.update({"slave_log_location":"empty"})
                 server_status_dict.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
                 #server_status_dict.update({'tempcount':-5})
@@ -169,7 +174,7 @@ class honCMD():
             honCMD().getData("getLogList_Slave")
         t = time.localtime()
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-        save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['map']}-{self.server_status['host']}-{self.server_status['client_ip']}-{timestamp}.log"
+        save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         shutil.copyfile(self.server_status['slave_log_location'], save_path)
 #
 #   reads and parses hon server log data
@@ -209,12 +214,58 @@ class honCMD():
             if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
                 print("checking for game started now")
                 with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
-                        for line in f:
-                            if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                                server_status_dict.update({'game_started':True})
-                                server_status_dict.update({'tempcount':-5})
-                                return True
+                    for line in f:
+                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                            server_status_dict.update({'game_started':True})
+                            server_status_dict.update({'tempcount':-5})
+                            return True
             return
+        elif dtype == "MatchInformation":
+            tempData = {}
+            
+            if self.server_status['match_log_location'] == "empty":
+                honCMD.getData(self,"getLogList_Match")
+            #softSlave = mData.getData(self,"loadSoftSlave")
+            #hardSlave = mData.getData(self,"loadHardSlave")
+
+            #if softSlave is not hardSlave: #and check_lobby is True:
+            dataL = open(self.server_status['match_log_location'],encoding='utf-16-le')
+            data = dataL.readlines()
+            dataL.close()
+            total_games_played_prev_int = int(server_status_dict['total_games_played_prev'])
+            total_games_played_now_int = int(honCMD.getData(self,"TotalGamesPlayed"))
+            print ("about to check match information")
+            if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
+                print("checking match information")
+                with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
+                    for line in f:
+                        if "INFO_MATCH name:" in line:
+                            game_name = re.findall(r'"([^"]*)"', line)
+                            game_name = game_name[0]
+                            tempData.update({'game_name':game_name})
+                            honCMD().updateStatus(tempData)
+                            print("game_name: "+ game_name)
+                            if 'TMM' in game_name:
+                                tempData.update({'game_type':'Ranked TMM'})
+                                honCMD().updateStatus(tempData)
+                            else:
+                                tempData.update({'game_type':'Public Games'})
+                                honCMD().updateStatus(tempData)
+                        if "INFO_MAP name:" in line:
+                            game_map = re.findall(r'"([^"]*)"', line)
+                            game_map = game_map[0]
+                            tempData.update({'game_map':game_map})
+                            honCMD().updateStatus(tempData)
+                            print("map: "+ game_map)
+                        if "INFO_SETTINGS mode:" in line:
+                            game_mode = re.findall(r'"([^"]*)"', line)
+                            game_mode = game_mode[0]
+                            tempData.update({'game_mode':game_mode})
+                            honCMD().updateStatus(tempData)
+                            print("game_mode: "+ game_mode)
+                            tempData.update({"match_info_obtained":True})
+                            tempData.update({"game_started":True})
+                            honCMD().updateStatus(tempData)
         #
         #   Get the last restart time
         elif dtype == "lastRestart":
@@ -245,6 +296,35 @@ class honCMD():
                     print("adding to list: "+str(item))
                     available_maps.append(item)
             return available_maps
+        #
+        #   Get latest match log
+        elif dtype == "getLogList_Match":
+            print("checking game logs")
+            tempList = []
+            try:
+                # get list of files that matches pattern
+                pattern="M*.log"
+                #pattern="M*log"
+
+                files = list(filter(os.path.isfile,glob.glob(pattern)))
+
+                # sort by modified time
+                files.sort(key=lambda x: os.path.getmtime(x))
+
+                # get last item in list
+                matchLoc = files[-1]
+                self.server_status.update({"match_log_location":matchLoc})
+                print("Most recent match, matching {}: {}".format(pattern,matchLoc))
+                
+                # for item in os.listdir():
+                #     if "game" in item or (item.startswith("M") and item.endswith(".log")):
+                #         tempList.append(item)
+                # gameLoc = tempList[len(tempList)-1]
+            except Exception as e:
+                print(e)
+                pass
+            
+            return True
         #
         #   Get latest game lobby logs
         elif dtype == "getLogList_Game":
@@ -338,9 +418,6 @@ class honCMD():
         # Come here when a lobby has been created, and the real slave log byte is different to the current byte size, and start collecting lobby information.
         elif dtype == "GameCheck":
             tempData = {}
-            global host
-            global version
-            global client_ip
             
             if self.server_status['slave_log_location'] == "empty":
                 honCMD.getData(self,"getLogList_Slave")
@@ -357,42 +434,36 @@ class honCMD():
                 if "Name: " in line:
                     host = line.split(": ")
                     host = host[2].replace('\n','')
-                    tempData.update({'host':host})
+                    tempData.update({'game_host':host})
                     honCMD().updateStatus(tempData)
                     print ("host: "+host)
                 if "Version: " in line:
                     version = line.split(": ")
                     version = version[2].replace('\n','')
-                    tempData.update({'version':version})
+                    tempData.update({'game_version':version})
+                    honCMD().updateStatus(tempData)
                     print("version: "+version)
                 if "Connection request from: " in line:
                     client_ip = line.split(": ")
                     client_ip = client_ip[2].replace('\n','')
                     tempData.update({'client_ip':client_ip})
                     honCMD().updateStatus(tempData)
-                    print(client_ip)   
+                    print(client_ip)
                 #
                 #   Arguments passed to server, and lobby starting
                 if "GAME_CMD_CREATE_GAME" in line:
-                    global map
-                    global mode
-                    global slots
-                    global teamsize
-                    global spectators
-                    global referees
-
                     print("lobby starting....")
                     test = line.split(' ')
                     for parameter in test:
                         if "map:" in parameter:
                             map = parameter.split(":")
                             map = map[1]
-                            tempData.update({'map':map})
+                            tempData.update({'game_map':map})
                             print("map: "+ map)
                         if "mode:" in parameter:
                             mode = parameter.split(":")
                             mode = mode[1]
-                            tempData.update({'mode':mode})
+                            tempData.update({'game_mode':mode})
                             print("mode: "+ mode)
                         if "teamsize:" in parameter:
                             teamsize = parameter.split(":")
@@ -431,6 +502,16 @@ class honCMD():
                     #server_status_dict.update[{"first_run":"true"}]
                     #server_status_dict.update[{'just_collected':self.just_collected}]
                     #server_status_dict.update[{'lobby_created':self.lobby_created}]
+                elif "Successfully got a match ID" in line:
+                    self.first_run = False
+                    self.just_collected = True
+                    self.lobby_created = True
+
+                    tempData.update({'first_run':self.first_run})
+                    tempData.update({'just_collected':self.just_collected})
+                    tempData.update({'lobby_created':self.lobby_created})
+                    honCMD().updateStatus(tempData)
+                    #tempData.update({'total_slots':total_slots})
             return tempData
         elif dtype == "ServerReadyCheck":
             tempData = {}
