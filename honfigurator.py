@@ -685,15 +685,15 @@ class gui():
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
-        if 'github_branch' not in self.dataDict:
-            self.dataDict.update({'github_branch':selected_branch})
-        if identifier == "update":
-            update = initialise.update_repository(self,selected_branch)
-            guilog.insert(END,"==========================================\n")
-            # if update:
-            #     gui.popup_bonus()
-            #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-        # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
+        # if 'github_branch' not in self.dataDict:
+        #     self.dataDict.update({'github_branch':selected_branch})
+        # if identifier == "update":
+        #     update = initialise.update_repository(self,selected_branch)
+        #     guilog.insert(END,"==========================================\n")
+        #     # if update:
+        #     #     gui.popup_bonus()
+        #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+        # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         initialise.add_hosts_entry(self)
 
         if identifier == "single":
@@ -718,7 +718,6 @@ class gui():
             conf_local.set("OPTIONS","core_assignment",core_assignment)
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
-            conf_local.set("OPTIONS","auto_update",str(auto_update))
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             with open(config_local, "w") as a:
                 conf_local.write(a)
@@ -757,7 +756,6 @@ class gui():
                 conf_local.set("OPTIONS","core_assignment",core_assignment)
                 conf_local.set("OPTIONS","process_priority",process_priority)
                 conf_local.set("OPTIONS","incr_port_by",increment_port)
-                conf_local.set("OPTIONS","auto_update",(auto_update))
                 conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
@@ -963,7 +961,7 @@ class gui():
         tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
         tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
-        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.sendData("update",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
         tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
         
         """

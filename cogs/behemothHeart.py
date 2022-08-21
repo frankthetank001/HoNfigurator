@@ -45,7 +45,7 @@ class heartbeat(commands.Cog):
         self.server_status.update({'server_starting':False})
         self.server_status.update({'hard_reset':False})
 
-        restart_timer = 2
+        restart_timer = 10
         counter_heartbeat = 0
         counter_heartbeat_attempts = 0
         counter_hosted = 0
@@ -65,7 +65,7 @@ class heartbeat(commands.Cog):
             print(str(playercount))
             #
             #   playercount has returned to 0 after a game has been completed, or a lobby closed. Server restart required
-            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['map'] != "empty" and self.server_status['map'] not in self.available_maps) or (playercount == 1 and self.server_status['mode'] == "botmatch" and self.processed_data_dict['allow_botmatches'] == 'False'):
+            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps) or (playercount == 1 and self.server_status['game_mode'] == "botmatch" and self.processed_data_dict['allow_botmatches'] == 'False'):
                 hard_reset = svr_state.getData("CheckForUpdates")
                 self.server_status.update({'restart_required':True})
                 if playercount == 1:
@@ -73,15 +73,15 @@ class heartbeat(commands.Cog):
                     #   sinister behaviour detected, save log to file.
                     #   Players can attempt to start a game on an uknown map file. This causes the server to crash and hang.
                     #   We will firstly handle the error, restart the server, and then log the event for investigation.
-                    if self.server_status['mode'] == "botmatch":
+                    if self.server_status['game_mode'] == "botmatch":
                         svr_state.reportPlayer("botmatch")
-                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches)")
+                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches)")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
                     else:
                         svr_state.reportPlayer("No_Map")
-                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['map']}``)")
+                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``)")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
@@ -106,7 +106,7 @@ class heartbeat(commands.Cog):
                     #     counter_hosted = 0
                     #     self.server_status.update({'server_restarting':True})
                     #     self.server_status.update({'restart_required':True})
-                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['host']} for taking too long to create a lobby")
+                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
                     #     try:
                     #         await embed_log.edit(embed=logEmbed)
                     #     except:
@@ -138,14 +138,20 @@ class heartbeat(commands.Cog):
                 #     self.server_status.update({'server_restarting':True})
             #
             #   Check if the match has begun
-            if playercount >= 1 and self.server_status['game_started'] == False and self.server_status['lobby_created'] == True:
-                counter_gamecheck+=1
-                if counter_gamecheck==threshold_gamecheck:
-                    counter_gamecheck=0
-                    try:
-                        svr_state.getData("CheckInGame")
-                    except: print(traceback.format_exc())
-                         # force an update
+            if playercount >= 1:
+                if self.server_status['game_started'] == False and self.server_status['lobby_created'] == True or (self.server_status['match_info_obtained'] == False):
+                    counter_gamecheck+=1
+                    if counter_gamecheck==threshold_gamecheck:
+                        counter_gamecheck=0
+                        if self.server_status['game_started'] == False:
+                            try:
+                                svr_state.getData("CheckInGame")
+                            except: print(traceback.format_exc())
+                        if self.server_status['match_info_obtained'] == False:
+                            try:
+                                svr_state.getData("MatchInformation")
+                            except: print(traceback.format_exc())
+                            # force an update
             #
             #   Start a timer so we can show the elapsed time of the match
             if playercount >=1 and self.server_status['game_started'] == True:

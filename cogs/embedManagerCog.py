@@ -268,8 +268,8 @@ class embedManager(commands.Cog):
             #   server selected not hosted
             created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  SELECTING GAME SETTINGS",description=default_description, color=stripColor_selected)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
-            if self.server_status['host'] != "empty":
-                created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['host']}) to begin the game..\n60 seconds until kick```")
+            if self.server_status['game_host'] != "empty":
+                created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['game_host']}) to begin the game..\n60 seconds until kick```")
             else:
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host to begin the game..\n60 seconds until kick```")
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
@@ -294,49 +294,58 @@ class embedManager(commands.Cog):
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             #   
             #   Lobby online or match in progress
-            created_embed.add_field(name="Host: ", value=f"{self.server_status['host']}",inline=True)
-            created_embed.add_field(name="Map: ", value=f"{self.server_status['map']}",inline=True)
-            created_embed.add_field(name="Mode: ", value=f"{self.server_status['mode']}",inline=True)
+            # game_information = ['game_name','game_type','game_host','game_map','game_mode','slots']
+            # for info in game_information:
+            #     if self.server_status[info] != 'empty':
+            if self.server_status['game_name'] != 'empty':
+                created_embed.add_field(name="Name: ", value=f"{self.server_status['game_name']}",inline=True)
+            if self.server_status['game_type'] != 'empty':
+                created_embed.add_field(name="Type: ", value=f"{self.server_status['game_type']}",inline=True)
+            if self.server_status['game_host'] != 'empty':
+                created_embed.add_field(name="Host: ", value=f"{self.server_status['game_host']}",inline=True)
+            if self.server_status['game_map'] != 'empty':
+                created_embed.add_field(name="Map: ", value=f"{self.server_status['game_map']}",inline=True)
             created_embed.add_field(name="Slots: ", value=f"{playercount}/{self.server_status['slots']}",inline=True)
-            created_embed.add_field(name="Spectators: ", value=f"{self.server_status['spectators']}",inline=True)
-            created_embed.add_field(name="Referees: ", value=f"{self.server_status['referees']}",inline=True)
+            if self.server_status['game_mode'] != 'empty':
+                created_embed.add_field(name="Mode: ", value=f"{self.server_status['game_mode']}",inline=True)
+            # created_embed.add_field(name="Spectators: ", value=f"{self.server_status['spectators']}",inline=True)
+            # created_embed.add_field(name="Referees: ", value=f"{self.server_status['referees']}",inline=True)
             #   
             #   Lobby online
             if self.game_started == False:
-                created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
+                created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=False)
             #   
             #   Match in progress
             elif self.game_started == True:
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
-
                 created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
 
-            if self.server_status['map'] == "caldavar" or self.server_status['map'] == "caldavar_old" or self.server_status['map'] == "caldavar_reborn":
+            if self.server_status['game_map'] == "caldavar" or self.server_status['game_map'] == "caldavar_old" or self.server_status['game_map'] == "caldavar_reborn":
                 created_embed.set_thumbnail(url=map_caldavar)
-            elif self.server_status['map'] == "midwars" or self.server_status['map'] == "midwars_pbt" or self.server_status['map'] == "midwars_reborn":
+            elif self.server_status['game_map'] == "midwars" or self.server_status['game_map'] == "midwars_pbt" or self.server_status['game_map'] == "midwars_reborn":
                 created_embed.set_thumbnail(url=map_midwars)
-            elif self.server_status['map'] == "capturetheflag":
+            elif self.server_status['game_map'] == "capturetheflag":
                 created_embed.set_thumbnail(url=map_capturetheflag)
-            elif self.server_status['map'] == "darkwoodvale":
+            elif self.server_status['game_map'] == "darkwoodvale":
                 created_embed.set_thumbnail(url=map_darkwoodvale)
-            elif self.server_status['map'] == "grimmscrossing":
+            elif self.server_status['game_map'] == "grimmscrossing":
                 created_embed.set_thumbnail(url=map_grimmscrossing)
-            elif self.server_status['map'] == "prophets":
+            elif self.server_status['game_map'] == "prophets":
                 created_embed.set_thumbnail(url=map_prophets)
-            elif self.server_status['map'] == "riftwars":
+            elif self.server_status['game_map'] == "riftwars":
                 created_embed.set_thumbnail(url=map_riftwars)
-            elif self.server_status['map'] == "soccer":
+            elif self.server_status['game_map'] == "soccer":
                 created_embed.set_thumbnail(url=map_soccer)
-            elif self.server_status['map'] == "spotlight":
+            elif self.server_status['game_map'] == "spotlight":
                 created_embed.set_thumbnail(url=map_spotlight)
-            elif self.server_status['map'] == "team_deathmatch":
+            elif self.server_status['game_map'] == "team_deathmatch":
                 created_embed.set_thumbnail(url=map_deathmatch)
-            elif self.server_status['map'] == "thegrimmhunt":
+            elif self.server_status['game_map'] == "thegrimmhunt":
                 created_embed.set_thumbnail(url=map_grimmhunt)
-            elif self.server_status['map'] == "tutorial":
+            elif self.server_status['game_map'] == "tutorial":
                 created_embed.set_thumbnail(url=map_tutorial)
-            elif self.server_status['map'] == "watchtower":
+            elif self.server_status['game_map'] == "watchtower":
                 created_embed.set_thumbnail(url=map_watchtower)
             else:
                 created_embed.set_thumbnail(url=online)
