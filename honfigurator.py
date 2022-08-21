@@ -792,9 +792,11 @@ class gui():
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             #os.execv(sys.argv[0], sys.argv)
-            if 'Updating' in output.stdout or 'Switched to branch' in output.stderr:
-                if gui.popup_bonus():
-                    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            try:
+                if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
+                    if gui.popup_bonus():
+                        os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            except Exception as e: print(e)
             return True
         else:
             print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
