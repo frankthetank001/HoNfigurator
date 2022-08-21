@@ -740,13 +740,16 @@ class gui():
     def popup_bonus():
         win = tk.Toplevel()
         win.wm_title("Window")
+        var = tk.IntVar()
 
-        l = tk.Label(win, text="Input")
+        l = tk.Label(win, text="HoNfigurator will be updated.")
         l.grid(row=0, column=0)
 
-        b = ttk.Button(win, text="Okay", command=win.destroy)
+        b = ttk.Button(win, text="Okay", command=lambda: var.set(1))
+        #b = ttk.Button(win, text="Okay", command=win.destroy())
         b.grid(row=1, column=0)
-        win.mainloop(1)
+        b.wait_variable(var)
+        return True
     def regions(self):
         return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","AU","AU","AU","RU","EU","BR"]]
     def masterserver(self):
@@ -767,6 +770,29 @@ class gui():
             self.svr_id_var.set(self.svr_total_var.get())
         # elif str(self.core_assign.get()).lower() == "two":
         #     self.svr_total_var.set()
+    def update_repository(self,var,index,mode):
+        selected_branch = self.git_branch.get()
+        current_branch = Repository('.').head.shorthand  # 'master'
+        if selected_branch != current_branch:
+            checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+            if checkout.returncode == 0:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+                print(f"Updating selected repository: {selected_branch} branch")
+                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                #os.execv(sys.argv[0], sys.argv)
+                return True
+            else:
+                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
+                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+                if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
+                    print()
+                return False
+        if gui.popup_bonus():
+            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+        
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,auto_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
         global config_global
@@ -779,9 +805,9 @@ class gui():
         if identifier == "update" or selected_branch != self.dataDict['github_branch']:
             update = initialise.update_repository(self,selected_branch)
             guilog.insert(END,"==========================================\n")
-            if update:
-                gui.popup_bonus()
-                os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+            # if update:
+            #     gui.popup_bonus()
+            #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
         # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         initialise.add_hosts_entry(self)
 
@@ -1037,7 +1063,7 @@ class gui():
         applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
         tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
         tab1_git_branch.grid(column= 4, row = 6,sticky="w",pady=4)
-        # self.git_branch.trace_add('write', self.svr_num_link)
+        self.git_branch.trace_add('write', self.update_repository)
 
         #   bot version
         applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
