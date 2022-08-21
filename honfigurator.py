@@ -778,26 +778,26 @@ class gui():
     def update_repository(self,var,index,mode):
         selected_branch = self.git_branch.get()
         current_branch = Repository('.').head.shorthand  # 'master'
-        if selected_branch != current_branch:
-            checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
-            if checkout.returncode == 0:
-                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
-                print(f"Updating selected repository: {selected_branch} branch")
-                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
-                print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-                #os.execv(sys.argv[0], sys.argv)
-                if gui.popup_bonus():
-                    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-                return True
-            else:
-                print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
-                if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
-                    print()
-                self.git_branch.set(current_branch)
-                return False
+        # if selected_branch != current_branch:
+        checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+        if checkout.returncode == 0:
+            print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+            print(f"Updating selected repository: {selected_branch} branch")
+            output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+            print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            #os.execv(sys.argv[0], sys.argv)
+            if gui.popup_bonus():
+                os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            return True
+        else:
+            print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
+            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+            if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
+                print()
+            self.git_branch.set(current_branch)
+            return False
         
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
