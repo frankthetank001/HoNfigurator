@@ -100,20 +100,20 @@ class heartbeat(commands.Cog):
 
             if playercount >= 1 and self.server_status['lobby_created'] == False:
                 if self.server_status['lobby_created'] == False:
-                    counter_hosted+=1
+                    #counter_hosted+=1
                     counter_lobbycheck+=1
-                    if counter_hosted == threshold_hosted:
-                        counter_hosted = 0
-                        self.server_status.update({'server_restarting':True})
-                        self.server_status.update({'restart_required':True})
-                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['host']} for taking too long to create a lobby")
-                        try:
-                            await embed_log.edit(embed=logEmbed)
-                        except:
-                            print(traceback.format_exc())
-                            print("most likely due to using auto-sync")
-                        svr_state.restartSERVER()
-                        self.server_status.update({'tempcount':-5})    # force the heartbeat
+                    # if counter_hosted == threshold_hosted:
+                    #     counter_hosted = 0
+                    #     self.server_status.update({'server_restarting':True})
+                    #     self.server_status.update({'restart_required':True})
+                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['host']} for taking too long to create a lobby")
+                    #     try:
+                    #         await embed_log.edit(embed=logEmbed)
+                    #     except:
+                    #         print(traceback.format_exc())
+                    #         print("most likely due to using auto-sync")
+                    #     svr_state.restartSERVER()
+                    #     self.server_status.update({'tempcount':-5})    # force the heartbeat
 
                 if counter_lobbycheck == threshold_lobbycheck:
                     counter_lobbycheck=0
