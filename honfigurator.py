@@ -785,8 +785,8 @@ class gui():
         # if selected_branch != current_branch:
         checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
         if checkout.returncode == 0:
-            print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
-            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+            # print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
+            #guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
             print(f"Updating selected repository: {selected_branch} branch")
             output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
