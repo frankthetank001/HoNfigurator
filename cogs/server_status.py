@@ -507,16 +507,16 @@ class honCMD():
                     #server_status_dict.update[{"first_run":"true"}]
                     #server_status_dict.update[{'just_collected':self.just_collected}]
                     #server_status_dict.update[{'lobby_created':self.lobby_created}]
-                elif "Successfully got a match ID" in line:
-                    self.first_run = False
-                    self.just_collected = True
-                    self.lobby_created = True
+                #elif "Successfully got a match ID" in line:
+                    #self.first_run = False
+                    #self.just_collected = True
+                    #self.lobby_created = True
 
-                    tempData.update({'first_run':self.first_run})
-                    tempData.update({'just_collected':self.just_collected})
-                    tempData.update({'lobby_created':self.lobby_created})
-                    tempData.update({'game_type':"Ranked TMM"})
-                    honCMD().updateStatus(tempData)
+                    #tempData.update({'first_run':self.first_run})
+                    #tempData.update({'just_collected':self.just_collected})
+                    #tempData.update({'lobby_created':self.lobby_created})
+                    #tempData.update({'game_type':"Ranked TMM"})
+                    #honCMD().updateStatus(tempData)
                     #tempData.update({'total_slots':total_slots})
             return tempData
         elif dtype == "ServerReadyCheck":
