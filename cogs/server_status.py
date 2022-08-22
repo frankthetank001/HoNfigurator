@@ -146,19 +146,24 @@ class honCMD():
         else: self.server_status['hon_exe'].terminate()
         return True
 
-    def restartSERVER(self,):
+    def restartSERVER(self):
         if self.playerCount() == 0 or self.server_status['restart_required']==True:
-            honCMD().stopSERVER()
-            #
-            #   Code is stuck waiting for server to turn off
-            self.server_status.update({'server_restarting':True})
-            playercount = self.playerCount()
-            while playercount >= 0:
-                time.sleep(1)
+            hard_reset = honCMD().getData("CheckForUpdates")
+            if hard_reset:
+                honCMD().restartSELF()
+                self.server_status.update({'hard_reset':True})
+            else: 
+                honCMD().stopSERVER()
+                #
+                #   Code is stuck waiting for server to turn off
+                self.server_status.update({'server_restarting':True})
                 playercount = self.playerCount()
-            #
-            #   Once detects server is offline with above code start the server
-            honCMD().startSERVER()
+                while playercount >= 0:
+                    time.sleep(1)
+                    playercount = self.playerCount()
+                #
+                #   Once detects server is offline with above code start the server
+                honCMD().startSERVER()
         return True
 
     def restartSELF(self):
