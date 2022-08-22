@@ -211,12 +211,13 @@ class honCMD():
             #
             # Compare the total games played when server started to now. If it's changed, there's a new lobby, come here to check if we're in a match yet.
         elif dtype == "CheckInGame":
-            if self.server_status["game_log_location"] == "empty":
-                honCMD.getData(self,"getLogList_Game")
             total_games_played_prev_int = int(server_status_dict['total_games_played_prev'])
             total_games_played_now_int = int(honCMD.getData(self,"TotalGamesPlayed"))
             print ("about to check game started")
-            if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
+            #if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
+            if (total_games_played_now_int > total_games_played_prev_int):
+                if self.server_status["game_log_location"] == "empty":
+                    honCMD.getData(self,"getLogList_Game")
                 print("checking for game started now")
                 with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
                     for line in f:
@@ -512,7 +513,6 @@ class honCMD():
                     tempData.update({'just_collected':self.just_collected})
                     tempData.update({'lobby_created':self.lobby_created})
                     honCMD().updateStatus(tempData)
-                    tempData.update({'total_slots':total_slots})
             return tempData
         elif dtype == "ServerReadyCheck":
             tempData = {}
