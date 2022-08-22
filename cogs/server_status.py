@@ -107,7 +107,7 @@ class honCMD():
                 server_status_dict.update({"game_name":"empty"})
                 server_status_dict.update({"game_version":"empty"})
                 server_status_dict.update({"spectators":0})
-                server_status_dict.update({"slots":"empty"})
+                server_status_dict.update({"slots":10})
                 server_status_dict.update({"referees":0})
                 server_status_dict.update({"client_ip":"empty"})
                 server_status_dict.update({"match_info_obtained":False})
@@ -146,19 +146,24 @@ class honCMD():
         else: self.server_status['hon_exe'].terminate()
         return True
 
-    def restartSERVER(self,):
+    def restartSERVER(self):
         if self.playerCount() == 0 or self.server_status['restart_required']==True:
-            honCMD().stopSERVER()
-            #
-            #   Code is stuck waiting for server to turn off
-            self.server_status.update({'server_restarting':True})
-            playercount = self.playerCount()
-            while playercount >= 0:
-                time.sleep(1)
+            hard_reset = honCMD().getData("CheckForUpdates")
+            if hard_reset:
+                self.server_status.update({'hard_reset':True})
+                honCMD().restartSELF()
+            else: 
+                honCMD().stopSERVER()
+                #
+                #   Code is stuck waiting for server to turn off
+                self.server_status.update({'server_restarting':True})
                 playercount = self.playerCount()
-            #
-            #   Once detects server is offline with above code start the server
-            honCMD().startSERVER()
+                while playercount >= 0:
+                    time.sleep(1)
+                    playercount = self.playerCount()
+                #
+                #   Once detects server is offline with above code start the server
+                honCMD().startSERVER()
         return True
 
     def restartSELF(self):
@@ -510,6 +515,7 @@ class honCMD():
                     tempData.update({'first_run':self.first_run})
                     tempData.update({'just_collected':self.just_collected})
                     tempData.update({'lobby_created':self.lobby_created})
+                    tempData.update({'game_type':"Ranked TMM"})
                     honCMD().updateStatus(tempData)
                     #tempData.update({'total_slots':total_slots})
             return tempData

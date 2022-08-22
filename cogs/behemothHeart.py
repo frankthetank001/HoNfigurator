@@ -98,10 +98,10 @@ class heartbeat(commands.Cog):
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     svr_state.restartSELF()
 
-            if playercount >= 1 and self.server_status['lobby_created'] == False:
-                if self.server_status['lobby_created'] == False:
+            #if playercount >= 1 and self.server_status['lobby_created'] == False:
+                #if self.server_status['lobby_created'] == False:
                     #counter_hosted+=1
-                    counter_lobbycheck+=1
+                    #counter_lobbycheck+=1
                     # if counter_hosted == threshold_hosted:
                     #     counter_hosted = 0
                     #     self.server_status.update({'server_restarting':True})
@@ -115,12 +115,12 @@ class heartbeat(commands.Cog):
                     #     svr_state.restartSERVER()
                     #     self.server_status.update({'tempcount':-5})    # force the heartbeat
 
-                if counter_lobbycheck == threshold_lobbycheck:
-                    counter_lobbycheck=0
-                    if self.server_status['first_run'] == True:
-                        svr_state.getData("GameCheck")
-                        if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
-                            svr_state.changePriority(True)
+                #if counter_lobbycheck == threshold_lobbycheck:
+                #    counter_lobbycheck=0
+                #    if self.server_status['first_run'] == True:
+                #        svr_state.getData("GameCheck")
+                #        if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
+                #            svr_state.changePriority(True)
             #
             #   Server has been turned on but is not yet ready
             if self.server_status['server_ready'] == False:
@@ -139,7 +139,28 @@ class heartbeat(commands.Cog):
             #
             #   Check if the match has begun
             if playercount >= 1:
-                if self.server_status['game_started'] == False and self.server_status['lobby_created'] == True or (self.server_status['match_info_obtained'] == False):
+                if self.server_status['lobby_created'] == False:
+                    #counter_hosted+=1
+                    counter_lobbycheck+=1
+                    # if counter_hosted == threshold_hosted:
+                    #     counter_hosted = 0
+                    #     self.server_status.update({'server_restarting':True})
+                    #     self.server_status.update({'restart_required':True})
+                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
+                    #     try:
+                    #         await embed_log.edit(embed=logEmbed)
+                    #     except:
+                    #         print(traceback.format_exc())
+                    #         print("most likely due to using auto-sync")
+                    #     svr_state.restartSERVER()
+                    #     self.server_status.update({'tempcount':-5})    # force the heartbeat
+                    if counter_lobbycheck == threshold_lobbycheck:
+                        counter_lobbycheck=0
+                        if self.server_status['first_run'] == True:
+                            svr_state.getData("GameCheck")
+                            if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
+                                svr_state.changePriority(True)
+                if self.server_status['game_started'] == False and (self.server_status['lobby_created'] == True or self.server_status['match_info_obtained'] == False):
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
                         counter_gamecheck=0
