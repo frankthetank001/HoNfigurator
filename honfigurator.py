@@ -301,7 +301,6 @@ class initialise():
         global hon_api_updated
         global players_connected
         global guilog
-
         self.bot_version = float(self.bot_version)
         bot_needs_update = False
         bot_first_launch = False
@@ -585,36 +584,64 @@ class gui():
                 repositories.remove(repos)
         return repositories
     def coreassign(self):
-        return ["one","two"]
+        return ["one","two","two servers/core"]
     def incrementport(self):
         return["100","200","500","1000"]
     def priorityassign(self):
         return ["normal","high","realtime"]
     def coreadjust(self,var,index,mode):
+        cores = []
         total_cores = psutil.cpu_count(logical = True)
         half_core_count = total_cores / 2
         half_core_count = int(half_core_count)
+        two_servers_core = total_cores * 2
         core_assignment = str(self.core_assign.get()).lower()
         selected_id = str(self.svr_id_var.get())
         if core_assignment == "one":
-            if int(self.svr_total_var.get()) == half_core_count:
+            if int(self.svr_total_var.get()) > total_cores:
                 self.svr_total_var.set(total_cores)
+            if int(selected_id) > int(self.svr_total_var.get()):
+                self.svr_id_var.set(total_cores)
+            for i in range(total_cores):
+                cores.append(i+1)
+            self.tab1_servertd['values']=cores
+            self.tab1_serveridd['values']=cores
             return
-        elif core_assignment == "two" and int(self.svr_total_var.get()) > half_core_count:
+        elif core_assignment == "two":
+            #if int(self.svr_total_var.get()) > half_core_count:
             self.svr_total_var.set(half_core_count)
             if int(selected_id) > int(self.svr_total_var.get()):
                 self.svr_id_var.set(half_core_count)
+            for i in range(half_core_count):
+                cores.append(i+1)
+            self.tab1_servertd['values']=cores
+            self.tab1_serveridd['values']=cores
+            return
+        elif core_assignment == "two servers/core":
+            #if int(self.svr_total_var.get()) > two_servers_core:
+            self.svr_total_var.set(two_servers_core)
+            if int(selected_id) > int(self.svr_total_var.get()):
+                self.svr_id_var.set(two_servers_core)
+            for i in range(two_servers_core):
+                cores.append(i+1)
+            self.tab1_servertd['values']=cores
+            self.tab1_serveridd['values']=cores
+            return
     def corecount(self):
         cores = []
         total_cores = psutil.cpu_count(logical = True)
         half_core_count = total_cores / 2
         half_core_count = int(half_core_count)
         if self.dataDict['core_assignment'] == "two":
+            total_cores = half_core_count
             #for i in range(half_core_count):
                 #cores.append(i+1)
-            self.svr_total_var.set(half_core_count)
+            #self.svr_total_var.set(half_core_count)
+        elif self.dataDict['core_assignment'] == "two servers/core":
+            total_cores = total_cores * 2
         for i in range(total_cores):
             cores.append(i+1)
+            
         return cores
     def popup_bonus():
         win = tk.Toplevel()
@@ -851,9 +878,9 @@ class gui():
         #   server total    
         self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
         applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e")
-        tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var)
-        tab1_servertd.grid(column= 1 , row = 6,sticky="w",pady=4)
-        self.svr_total_var.trace_add('write', self.coreadjust)
+        self.tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var)
+        self.tab1_servertd.grid(column= 1 , row = 6,sticky="w",pady=4)
+        self.svr_total_var.trace_add('write', self.svr_num_link)
         #  one or two cores
         self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
         applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
@@ -884,8 +911,8 @@ class gui():
         #   server id
         self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
         applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
-        tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
-        tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4)
+        self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
+        self.tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4)
         self.svr_id_var.trace_add('write', self.svr_num_link)
         
         #   HoN Directory
@@ -957,9 +984,9 @@ class gui():
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         guilog.grid(columnspan=6,column=0,row=13,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
         tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
         tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
@@ -1010,7 +1037,7 @@ class gui():
         #     self.bot_cmd_buttons.append([self.tab1_status1_label,self.tab1_status1_current,tk.StringVar(app,'offline')])
         # tab1_startBot = applet.Button(tab1, text="Configure Single Server")
         # tab1_startBot.grid(columnspan=3, column=1, row=9,stick='n',padx=[0,10],pady=[20,10])
-        # tab1_startall = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),tab1_serveridd.get(),tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get()))
+        # tab1_startall = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get()))
         # tab1_startall.grid(columnspan=4, column=1, row=9,stick='n',padx=[10,0],pady=[20,10])
         # self.botCount(20)
         tabgui.select(0)

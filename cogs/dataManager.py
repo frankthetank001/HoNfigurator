@@ -110,10 +110,19 @@ class mData():
                 #   Set affinity of the hon process to total cores - server ID
                 affinity[0] = affinity[0]-self.svr_id
                 affinity[1] = affinity[1]-self.svr_id
-            else:
+            elif self.confDict['core_assignment'] == 'one':
                 affinity = [0,0]
                 affinity[0] = total_cores - self.svr_id
                 affinity[1] = total_cores - self.svr_id
+            elif self.confDict['core_assignment'] == 'two servers/core':
+                affinity = [0,0]
+                t = 0
+                for num in range(0, self.svr_id):
+                    # checking condition
+                    if num % 2 == 0:
+                        t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
             print("CPU Affinity: "+str(affinity))
             return affinity
         if dtype == "pythonLoc":
