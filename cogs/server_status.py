@@ -150,8 +150,8 @@ class honCMD():
         if self.playerCount() == 0 or self.server_status['restart_required']==True:
             hard_reset = honCMD().getData("CheckForUpdates")
             if hard_reset:
-                honCMD().restartSELF()
                 self.server_status.update({'hard_reset':True})
+                honCMD().restartSELF()
             else: 
                 honCMD().stopSERVER()
                 #
@@ -515,6 +515,7 @@ class honCMD():
                     tempData.update({'first_run':self.first_run})
                     tempData.update({'just_collected':self.just_collected})
                     tempData.update({'lobby_created':self.lobby_created})
+                    tempData.update({'game_type':"Ranked TMM"})
                     honCMD().updateStatus(tempData)
                     #tempData.update({'total_slots':total_slots})
             return tempData
