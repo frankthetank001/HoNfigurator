@@ -107,7 +107,7 @@ class honCMD():
                 server_status_dict.update({"game_name":"empty"})
                 server_status_dict.update({"game_version":"empty"})
                 server_status_dict.update({"spectators":0})
-                server_status_dict.update({"slots":"empty"})
+                server_status_dict.update({"slots":10})
                 server_status_dict.update({"referees":0})
                 server_status_dict.update({"client_ip":"empty"})
                 server_status_dict.update({"match_info_obtained":False})
