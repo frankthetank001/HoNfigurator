@@ -49,7 +49,7 @@ class honCMD():
         #
         #   Combine temp data into the sever_status dictionary
         server_status_dict.update(data)
-        print("updated dictionary: " + str(server_status_dict))
+        #print("updated dictionary: " + str(server_status_dict))
         return
 
     def getStatus(self):
@@ -227,20 +227,12 @@ class honCMD():
             return
         elif dtype == "MatchInformation":
             tempData = {}
-            
-            if self.server_status['match_log_location'] == "empty":
-                honCMD.getData(self,"getLogList_Match")
-            #softSlave = mData.getData(self,"loadSoftSlave")
-            #hardSlave = mData.getData(self,"loadHardSlave")
-
-            #if softSlave is not hardSlave: #and check_lobby is True:
-            dataL = open(self.server_status['match_log_location'],encoding='utf-16-le')
-            data = dataL.readlines()
-            dataL.close()
             total_games_played_prev_int = int(server_status_dict['total_games_played_prev'])
             total_games_played_now_int = int(honCMD.getData(self,"TotalGamesPlayed"))
             print ("about to check match information")
-            if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
+            if (total_games_played_now_int > total_games_played_prev_int):
+                if self.server_status['match_log_location'] == "empty":
+                    honCMD.getData(self,"getLogList_Match")
                 print("checking match information")
                 with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
                     for line in f:
@@ -265,11 +257,15 @@ class honCMD():
                         if "INFO_SETTINGS mode:" in line:
                             game_mode = re.findall(r'"([^"]*)"', line)
                             game_mode = game_mode[0]
+                            game_mode = game_mode.replace('Mode_','')
                             tempData.update({'game_mode':game_mode})
                             honCMD().updateStatus(tempData)
                             print("game_mode: "+ game_mode)
                             tempData.update({"match_info_obtained":True})
                             tempData.update({"game_started":True})
+                            tempData.update({"first_run":False})
+                            tempData.update({"lobby_created":True})
+                            tempData.update({"tempcount":-5})
                             honCMD().updateStatus(tempData)
         #
         #   Get the last restart time
@@ -507,17 +503,16 @@ class honCMD():
                     #server_status_dict.update[{"first_run":"true"}]
                     #server_status_dict.update[{'just_collected':self.just_collected}]
                     #server_status_dict.update[{'lobby_created':self.lobby_created}]
-                #elif "Successfully got a match ID" in line:
-                    #self.first_run = False
-                    #self.just_collected = True
-                    #self.lobby_created = True
+                elif "Successfully got a match ID" in line:
+                    self.first_run = False
+                    self.just_collected = True
+                    self.lobby_created = True
 
-                    #tempData.update({'first_run':self.first_run})
-                    #tempData.update({'just_collected':self.just_collected})
-                    #tempData.update({'lobby_created':self.lobby_created})
-                    #tempData.update({'game_type':"Ranked TMM"})
-                    #honCMD().updateStatus(tempData)
-                    #tempData.update({'total_slots':total_slots})
+                    tempData.update({'first_run':self.first_run})
+                    tempData.update({'just_collected':self.just_collected})
+                    tempData.update({'lobby_created':self.lobby_created})
+                    honCMD().updateStatus(tempData)
+                    tempData.update({'total_slots':total_slots})
             return tempData
         elif dtype == "ServerReadyCheck":
             tempData = {}

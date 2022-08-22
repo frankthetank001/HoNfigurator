@@ -160,7 +160,7 @@ class heartbeat(commands.Cog):
                             svr_state.getData("GameCheck")
                             if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
                                 svr_state.changePriority(True)
-                if self.server_status['game_started'] == False and (self.server_status['lobby_created'] == True or self.server_status['match_info_obtained'] == False):
+                if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
                         counter_gamecheck=0
