@@ -7,7 +7,7 @@ import traceback
 svr_state = svrcmd.honCMD()
 hard_reset = False
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
-alive = True
+alive = False
 global embed_log
 
 class heartbeat(commands.Cog):
@@ -238,6 +238,7 @@ class heartbeat(commands.Cog):
             playercount = svrcmd.honCMD().playerCount()
             if hoster == self.processed_data_dict['svr_hoster']:
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
+            alive = ctx.invoke(bot.get_command('statusheart'),ctx)
             try:
                 if alive:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓 {playercount} players connected",delete_after=5)
