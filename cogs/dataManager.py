@@ -153,17 +153,18 @@ class mData():
             # 70e841d98e59dfe9347e24260719e1b7b590ebb8 = old DLL
             #
             sha1 = hashlib.sha1()
-            with open(self.confDict['svr_k2dll'],'rb') as file:
-            #   loop till the end of the file
-                chunk = 0
-                while chunk != b'':
-                    #   read only 1024 bytes at a time
-                    chunk = file.read(1024)
-                    sha1.update(chunk)
-            hash = sha1.hexdigest()
-            hash = hash.upper()
-            gameDllHash = hash
-            return gameDllHash
+            if exists(self.confDict['svr_k2dll']):
+                with open(self.confDict['svr_k2dll'],'rb') as file:
+                #   loop till the end of the file
+                    chunk = 0
+                    while chunk != b'':
+                        #   read only 1024 bytes at a time
+                        chunk = file.read(1024)
+                        sha1.update(chunk)
+                hash = sha1.hexdigest()
+                hash = hash.upper()
+                gameDllHash = hash
+                return gameDllHash
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'
