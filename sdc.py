@@ -222,7 +222,7 @@ class hsl(commands.Cog):
                 await asyncio.sleep(svr_id_delay)
                 waited = True
             try:
-                await ctx.invoke(bot.get_command('desync'),svr_hoster)
+                await ctx.invoke(bot.get_command('desync'),hoster)
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('destroylink'),hoster)
@@ -289,7 +289,7 @@ class hsl(commands.Cog):
                 for i in range(len(embed_ids)):
                     embedData.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")   
                 embedData.close()
-            await ctx.invoke(bot.get_command('sync'),svr_hoster)
+            await ctx.invoke(bot.get_command('sync'),hoster)
             if hoster == svr_hoster:
                 waited = False
     """
@@ -408,6 +408,9 @@ class hsl(commands.Cog):
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
+            heart = await ctx.invoke(bot.get_command('statusheart'))
+            if not heart:
+                await ctx.invoke(bot.get_command('startheart'))
             if hoster == svr_hoster:
                 waited = False
             
