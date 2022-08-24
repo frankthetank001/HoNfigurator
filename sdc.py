@@ -225,7 +225,7 @@ class hsl(commands.Cog):
                 await ctx.invoke(bot.get_command('desync'),hoster)
             except: print(traceback.format_exc())
             try:
-                await ctx.invoke(bot.get_command('destroylink'),hoster)
+                await ctx.invoke(bot.get_command('destroylinkshere'),hoster)
             except: print(traceback.format_exc())
             sent_embed = await ctx.invoke(bot.get_command('initiateEmbed'))
             #await asyncio.sleep(1)
@@ -425,7 +425,7 @@ class hsl(commands.Cog):
 
     """
     @bot.command()
-    async def destroylink(ctx,hoster):
+    async def destroylinkshere(ctx,hoster):
         
         global waited
         if hoster == svr_hoster or hoster == svr_identifier:

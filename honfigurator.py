@@ -237,6 +237,8 @@ class initialise():
         time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
         time.sleep(1)
+        sp.Popen([self.nssm, "set",service_name,"Start","SERVICE_DEMAND_START"])
+        time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,f"AppExit","Default","Restart"])
         time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,"AppParameters","sdc.py"])
@@ -257,7 +259,7 @@ class initialise():
         with open(temFile, "w") as f:
             f.write("True")
 
-    def create_config(self,filename,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+    def create_config(self,filename,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
         print("customising startup.cfg with the following values")
@@ -267,13 +269,23 @@ class initialise():
         print("svr_total: " + str(svr_total))
         print("svr_ip: " + str(svr_ip))
         #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
-        networking = ["svr_port","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart"]
+        networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         for i in networking:
             temp_port = self.startup[i]
             temp_port = temp_port.strip('"')
             temp_port = int(temp_port)
             temp_port = temp_port + iter
             self.startup.update({i:f'"{temp_port}"'})
+        tem_game_port = int(game_port)
+        tem_game_port = tem_game_port + iter
+        self.startup.update({'svr_port':tem_game_port})
+        tem_voice_port = int(voice_port)
+        tem_voice_port = tem_voice_port + iter
+        self.startup.update({'svr_proxyLocalVoicePort':tem_voice_port})
+        self.startup.update({'svr_voicePortEnd':tem_voice_port})
+        self.startup.update({'svr_voicePortStart':tem_voice_port})
+        print("svr_port: " + str(tem_game_port))
+        print("voice_port: " + str(tem_voice_port))
         self.startup.update({"man_enableProxy":"false"})
         self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
         self.startup.update({"svr_location":f'"{location}"'})
@@ -397,7 +409,7 @@ class initialise():
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
             # for i in config:
@@ -586,7 +598,7 @@ class gui():
     def coreassign(self):
         return ["one","two","two servers/core"]
     def incrementport(self):
-        return["100","200","500","1000"]
+        return["1","10","100","200","500","1000"]
     def priorityassign(self):
         return ["normal","high","realtime"]
     def coreadjust(self,var,index,mode):
@@ -705,7 +717,7 @@ class gui():
             self.git_branch.set(current_branch)
             return False
         
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,core_assignment,process_priority,botmatches,selected_branch,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,game_port,voice_port,core_assignment,process_priority,botmatches,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -745,6 +757,8 @@ class gui():
             conf_local.set("OPTIONS","core_assignment",core_assignment)
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
+            conf_local.set("OPTIONS","game_starting_port",game_port)
+            conf_local.set("OPTIONS","voice_starting_port",voice_port)
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             with open(config_local, "w") as a:
                 conf_local.write(a)
@@ -783,6 +797,8 @@ class gui():
                 conf_local.set("OPTIONS","core_assignment",core_assignment)
                 conf_local.set("OPTIONS","process_priority",process_priority)
                 conf_local.set("OPTIONS","incr_port_by",increment_port)
+                conf_local.set("OPTIONS","game_starting_port",game_port)
+                conf_local.set("OPTIONS","voice_starting_port",voice_port)
                 conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
@@ -933,14 +949,24 @@ class gui():
         tab1_priority.grid(column= 1, row = 10,sticky="w",pady=4)
         #  increment ports
         self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
-        applet.Label(tab1, text="Increment each server port by:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Increment server port by:",background=maincolor,foreground='white').grid(column=1, row=8,sticky="e",padx=[20,0])
         tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port)
-        tab1_increment_port.grid(column= 1, row = 11,sticky="w",pady=4)
+        tab1_increment_port.grid(column= 2, row = 8,sticky="w",pady=4)
+        #  starting gameport
+        applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=9,sticky="e")
+        tab1_game_port = applet.Entry(tab1,foreground=textcolor)
+        tab1_game_port.insert(0,self.dataDict['game_starting_port'])
+        tab1_game_port.grid(column=2,row = 9,sticky="w",pady=4)
+        #  starting gameport
+        applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=10,sticky="e")
+        tab1_voice_port = applet.Entry(tab1,foreground=textcolor)
+        tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
+        tab1_voice_port.grid(column=2,row = 10,sticky="w",pady=4)
         #   force update
-        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-        tab1_forceupdate_btn.grid(column= 1, row = 12,sticky="w",pady=4)
+        tab1_forceupdate_btn.grid(column= 1, row = 11,sticky="w",pady=4)
         #
         #
         
@@ -982,14 +1008,14 @@ class gui():
         
 
         guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
-        guilog.grid(columnspan=6,column=0,row=13,sticky="n")
+        guilog.grid(columnspan=6,column=0,row=15,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_singlebutton.grid(columnspan=1,column=1, row=14,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_allbutton.grid(columnspan=1,column=2, row=14,stick='n',padx=[0,20],pady=[20,10])
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton.grid(columnspan=1,column=1, row=16,stick='n',padx=[10,0],pady=[20,10])
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton.grid(columnspan=1,column=2, row=16,stick='n',padx=[0,20],pady=[20,10])
         tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
-        tab1_updatebutton.grid(columnspan=1,column=3, row=14,stick='n',padx=[20,0],pady=[20,10])
+        tab1_updatebutton.grid(columnspan=1,column=3, row=16,stick='n',padx=[20,0],pady=[20,10])
         
         """
         

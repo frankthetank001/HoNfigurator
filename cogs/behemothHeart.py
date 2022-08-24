@@ -65,7 +65,7 @@ class heartbeat(commands.Cog):
             print(str(playercount))
             #
             #   playercount has returned to 0 after a game has been completed, or a lobby closed. Server restart required
-            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps) or (playercount == 1 and self.server_status['game_mode'] == "botmatch" and self.processed_data_dict['allow_botmatches'] == 'False'):
+            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps) or (playercount == 1 and (self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch") and self.processed_data_dict['allow_botmatches'] == 'False'):
                 hard_reset = svr_state.getData("CheckForUpdates")
                 self.server_status.update({'restart_required':True})
                 if playercount == 1:
@@ -158,8 +158,6 @@ class heartbeat(commands.Cog):
                         counter_lobbycheck=0
                         if self.server_status['first_run'] == True:
                             svr_state.getData("GameCheck")
-                            if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
-                                svr_state.changePriority(True)
                 if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
@@ -173,6 +171,20 @@ class heartbeat(commands.Cog):
                                 svr_state.getData("MatchInformation")
                             except: print(traceback.format_exc())
                             # force an update
+            if playercount >=2:
+                if self.server_status['priority_realtime'] == False:
+                    svr_state.changePriority(True)
+            if playercount == 0:
+                if self.server_status['priority_realtime'] == True:
+                    svr_state.changePriority(False)
+                hard_reset = svr_state.getData("CheckForUpdates")
+                if hard_reset:
+                    self.server_status.update({'restart_required':True})
+                    self.server_status.update({'hard_reset':True})
+                    await test.createEmbed(ctx,playercount)
+                    await asyncio.sleep(restart_timer)
+                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    svr_state.restartSELF()
             #
             #   Start a timer so we can show the elapsed time of the match
             if playercount >=1 and self.server_status['game_started'] == True:
