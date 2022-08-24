@@ -38,11 +38,11 @@ class honCMD():
             elif processed_data_dict['process_priority'] == "realtime":
                 self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
             print("priority set to realtime")
-            self.server_status.update({'priority_realtime':True})
+            self.server_status.update({'priority_realtime':priority_realtime})
         else:
-            self.server_status['hon_pid_hook'].nice(psutil.NORMAL_PRIORITY_CLASS)
+            self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
             print("priority set to normal")
-            self.server_status.update({'priority_realtime':False})
+            self.server_status.update({'priority_realtime':priority_realtime})
         return priority_realtime
 
     def updateStatus(self,data):
@@ -189,12 +189,10 @@ class honCMD():
         if dtype == "CheckForUpdates":
             temFile = processed_data_dict['sdc_home_dir']+"\\pending_restart"
             if exists(temFile):
-                with open(temFile, "r") as f:
-                    data = f.readline()
-                f.close()
-                os.remove(temFile)
-                if data == "True":
+                try:
+                    os.remove(temFile)
                     return True
+                except Exception as e: print(e)
             else:
                 return False
         if dtype == "TotalGamesPlayed":
