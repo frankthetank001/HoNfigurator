@@ -54,9 +54,13 @@ class mData():
         if 'process_priority' not in self.confDict:
             self.confDict.update({'process_priority':'realtime'})
         if 'incr_port_by' not in self.confDict:
-            self.confDict.update({'incr_port_by':1000})
+            self.confDict.update({'incr_port_by':1})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
+        if 'game_starting_port' not in self.confDict:
+            self.confDict.update({'game_starting_port':10000})
+        if 'voice_starting_port' not in self.confDict:
+            self.confDict.update({'voice_starting_port':10060})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":

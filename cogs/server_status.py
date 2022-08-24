@@ -202,8 +202,8 @@ class honCMD():
                         tempList.append(item)
                 if not tempList:
                     print("NO GAME FILE EITHER, we should make one")
-                    with open(processed_data_dict['hon_logs_dir']+'\\game_0000.log', 'w'): pass
-                    tempList.append("game_0000.log")
+                    with open(processed_data_dict['hon_logs_dir']+'\\M0000.log', 'w'): pass
+                    tempList.append("M0000.log")
                 total_games_played = len(tempList) 
                 return total_games_played
             #
@@ -214,8 +214,10 @@ class honCMD():
             print ("about to check game started")
             #if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
             if (total_games_played_now_int > total_games_played_prev_int):
-                if self.server_status["game_log_location"] == "empty":
-                    honCMD.getData(self,"getLogList_Game")
+                #
+                # Commenting temprarily as there are issues if the match is not restarted in between games.
+                #if self.server_status["game_log_location"] == "empty":
+                honCMD.getData(self,"getLogList_Game")
                 print("checking for game started now")
                 with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
                     for line in f:
@@ -230,8 +232,10 @@ class honCMD():
             total_games_played_now_int = int(honCMD.getData(self,"TotalGamesPlayed"))
             print ("about to check match information")
             if (total_games_played_now_int > total_games_played_prev_int):
-                if self.server_status['match_log_location'] == "empty":
-                    honCMD.getData(self,"getLogList_Match")
+                #
+                # Commenting temprarily as there are issues if the match is not restarted in between games.
+                # if self.server_status['match_log_location'] == "empty":
+                honCMD.getData(self,"getLogList_Match")
                 print("checking match information")
                 with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
                     for line in f:
@@ -384,8 +388,10 @@ class honCMD():
                 lastmodData = int(lastmodData)
                 #
                 #   Gets the current byte size of the slave log
-                if self.server_status['slave_log_location'] == "empty":
-                    honCMD.getData(self,"getLogList_Slave")
+                #
+                # Commenting temprarily as there are issues if the match is not restarted in between games.
+                #if self.server_status['slave_log_location'] == "empty":
+                honCMD.getData(self,"getLogList_Slave")
                 fileSize = os.stat(self.server_status['slave_log_location']).st_size
                 #
                 #   After reading data set temporary file to current byte size

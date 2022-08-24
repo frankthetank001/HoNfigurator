@@ -65,7 +65,7 @@ class heartbeat(commands.Cog):
             print(str(playercount))
             #
             #   playercount has returned to 0 after a game has been completed, or a lobby closed. Server restart required
-            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps) or (playercount == 1 and self.server_status['game_mode'] == "botmatch" and self.processed_data_dict['allow_botmatches'] == 'False'):
+            if playercount == 0 and self.server_status['first_run'] == False or (playercount == 1 and self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps) or (playercount == 1 and (self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch") and self.processed_data_dict['allow_botmatches'] == 'False'):
                 hard_reset = svr_state.getData("CheckForUpdates")
                 self.server_status.update({'restart_required':True})
                 if playercount == 1:
