@@ -237,6 +237,8 @@ class initialise():
         time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
         time.sleep(1)
+        sp.Popen([self.nssm, "set",service_name,"Start","SERVICE_DEMAND_START"])
+        time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,f"AppExit","Default","Restart"])
         time.sleep(1)
         sp.Popen([self.nssm, "set",service_name,"AppParameters","sdc.py"])
