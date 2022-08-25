@@ -690,7 +690,7 @@ class gui():
         #     self.svr_total_var.set()
     def update_repository(self,var,index,mode):
         selected_branch = self.git_branch.get()
-        current_branch = Repository('.').head.shorthand  # 'master'
+        current_branch = Repository(application_path).head.shorthand  # 'master'
         # if selected_branch != current_branch:
         checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
         if checkout.returncode == 0:
