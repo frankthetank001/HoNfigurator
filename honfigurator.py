@@ -583,11 +583,11 @@ class gui():
         print (self.dataDict)
         return
     def git_current_branch(self):
-        current_branch = Repository('.').head.shorthand  # 'master'
+        current_branch = Repository(application_path).head.shorthand  # 'master'
         return current_branch
     def git_all_branches(self):
         repositories = []
-        repo = git.Repo('.')
+        repo = git.Repo(application_path)
         remote_refs = repo.remote().refs
         for refs in remote_refs:
             repos = refs.name.replace('origin/','')
