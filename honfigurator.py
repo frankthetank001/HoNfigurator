@@ -154,7 +154,7 @@ class initialise():
                 else:
                     return False
     def update_repository(self,selected_branch):
-        current_branch = Repository(application_path).head.shorthand  # 'master'
+        current_branch = Repository('.').head.shorthand  # 'master'
         if selected_branch != current_branch:
             checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
             if checkout.returncode == 0:
@@ -583,11 +583,11 @@ class gui():
         print (self.dataDict)
         return
     def git_current_branch(self):
-        current_branch = Repository(application_path).head.shorthand  # 'master'
+        current_branch = Repository('.').head.shorthand  # 'master'
         return current_branch
     def git_all_branches(self):
         repositories = []
-        repo = git.Repo(application_path)
+        repo = git.Repo('.')
         remote_refs = repo.remote().refs
         for refs in remote_refs:
             repos = refs.name.replace('origin/','')
@@ -690,7 +690,7 @@ class gui():
         #     self.svr_total_var.set()
     def update_repository(self,var,index,mode):
         selected_branch = self.git_branch.get()
-        current_branch = Repository(application_path).head.shorthand  # 'master'
+        current_branch = Repository('.').head.shorthand  # 'master'
         # if selected_branch != current_branch:
         checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
         if checkout.returncode == 0:
