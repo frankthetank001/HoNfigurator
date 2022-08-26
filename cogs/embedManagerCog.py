@@ -197,7 +197,7 @@ class embedManager(commands.Cog):
     @bot.command()
     async def offlineEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  ออฟไลน์",description=default_description, color=stripColor_offline)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  ออฟไลน์",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
         created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
@@ -210,7 +210,7 @@ class embedManager(commands.Cog):
     async def startingEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {server_data_dict['svr_name']}  |  กำลังเริ่มต้นเซิฟเวอร์..",description=default_description, color=stripColor_starting)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  กำลังเริ่มต้นเซิฟเวอร์..",description=default_description, color=stripColor_starting)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
         try:
@@ -242,7 +242,7 @@ class embedManager(commands.Cog):
     async def restartEmbed(self,rec_embed):
         #self.server_status.update({'restarting_server':True})
         #embedManager.__init__(self,bot)
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                           กรุณารอเซิฟเวอร์กำลังรีสตาร์ท...", color=stripColor_restart)
+        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                             กรุณารอเซิฟเวอร์กำลังรีสตาร์ท...", color=stripColor_restart)
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -269,7 +269,7 @@ class embedManager(commands.Cog):
             created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  กำลังสร้างห้อง",description=default_description, color=stripColor_selected)
             created_embed.set_author(name=self.server_status['discord_admin_name'])
             if self.server_status['game_host'] != "empty":
-                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nผู้เล่น({self.server_status['host']})กำลังสร้างห้อง..\nกรุณารอภายใน 60 วินาที```")
+                created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nผู้เล่น({self.server_status['game_host']})กำลังสร้างห้อง..\nกรุณารอภายใน 60 วินาที```")
             else:
                 created_embed.add_field(name=f"สถานะเซิฟเวอร์(รอ)",value=f"```\nกรุณารอหัวห้องเชื่อมต่อสำเร็จ..\nภายใน 60 วินาที```")
             created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
