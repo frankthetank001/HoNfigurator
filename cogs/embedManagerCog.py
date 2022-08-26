@@ -218,8 +218,7 @@ class embedManager(commands.Cog):
         created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=offline)
         try:
-            with timeout(seconds=3):
-                await rec_embed.edit(embed=created_embed)
+            await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
 
     @bot.command()
@@ -230,8 +229,7 @@ class embedManager(commands.Cog):
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         try:
-            with timeout(seconds=3):
-                await rec_embed.edit(embed=created_embed)
+            await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
         return
 
@@ -251,8 +249,7 @@ class embedManager(commands.Cog):
         created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
         created_embed.set_thumbnail(url=online)
         try:
-            with timeout(seconds=3):
-                await rec_embed.edit(embed=created_embed)
+            await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
         return
     
@@ -293,8 +290,7 @@ class embedManager(commands.Cog):
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
             created_embed.set_thumbnail(url=hosted)
             try:
-                with timeout(seconds=3):
-                    await rec_embed.edit(embed=created_embed)
+                await rec_embed.edit(embed=created_embed)
             except: print(traceback.format_exc())
         #
         #   BASE EMBED: embed when a lobby has been created
@@ -369,8 +365,7 @@ class embedManager(commands.Cog):
             else:
                 created_embed.set_thumbnail(url=online)
             try:
-                with timeout(seconds=3):
-                    await rec_embed.edit(embed=created_embed)
+                await rec_embed.edit(embed=created_embed)
             except: print(traceback.format_exc())
         
     @bot.command()
