@@ -117,6 +117,7 @@ class honCMD():
                 server_status_dict.update({"match_log_location":"empty"})
                 server_status_dict.update({"slave_log_location":"empty"})
                 server_status_dict.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
+                server_status_dict.update({"total_games_played":honCMD.getData(self,"TotalGamesPlayed")})
                 #server_status_dict.update({'tempcount':-5})
                 server_status_dict.update({"server_ready":False})
                 server_status_dict.update({'elapsed_duration':0})
