@@ -76,39 +76,48 @@ Adminbot parses game log files, looks out for sinister events, and gives real-ti
 These are to be performed on game servers only.
 
 ### Prerequisites
-Details on how to clone a repository found here: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
-1. **Clone** this github repository to a location on the server. This will be the central point where updates can be pushed out from, and where the HoNfigurator will run from.
-	- ``git clone https://github.com/frankthetank001/honfigurator``
-3. Install basic Hon x64 client - http://honmasterserver.com/Heroes%20of%20Newerth%20x64%20-%20CLEAN.rar
-4. Move the ``Heroes of Newerth x64`` folder into ``C:\Program Files\`` or a location of your choice.
-5. Install Python from ``honfigurator-main\dependencies\`` folder.
-6. Run the Installer for **Python** ``as Administrator``
- 	- Use the following options (IMPORTANT):
-		- ``custom installation``
-		- ``select option to install for all users``
-		- ``Add python to path/environment variables``
-		- ``disable PATH length constraints``
-7. Execute **HoNfigurator-installer.bat** ``as Administrator``
-	- This will install ``Python pre-requisites``. Take note of any errors.
-8. Retrieve a bot token from: (Discord ID: FrankTheGodDamnMotherFuckenTank#8426)
-9. Execute **HoNfigurator-launcher.bat** ``as Administrator``
-10. Fill in the basic information requirements (defaults will be remembered):
-	- Server host ``(example: T4NK)``
-	- Location ``(example: AUSTRALIA)``
-	- Region ``(example: AUS)``
-	- Total Servers. ``Limited by total CPU cores``
-	- Discord Admin Role ``(example: AUS Server Admins)``
-	- Discord Bot Token
-	- Masterserver host
+For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
+HoNfigurator should just open at the end.
+
+Installation script: https://store3.gofile.io/download/direct/cf03d57b-8a29-4ab4-aff4-e61b30c66055/HoNfigurator-Installer.bat
+
+1. Download the script above
+2. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
+3. Double click ``HoNfigurator-Installer.bat``
+
+This should launcher an installer like below:
+![image](https://user-images.githubusercontent.com/82205454/187016190-3192a4be-b35f-48ee-992e-819db303a778.png)
+
+It will take some time to install Chocolatey, and you may opt to install a clean HoN client.
+Simply answer (y/n) to the prompt.
+
+Once HoNfigurator is open:
+1. Obtain the following information:
+	- Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
+	- Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
+2. Fill in the server requirements (defaults will be remembered):
+	- Server host - ``(example: T4NK)``
+	- Location - ``(example: AUSTRALIA)``
+	- Region - ``(example: AU)``
+	- Total Servers  - ``Limited by total CPU cores``
+	- Discord Owner ID - ``obtained in step 1``
+	- Discord Bot Token - ``obtained in step 1``
+	- Masterserver host (selectable option between two different master servers)
 	- Core Assignment
 		- one logical core per server - ``Default``
 		- two logical cores per server
-	- Increment Port (starts at 10000_
-		- the value to increment the port number by for each subsequent server.
-		- server1 (10000), server2 (11000), etc..
+		- two servers per logical core - ``for very strong CPUs only``
+	- Networking details
+		- Starting Game Port - ``Default 10000``
+		- Starting Voice Port - ``Default 10060``
+		- the value to increment the port number by for each subsequent server - ``Default 1``
 	- ``Configure ALL servers`` button
 		- Configures all servers within the ``total servers range``
 	- ``Configure SINGLE server``
 		- Configures single server by selected ``server ID``.
+	- ``Update HoNfigurator``
+		- Updates HoNfigurator with the latest updates from GitHub.
+		- It's important to stay in the loop with the most recent updates, especially with a changing HoN environment, updates are frequently being pushed.
+			- Updates will occur automatically when launching.
 11. Example of full configuration below:
-![Config Options](https://user-images.githubusercontent.com/82205454/183896906-13467995-57ba-4022-a7ff-a8df7035f296.png)
+![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
