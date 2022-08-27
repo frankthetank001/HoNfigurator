@@ -100,9 +100,11 @@ Once HoNfigurator is open:
 	- Location - ``(example: AUSTRALIA)``
 	- Region - ``(example: AU)``
 	- Total Servers  - ``Limited by total CPU cores``
+	- HoN Directory - ``Ensure you provide the correct path``
+		- You must also obtain required server binaries yourself.
 	- Discord Owner ID - ``obtained in step 1``
 	- Discord Bot Token - ``obtained in step 1``
-	- Masterserver host (selectable option between two different master servers)
+	- Masterserver host - ``selectable option between two different master servers``
 	- Core Assignment
 		- one logical core per server - ``Default``
 		- two logical cores per server
