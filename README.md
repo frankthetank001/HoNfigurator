@@ -113,15 +113,22 @@ Once HoNfigurator is open:
 		- Starting Game Port - ``Default 10000``
 		- Starting Voice Port - ``Default 10060``
 		- the value to increment the port number by for each subsequent server - ``Default 1``
+3. Running HoNfigurator
 	- ``Configure ALL servers`` button
-		- Configures all servers within the ``total servers range``
+		- Configures all servers within the ``total servers range`` with the selected settings.
 	- ``Configure SINGLE server``
-		- Configures single server by selected ``server ID``.
+		- Configures a single server by selected ``server ID`` with the selected settings.
 	- ``Update HoNfigurator``
 		- Updates HoNfigurator with the latest updates from GitHub.
 		- It's important to stay in the loop with the most recent updates, especially with a changing HoN environment, updates are frequently being pushed.
 			- Updates will occur automatically when launching.
-11. Example of full configuration below:
+4. Post Configuration
+	- Observe the output of HoNfigurator, althought it will automatically configure windows firewall, it will advise which ports must be opened (port forward) in your network firewall.
+	- Updates
+		- It is safe to configure servers when there are games in progress. Restarts will be scheduled if HoNfigurator detects a server ``in-game``.
+	- Discord
+		- Invite your bot to your own discord channel. ``@FrankTheGodDamnMotherFuckenTank#8426`` can assist with this.
+5. Example of full configuration below:
 ![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
 
 To launch HoNfigurator again in the future, simply run ``HoNfigurator-launcher.bat`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
