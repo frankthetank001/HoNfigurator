@@ -121,3 +121,5 @@ Once HoNfigurator is open:
 			- Updates will occur automatically when launching.
 11. Example of full configuration below:
 ![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
+
+To launch HoNfigurator again in the future, simply run ``HoNfigurator-launcher.bat`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
