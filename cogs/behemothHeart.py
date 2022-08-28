@@ -96,6 +96,11 @@ class heartbeat(commands.Cog):
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    # restart notification
+                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    try:
+                        await embed_log.edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
                     svr_state.restartSELF()
 
             #if playercount >= 1 and self.server_status['lobby_created'] == False:
@@ -184,6 +189,11 @@ class heartbeat(commands.Cog):
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    # restart notification
+                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    try:
+                        await embed_log.edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
                     svr_state.restartSELF()
             #
             #   Start a timer so we can show the elapsed time of the match
