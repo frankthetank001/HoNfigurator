@@ -85,7 +85,7 @@ These are to be performed on game servers only.
 For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
 HoNfigurator should just open at the end.
 
-Installation script: https://store1.gofile.io/download/direct/91f1eb23-7db3-43ee-bb0f-107728a1aee9/HoNfigurator-Installer.bat
+Installation script: https://store3.gofile.io/download/direct/0cc283fa-cffb-4970-a7f2-fdfb7b4e2480/HoNfigurator-Installer.bat
 1. Download the script above
 2. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
 3. Double click ``HoNfigurator-Installer.bat``
