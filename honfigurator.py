@@ -591,9 +591,8 @@ class gui():
         remote_refs = repo.remote().refs
         for refs in remote_refs:
             repos = refs.name.replace('origin/','')
-            repositories.append(repos)
-            if 'HEAD' in repositories:
-                repositories.remove(repos)
+            if 'main' in repos or 'development' in repos or 'TH' in repos:
+                repositories.append(repos)            
         return repositories
     def coreassign(self):
         return ["one","two","two servers/core"]
