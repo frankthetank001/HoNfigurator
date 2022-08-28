@@ -96,6 +96,11 @@ class heartbeat(commands.Cog):
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    # restart notification
+                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    try:
+                        await embed_log.edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
                     svr_state.restartSELF()
 
             #if playercount >= 1 and self.server_status['lobby_created'] == False:
@@ -184,6 +189,11 @@ class heartbeat(commands.Cog):
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    # restart notification
+                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    try:
+                        await embed_log.edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
                     svr_state.restartSELF()
             #
             #   Start a timer so we can show the elapsed time of the match
@@ -250,7 +260,7 @@ class heartbeat(commands.Cog):
             playercount = svrcmd.honCMD().playerCount()
             if hoster == self.processed_data_dict['svr_hoster']:
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
-            alive = ctx.invoke(bot.get_command('statusheart'),ctx)
+            alive = await ctx.invoke(bot.get_command('statusheart'),ctx)
             try:
                 if alive:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓 {playercount} players connected",delete_after=5)
