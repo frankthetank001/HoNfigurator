@@ -45,9 +45,9 @@ svr_port = svr_port.strip('"')
 svr_proxy_enabled = server_data_dict['man_enableProxy']
 
 if processed_data_dict['master_server'] == "honmasterserver.com":
-    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://www.mediafire.com/file/rguveza1boran4h/HonClientFix_TH.rar/file)'
+    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://store5.gofile.io/download/direct/d8740070-c73e-43ec-9c00-2ea83c639e8d/HonClientFix-honmasterserver.exe)'
 elif processed_data_dict['master_server'] == "kongor.online:666":
-    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [Kongor Online](http://kongor.online:555)  |  [Kongor Client Fix](https://www.mediafire.com/file/ryeblwp3pgxfb4j/HonClientFix-kongor.exe/file)'
+    default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [Kongor Online](https://kongor.online)  |  [Kongor Client Fix](https://store5.gofile.io/download/direct/d0f38bed-0d69-4d0e-a621-87e99d084b2a/HonClientFix-kongor.exe)'
 default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.last_restart}"
 
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
@@ -91,7 +91,22 @@ map_deathmatch ="https://i.ibb.co/VQwJWxr/Team-Deathmatch.png"
 map_tutorial ="https://i.ibb.co/F6vvLBm/tutorial.png"
 map_watchtower ="https://i.ibb.co/C8Wp3gM/watchtower.png"
 
+import signal
 
+class timeout:
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
 
 class embedManager(commands.Cog):
     def __init__(self, bot):
