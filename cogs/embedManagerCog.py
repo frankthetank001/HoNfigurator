@@ -161,21 +161,21 @@ class embedManager(commands.Cog):
                     await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
                 elif self.server_status['hard_reset']:
                     await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
+                else:
+                    #
+                    #   Server is offline
+                    if playercount < 0:
+                        await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
+                    #
+                    #   Server is online
+                    elif playercount == 0:
+                        await ctx.invoke(bot.get_command('onlineEmbed'),rec_embed = embedObjects)
+                    # lobby active
+                    elif playercount >= 1:
+                        await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
             except Exception as e: 
                 print(e)
                 print("we mustn't have data for this yet")
-            else:
-                #
-                #   Server is offline
-                if playercount < 0:
-                    await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
-                #
-                #   Server is online
-                elif playercount == 0:
-                    await ctx.invoke(bot.get_command('onlineEmbed'),rec_embed = embedObjects)
-                # lobby active
-                elif playercount >= 1:
-                    await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
     """
 
         This command invokes a function based on playercount
@@ -401,4 +401,4 @@ class embedManager(commands.Cog):
         return created_embed
 
 def setup(bot):
-    bot.add_cog(embedManager(bot))    
+    bot.add_cog(embedManager(bot))

@@ -815,17 +815,17 @@ class gui():
         #guilog.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
         return
 
-    #def botCount(self,num_of_bots):
-        # for i in range(0,num_of_bots):
-        #     for i in range(0,num_of_bots):
-        #         row = i%8
-        #         column1 = (i/8)
-        #         column2 = int(column1)*2
-        #         if int(column2)==0:
-        #             column2 = 1
-        #         self.bot_cmd_buttons[i][0].grid(column=int(column1),row=row,sticky='e',padx=[60,0],pady=[10,0])
-        #         self.bot_cmd_buttons[i][1].grid(column=column2,row=row,sticky='w',padx=[0,20],pady=[10,0])
-        #         self.bot_cmd_buttons[i][1].configure(textvariable=self.bot_cmd_buttons[i][2])
+    # def botCount(self,num_of_bots):
+    #     for i in range(0,num_of_bots):
+    #         for i in range(0,num_of_bots):
+    #             row = i%8
+    #             column1 = (i/8)
+    #             column2 = int(column1)*2
+    #             if int(column2)==0:
+    #                 column2 = 1
+    #             self.bot_cmd_buttons[i][0].grid(column=int(column1),row=row,sticky='e',padx=[60,0],pady=[10,0])
+    #             self.bot_cmd_buttons[i][1].grid(column=column2,row=row,sticky='w',padx=[0,20],pady=[10,0])
+    #             self.bot_cmd_buttons[i][1].configure(textvariable=self.bot_cmd_buttons[i][2])
     def creategui(self):
         global guilog
         app = tk.Tk()
@@ -876,7 +876,7 @@ class gui():
         tab2 = ttk.Frame(tabgui)
         #tab3 = ttk.Frame(tabgui)
         tabgui.add(tab1,text="Server Setup")
-        #tabgui.add(tab2,text="Advanced Server Setup")
+        #tabgui.add(tab2,text="Server Administration")
         #tabgui.add(tab3,text="Discord Integration")
         
         """
@@ -1050,16 +1050,16 @@ class gui():
         This is the bot command center tab
         
         """
-        # #list of buttons
+        ##list of buttons
         # self.bot_cmd_buttons = []
         # #
         # #   creates the buttons
         # for i in range(0,20):
         #     tk.StringVar(app,'offline')
-        #     self.tab1_status1_label = applet.Label(tab1, text=f"Bot {i+1}: ",background=maincolor, foreground='white')
-        #     self.tab1_status1_current = applet.Label(tab1)
+        #     self.tab2_status2_label = applet.Label(tab2, text=f"Bot {i+1}: ",background=maincolor, foreground='white')
+        #     self.tab2_status2_current = applet.Label(tab2)
         #     #sends buttons to list
-        #     self.bot_cmd_buttons.append([self.tab1_status1_label,self.tab1_status1_current,tk.StringVar(app,'offline')])
+        #     self.bot_cmd_buttons.append([self.tab2_status2_label,self.tab2_status2_current,tk.StringVar(app,'offline')])
         # tab1_startBot = applet.Button(tab1, text="Configure Single Server")
         # tab1_startBot.grid(columnspan=3, column=1, row=9,stick='n',padx=[0,10],pady=[20,10])
         # tab1_startall = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get()))
