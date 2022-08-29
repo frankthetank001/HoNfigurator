@@ -289,7 +289,9 @@ class hsl(commands.Cog):
                 for i in range(len(embed_ids)):
                     embedData.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")   
                 embedData.close()
+            #await ctx.invoke(bot.get_command('createEmbed'),5)
             await ctx.invoke(bot.get_command('sync'),hoster)
+
             if hoster == svr_hoster:
                 waited = False
     """
@@ -300,12 +302,12 @@ class hsl(commands.Cog):
     @bot.command()
     async def desync(ctx,hoster):
         global waited
-        if hoster == svr_hoster:
-            try:
-                await ctx.message.delete()
-            except: pass
-            global embed_obj
-            embed_obj = []
+        #if hoster == svr_hoster:
+        try:
+            await ctx.message.delete()
+        except: pass
+        global embed_obj
+        embed_obj = []
 
     @bot.command()
     async def sync(ctx,hoster):
@@ -316,53 +318,67 @@ class hsl(commands.Cog):
             try:
                 await ctx.message.delete()
             except: pass
-            if hoster == svr_hoster:
-                if not waited:
-                    await asyncio.sleep(svr_id_delay)
-                    waited = True
-            if len(embed_obj)==0:
-                for embed in embed_ids:
-                    try:
-                        #
-                        #   Loads guild
+            # if hoster == svr_hoster:
+            #     if not waited:
+            #         await asyncio.sleep(svr_id_delay)
+            #         waited = True
+            #if len(embed_obj)==0:
+            #await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+            embed_id_list = [ctx.guild.id, ctx.channel.id]
+            for embed in embed_ids:
+                try:
+                    temp_sent_embed_holder = embed_id_list[1]
+                    temp_embed_check = embed[1]
+                    if temp_sent_embed_holder == temp_embed_check:
                         tempGuild = bot.get_guild(embed[0])
                         if tempGuild is None:
                             tempGuild = await bot.fetch_guild(embed[0])
+                        print("guild")
+                        print(str(tempGuild))
                         #
                         #   Loads channel
                         tempChannel = tempGuild.get_channel(embed[1])
                         if tempChannel is None:
                             tempChannel = await bot.fetch_channel(embed[1])
+                        print("channel")
+                        #print(str(tempChannel))
                         #
                         #   fetches message
-                        tempEmbed = await tempChannel.fetch_message(embed[2])
+                        tempEmbed = await tempChannel.fetch_message(int(embed[2]))
                         embed_obj.append(tempEmbed)
-                    except:
-                        print("clearning unknown message from cache")
-                        embed_ids.remove(embed)
-                        try:
-                            embedFile = open(processed_data_dict['discord_temp'], 'w')
-                            for i in range(len(embed_ids)):
-                                embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
-                            embedFile.close()
-                        except: print(traceback.format_exc())
-                        if len(embed_log) == 0:
-                            temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
-                            try:
-                                if owner_reachable:
-                                    embedObj = await discord_admin.send(embed=temp_log)
-                                else:
-                                    embedObj = await ctx.author.send(embed=temp_log)
-                            except: print(traceback.format_exc())
-                            embed_log.append(embedObj)
-                            #hsl.LastEmbedLog(embed_log)
-                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] No access/unknown message. Removed from cache"))
-                        try:
-                            await embed_log[0].edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
-                    #await ctx.author.send(svr_identifier + f" Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``")
+                except: print(traceback.format_exc())
+            """
+            the below is legacy
+            """
+            """
+            embed_obj = []
+            for embed in embed_ids:
+                try:
+                    #
+                    #   Loads guild
+                    tempGuild = bot.get_guild(embed[0])
+                    if tempGuild is None:
+                        tempGuild = await bot.fetch_guild(embed[0])
+                    #
+                    #   Loads channel
+                    tempChannel = tempGuild.get_channel(embed[1])
+                    if tempChannel is None:
+                        tempChannel = await bot.fetch_channel(embed[1])
+                    #
+                    #   fetches message
+                    tempEmbed = await tempChannel.fetch_message(embed[2])
+                    embed_obj.append(tempEmbed)
+                except:
+                    print("clearning unknown message from cache")
+                    embed_ids.remove(embed)
+                    try:
+                        embedFile = open(processed_data_dict['discord_temp'], 'w')
+                        for i in range(len(embed_ids)):
+                            embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
+                        embedFile.close()
+                    except: print(traceback.format_exc())
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -371,14 +387,11 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] No access/unknown message. Removed from cache"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
-                await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
-                #for embedObjects in embed_obj:
-                #    created_embed = await ctx.invoke(bot.get_command('offlineEmbed'),)
-                #if len(embed_log) == 0:
+                #await ctx.author.send(svr_identifier + f" Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``")
                 if len(embed_log) == 0:
                     temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
                     try:
@@ -389,25 +402,46 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Connected to **"+str(len(embed_ids))+"** server links"))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
-            else:
-                if len(embed_log) == 0:
-                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
-                    try:
-                        if owner_reachable:
-                            embedObj = await discord_admin.send(embed=temp_log)
-                        else:
-                            embedObj = await ctx.author.send(embed=temp_log)
-                    except: print(traceback.format_exc())
-                    embed_log.append(embedObj)
-                    #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Links are already synced"))
+            #for embedObjects in embed_obj:
+            #    created_embed = await ctx.invoke(bot.get_command('offlineEmbed'),)
+            #if len(embed_log) == 0:
+            """
+            if len(embed_log) == 0:
+                temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
                 try:
-                    await embed_log[0].edit(embed=logEmbed)
+                    if owner_reachable:
+                        embedObj = await discord_admin.send(embed=temp_log)
+                    else:
+                        embedObj = await ctx.author.send(embed=temp_log)
                 except: print(traceback.format_exc())
+                embed_log.append(embedObj)
+                #hsl.LastEmbedLog(embed_log)
+            logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Connected to **"+str(len(embed_ids))+"** server links"))
+            try:
+                await embed_log[0].edit(embed=logEmbed)
+            except: print(traceback.format_exc())
+            await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+            # else:
+            #     # for embed in embed_ids:
+            #     #     await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+            #     if len(embed_log) == 0:
+            #         temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
+            #         try:
+            #             if owner_reachable:
+            #                 embedObj = await discord_admin.send(embed=temp_log)
+            #             else:
+            #                 embedObj = await ctx.author.send(embed=temp_log)
+            #         except: print(traceback.format_exc())
+            #         embed_log.append(embedObj)
+            #         #hsl.LastEmbedLog(embed_log)
+            #     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Links are already synced"))
+            #     try:
+            #         await embed_log[0].edit(embed=logEmbed)
+            #     except: print(traceback.format_exc())
             heart = await ctx.invoke(bot.get_command('statusheart'))
             if not heart:
                 await ctx.invoke(bot.get_command('startheart'))
@@ -446,14 +480,14 @@ class hsl(commands.Cog):
                         if tempGuild is None:
                             tempGuild = await bot.fetch_guild(embed[0])
                         print("guild")
-                        print(tempGuild)
+                        print(str(tempGuild))
                         #
                         #   Loads channel
                         tempChannel = tempGuild.get_channel(embed[1])
                         if tempChannel is None:
                             tempChannel = await bot.fetch_channel(embed[1])
                         print("channel")
-                        print(tempChannel)
+                        #print(str(tempChannel))
                         #
                         #   fetches message
                         tempEmbed = await tempChannel.fetch_message(int(embed[2]))
@@ -472,10 +506,6 @@ class hsl(commands.Cog):
                             embed_log.append(embedObj)
                             #hsl.LastEmbedLog(embed_log)
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Destroyed link in: ``{str(ctx.guild.name)} ({str(tempChannel.name)})``"))
-                        try:
-                            await embed_log[0].edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
-                        #await ctx.author.send(svr_identifier + f" Destroyed link in: ``{str(ctx.guild.name)} ({str(tempChannel.name)})``")
                         try:
                             await embed_log[0].edit(embed=logEmbed)
                         except: print(traceback.format_exc())
@@ -532,8 +562,8 @@ class hsl(commands.Cog):
                     embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                 embedFile.close()
             except: print(traceback.format_exc())
-            if hoster == svr_hoster:
-                waited = False
+            # if hoster == svr_hoster:
+            #     waited = False
 
 
     @bot.command()
