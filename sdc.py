@@ -333,15 +333,15 @@ class hsl(commands.Cog):
                         tempGuild = bot.get_guild(embed[0])
                         if tempGuild is None:
                             tempGuild = await bot.fetch_guild(embed[0])
-                        print("guild")
-                        print(str(tempGuild))
+                        # print("guild")
+                        # print(str(tempGuild))
                         #
                         #   Loads channel
                         tempChannel = tempGuild.get_channel(embed[1])
                         if tempChannel is None:
                             tempChannel = await bot.fetch_channel(embed[1])
-                        print("channel")
-                        #print(str(tempChannel))
+                        # print("channel")
+                        # print(str(tempChannel))
                         #
                         #   fetches message
                         tempEmbed = await tempChannel.fetch_message(int(embed[2]))
@@ -479,15 +479,15 @@ class hsl(commands.Cog):
                         tempGuild = bot.get_guild(embed[0])
                         if tempGuild is None:
                             tempGuild = await bot.fetch_guild(embed[0])
-                        print("guild")
-                        print(str(tempGuild))
+                        # print("guild")
+                        # print(str(tempGuild))
                         #
                         #   Loads channel
                         tempChannel = tempGuild.get_channel(embed[1])
                         if tempChannel is None:
                             tempChannel = await bot.fetch_channel(embed[1])
-                        print("channel")
-                        #print(str(tempChannel))
+                        # print("channel")
+                        # print(str(tempChannel))
                         #
                         #   fetches message
                         tempEmbed = await tempChannel.fetch_message(int(embed[2]))
