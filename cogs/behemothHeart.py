@@ -73,7 +73,7 @@ class heartbeat(commands.Cog):
                     #   sinister behaviour detected, save log to file.
                     #   Players can attempt to start a game on an uknown map file. This causes the server to crash and hang.
                     #   We will firstly handle the error, restart the server, and then log the event for investigation.
-                    if self.server_status['game_mode'] == "botmatch":
+                    if self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch":
                         svr_state.reportPlayer("botmatch")
                         logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches)")
                         try:
