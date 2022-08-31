@@ -102,7 +102,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                     await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
@@ -133,7 +133,7 @@ class hsl(commands.Cog):
             result = srvcmd.honCMD().startSERVER()
             if result == True:
                 if len(embed_log) == 0:
-                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                     try:
                         if owner_reachable:
                             embedObj = await discord_admin.send(embed=temp_log)
@@ -142,13 +142,13 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Server Started."))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Server Started."))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
             elif result == False:
                 if len(embed_log) == 0:
-                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                     try:
                         if owner_reachable:
                             embedObj = await discord_admin.send(embed=temp_log)
@@ -157,7 +157,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[ERR] Not enough free RAM or server already running."))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Not enough free RAM or server already running."))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
@@ -166,7 +166,7 @@ class hsl(commands.Cog):
             await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
             await ctx.invoke(bot.get_command('startheart'))
         except UnboundLocalError:
-            temp_log = f"[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+            temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
             try:
                 await discord_admin.send(temp_log)
             except discord.errors.Forbidden:
@@ -243,7 +243,7 @@ class hsl(commands.Cog):
                         embedFile.close()
                     except: print(traceback.format_exc())
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -251,7 +251,7 @@ class hsl(commands.Cog):
                                 embedObj = await ctx.author.send(embed=temp_log)
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] link exists and has been replaced"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] link exists and has been replaced"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -270,7 +270,7 @@ class hsl(commands.Cog):
                     if tempChannel is None:
                         tempChannel = await bot.fetch_channel(sent_embed_holder[1])
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -279,7 +279,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Link successfully created in ``{tempGuild} ({tempChannel})`` by ``{ctx.author}``"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Link successfully created in ``{tempGuild} ({tempChannel})`` by ``{ctx.author}``"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -378,7 +378,7 @@ class hsl(commands.Cog):
                         embedFile.close()
                     except: print(traceback.format_exc())
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -387,7 +387,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] No access/unknown message. Removed from cache"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -402,7 +402,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
@@ -420,7 +420,7 @@ class hsl(commands.Cog):
                 except: print(traceback.format_exc())
                 embed_log.append(embedObj)
                 #hsl.LastEmbedLog(embed_log)
-            logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Connected to **"+str(len(embed_ids))+"** server links"))
+            logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to **"+str(len(embed_ids))+"** server links"))
             try:
                 await embed_log[0].edit(embed=logEmbed)
             except: print(traceback.format_exc())
@@ -438,7 +438,7 @@ class hsl(commands.Cog):
             #         except: print(traceback.format_exc())
             #         embed_log.append(embedObj)
             #         #hsl.LastEmbedLog(embed_log)
-            #     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=("[OK] Links are already synced"))
+            #     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Links are already synced"))
             #     try:
             #         await embed_log[0].edit(embed=logEmbed)
             #     except: print(traceback.format_exc())
@@ -496,7 +496,7 @@ class hsl(commands.Cog):
                             embed_obj.remove(tempEmbed)
                         await tempEmbed.delete()
                         if len(embed_log) == 0:
-                            temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                            temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                             try:
                                 if owner_reachable:
                                     embedObj = await discord_admin.send(embed=temp_log)
@@ -505,7 +505,7 @@ class hsl(commands.Cog):
                             except: print(traceback.format_exc())
                             embed_log.append(embedObj)
                             #hsl.LastEmbedLog(embed_log)
-                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Destroyed link in: ``{str(ctx.guild.name)} ({str(tempChannel.name)})``"))
+                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Destroyed link in: ``{str(ctx.guild.name)} ({str(tempChannel.name)})``"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
                         except: print(traceback.format_exc())
@@ -519,7 +519,7 @@ class hsl(commands.Cog):
                         embedFile.close()
                     except: print(traceback.format_exc())
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -528,7 +528,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] No access/unknown message. Removed from cache"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -542,7 +542,7 @@ class hsl(commands.Cog):
                         embedFile.close()
                     except: print(traceback.format_exc())
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -551,7 +551,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] No access/unknown message. Removed from cache"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -610,7 +610,7 @@ class hsl(commands.Cog):
                     await tempEmbed.delete()
                     #await ctx.author.send(svr_identifier + f" Deleted link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``")
                     if len(embed_log) == 0:
-                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
                             if owner_reachable:
                                 embedObj = await discord_admin.send(embed=temp_log)
@@ -619,7 +619,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
-                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Destroyed link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Destroyed link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -636,7 +636,7 @@ class hsl(commands.Cog):
                 embedData.write("")   
                 embedData.close()
                 if len(embed_log) == 0:
-                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                     try:
                         if owner_reachable:
                             embedObj = await discord_admin.send(embed=temp_log)
@@ -645,7 +645,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Deleted **"+links_deleted+"** server links"))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Deleted **"+links_deleted+"** server links"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
@@ -659,7 +659,7 @@ class hsl(commands.Cog):
                 embedData.write("")
                 embedData.close()
                 if len(embed_log) == 0:
-                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :)" + "``"+hsl.time()+"``")
+                    temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                     try:
                         if owner_reachable:
                             embedObj = await discord_admin.send(embed=temp_log)
@@ -668,7 +668,7 @@ class hsl(commands.Cog):
                     except: print(traceback.format_exc())
                     embed_log.append(embedObj)
                     #hsl.LastEmbedLog(embed_log)
-                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[OK] Deleted **"+links_deleted+"** server links"))
+                logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Deleted **"+links_deleted+"** server links"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
                 except: print(traceback.format_exc())
@@ -759,7 +759,7 @@ class hsl(commands.Cog):
                                     embedObj = await ctx.author.send(embed=temp_log)
                             except: print(traceback.format_exc())
                             embed_log.append(embedObj)
-                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"[WARN] {react.member} Force Stopped {svr_identifier}"))
+                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] {react.member} Force Stopped {svr_identifier}"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
                         except: print(traceback.format_exc())

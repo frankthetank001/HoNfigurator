@@ -19,6 +19,8 @@ class heartbeat(commands.Cog):
     # @bot.command()
     # async def getStatus(self,ctx):
     #     return self.server_status
+    def time():
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     @bot.command()
     async def heart(self,ctx):
         await ctx.send("💓")
@@ -75,13 +77,13 @@ class heartbeat(commands.Cog):
                     #   We will firstly handle the error, restart the server, and then log the event for investigation.
                     if self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch":
                         svr_state.reportPlayer("botmatch")
-                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches)")
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches)")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
                     else:
                         svr_state.reportPlayer("No_Map")
-                        logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``)")
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``)")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
@@ -89,6 +91,11 @@ class heartbeat(commands.Cog):
                     self.server_status.update({"server_restarting":True})
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
+                    # restart notification
+                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] RESTARTING SERVER INBETWEEN GAME")
+                    try:
+                        await embed_log.edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                 elif hard_reset:
@@ -97,7 +104,7 @@ class heartbeat(commands.Cog):
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     # restart notification
-                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] RESTARTING SERVER FOR UPDATE")
                     try:
                         await embed_log.edit(embed=logEmbed)
                     except: print(traceback.format_exc())
@@ -111,7 +118,7 @@ class heartbeat(commands.Cog):
                     #     counter_hosted = 0
                     #     self.server_status.update({'server_restarting':True})
                     #     self.server_status.update({'restart_required':True})
-                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
+                    #     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
                     #     try:
                     #         await embed_log.edit(embed=logEmbed)
                     #     except:
@@ -151,7 +158,7 @@ class heartbeat(commands.Cog):
                     #     counter_hosted = 0
                     #     self.server_status.update({'server_restarting':True})
                     #     self.server_status.update({'restart_required':True})
-                    #     logEmbed = await test.embedLog(ctx,f"[WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
+                    #     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
                     #     try:
                     #         await embed_log.edit(embed=logEmbed)
                     #     except:
@@ -190,7 +197,7 @@ class heartbeat(commands.Cog):
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     # restart notification
-                    logEmbed = await test.embedLog(ctx,f"[WARN] RESTARTING SERVER FOR UPDATE")
+                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] RESTARTING SERVER FOR UPDATE")
                     try:
                         await embed_log.edit(embed=logEmbed)
                     except: print(traceback.format_exc())
