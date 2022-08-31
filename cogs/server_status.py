@@ -13,6 +13,7 @@ import re
 
 processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
+game_status = {}
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
@@ -49,6 +50,12 @@ class honCMD():
         #
         #   Combine temp data into the sever_status dictionary
         server_status_dict.update(data)
+        #print("updated dictionary: " + str(server_status_dict))
+        return
+    def updateStatus_GI(self,data):
+        #
+        #   Combine temp data into the sever_status dictionary
+        game_status.update(data)
         #print("updated dictionary: " + str(server_status_dict))
         return
 
@@ -222,12 +229,25 @@ class honCMD():
                 honCMD.getData(self,"getLogList_Game")
                 print("checking for game started now")
                 with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
-                    for line in f:
-                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                            server_status_dict.update({'game_started':True})
-                            server_status_dict.update({'tempcount':-5})
-                            return True
-                f.close()
+                    if server_status_dict['game_started'] == False:
+                        for line in f:
+                            if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                                server_status_dict.update({'game_started':True})
+                                server_status_dict.update({'tempcount':-5})
+                                return True
+                    else:
+                        for line in f:
+                            if "Server Status" in line:
+                                #Match Time(00:07:00)
+                                if "Match Time" in line:
+                                    pattern="(Match Time\()(.*)(\))"
+                                    game_time=re.search(pattern,line)
+                                    game_time = game_time.group(2)
+                                    print("game_time: "+ game_time)
+                                    honCMD().updateStatus_GI(tempData)
+                                    print("game_time: "+ game_time)
+                                #if "Server Skipped" in line:
+                f.close()                   
             return
         elif dtype == "MatchInformation":
             tempData = {}
@@ -241,38 +261,39 @@ class honCMD():
                 honCMD.getData(self,"getLogList_Match")
                 print("checking match information")
                 with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
-                    for line in f:
-                        if "INFO_MATCH name:" in line:
-                            game_name = re.findall(r'"([^"]*)"', line)
-                            game_name = game_name[0]
-                            tempData.update({'game_name':game_name})
-                            honCMD().updateStatus(tempData)
-                            print("game_name: "+ game_name)
-                            if 'TMM' in game_name:
-                                tempData.update({'game_type':'Ranked TMM'})
+                    if self.server_status['match_info_obtained'] == False:
+                        for line in f:
+                            if "INFO_MATCH name:" in line:
+                                game_name = re.findall(r'"([^"]*)"', line)
+                                game_name = game_name[0]
+                                tempData.update({'game_name':game_name})
                                 honCMD().updateStatus(tempData)
-                            else:
-                                tempData.update({'game_type':'Public Games'})
+                                print("game_name: "+ game_name)
+                                if 'TMM' in game_name:
+                                    tempData.update({'game_type':'Ranked TMM'})
+                                    honCMD().updateStatus(tempData)
+                                else:
+                                    tempData.update({'game_type':'Public Games'})
+                                    honCMD().updateStatus(tempData)
+                            if "INFO_MAP name:" in line:
+                                game_map = re.findall(r'"([^"]*)"', line)
+                                game_map = game_map[0]
+                                tempData.update({'game_map':game_map})
                                 honCMD().updateStatus(tempData)
-                        if "INFO_MAP name:" in line:
-                            game_map = re.findall(r'"([^"]*)"', line)
-                            game_map = game_map[0]
-                            tempData.update({'game_map':game_map})
-                            honCMD().updateStatus(tempData)
-                            print("map: "+ game_map)
-                        if "INFO_SETTINGS mode:" in line:
-                            game_mode = re.findall(r'"([^"]*)"', line)
-                            game_mode = game_mode[0]
-                            game_mode = game_mode.replace('Mode_','')
-                            tempData.update({'game_mode':game_mode})
-                            honCMD().updateStatus(tempData)
-                            print("game_mode: "+ game_mode)
-                            tempData.update({"match_info_obtained":True})
-                            tempData.update({"game_started":True})
-                            tempData.update({"first_run":False})
-                            tempData.update({"lobby_created":True})
-                            tempData.update({"tempcount":-5})
-                            honCMD().updateStatus(tempData)
+                                print("map: "+ game_map)
+                            if "INFO_SETTINGS mode:" in line:
+                                game_mode = re.findall(r'"([^"]*)"', line)
+                                game_mode = game_mode[0]
+                                game_mode = game_mode.replace('Mode_','')
+                                tempData.update({'game_mode':game_mode})
+                                honCMD().updateStatus(tempData)
+                                print("game_mode: "+ game_mode)
+                                tempData.update({"match_info_obtained":True})
+                                tempData.update({"game_started":True})
+                                tempData.update({"first_run":False})
+                                tempData.update({"lobby_created":True})
+                                tempData.update({"tempcount":-5})
+                                honCMD().updateStatus(tempData)
                 f.close()
         #
         #   Get the last restart time
