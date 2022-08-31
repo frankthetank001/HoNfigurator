@@ -210,7 +210,7 @@ class heartbeat(commands.Cog):
                             try:
                                 svr_state.getData("MatchInformation")
                             except: print(traceback.format_exc())
-                            if self.server_status['lobby_created'] == True and self.processed_data_dict['debug_mode'] == 'True':
+                            if self.server_status['game_started'] == True and self.server_status['match_info_obtained'] == True and self.processed_data_dict['debug_mode'] == 'True':
                                 match_id = self.server_status['match_log_location']
                                 match_id = match_id.replace(".log","")
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started / Lobby made - {match_id}")
