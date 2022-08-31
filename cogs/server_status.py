@@ -124,6 +124,7 @@ class honCMD():
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
                 server_status_dict.update({'server_starting':True})
+                server_status_dict.update({"hard_reset":False})
                 #self.server_status.update({'restarting_server':False})
                 return True
             else:
