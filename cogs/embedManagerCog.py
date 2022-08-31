@@ -155,8 +155,9 @@ class embedManager(commands.Cog):
         #await ctx.invoke(bot.get_command('createEmbed'),ctx,playercount)
         for embedObjects in self.mEmbed_objects:
             try:
-                if self.server_status['server_starting']:
-                    await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
+                if 'server_starting' in self.server_status:
+                    if self.server_status['server_starting']:
+                        await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
                 elif self.server_status['server_restarting']:
                     await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
                 elif self.server_status['hard_reset']:

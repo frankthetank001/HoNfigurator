@@ -1,3 +1,4 @@
+from dataclasses import replace
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
@@ -42,6 +43,7 @@ class heartbeat(commands.Cog):
         test = self.bot.get_cog("embedManager")
         # alive = True
         self.server_status = svrcmd.honCMD().getStatus()
+        self.match_status = svrcmd.honCMD().getMatchInfo()
         self.available_maps = svr_state.getData("availMaps")
         self.server_status.update({'server_restarting':False})
         self.server_status.update({'server_starting':False})
@@ -95,8 +97,7 @@ class heartbeat(commands.Cog):
                     self.server_status.update({'hard_reset':svr_state.getData("CheckForUpdates")})
                 if self.server_status['hard_reset'] == True:
                     self.server_status.update({'restart_required':True})
-                    # self.server_status.update({'hard_reset':True})
-                    await test.createEmbed(ctx,playercount)
+                    # await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     # restart notification
@@ -105,14 +106,16 @@ class heartbeat(commands.Cog):
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
-                    svr_state.restartSERVER()
+                    svr_state.restartSELF()
                 if self.server_status['first_run'] == False:
                     self.server_status.update({"server_restarting":True})
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     # restart notification
                     if self.processed_data_dict['debug_mode'] == 'True':
-                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {self.server_status['game_name']}")
+                        match_id = self.server_status['match_log_location']
+                        match_id = match_id.replace(".log","")
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
@@ -192,6 +195,9 @@ class heartbeat(commands.Cog):
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+            if playercount >=2:
+                if self.server_status['priority_realtime'] == False:
+                    svr_state.changePriority(True)
                 if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
@@ -204,8 +210,10 @@ class heartbeat(commands.Cog):
                             try:
                                 svr_state.getData("MatchInformation")
                             except: print(traceback.format_exc())
-                            if self.server_status['match_info_obtained'] == True and self.server_status['game_started'] == True and self.processed_data_dict['debug_mode'] == 'True':
-                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started {self.server_status['game_name']}")
+                            if self.server_status['lobby_created'] == True and self.processed_data_dict['debug_mode'] == 'True':
+                                match_id = self.server_status['match_log_location']
+                                match_id = match_id.replace(".log","")
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started / Lobby made - {match_id}")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
                                 except: print(traceback.format_exc())
@@ -217,9 +225,9 @@ class heartbeat(commands.Cog):
                     elapsed_duration = int(elapsed_duration)
                     elapsed_duration +=1
                     self.server_status.update({'elapsed_duration':elapsed_duration})
-            elif playercount >=2:
-                if self.server_status['priority_realtime'] == False:
-                    svr_state.changePriority(True)
+                    #svr_state.getData("CheckInGame")
+                    #print(self.match_status)
+
             #
             #   break out from the heartbeat every threshold_heartbeat if we're in a game
             if counter_heartbeat == threshold_heartbeat:

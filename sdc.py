@@ -741,15 +741,17 @@ class hsl(commands.Cog):
                     #
                     #   Sends the stop server command
                     elif (react.emoji.name == "🔽"):
-                        if svr_cmd.stopSERVER():
-                            await ctx.invoke(bot.get_command('stopheart'))
+                        svr_cmd.stopSERVER()
+                        # if svr_cmd.stopSERVER():
+                        #     await ctx.invoke(bot.get_command('stopheart'))
                         
                     #
                     #   only admins can force stop.
                     #elif (react.emoji.name == "🛑") and processed_data_dict['discord_admin'] in modRole:
                     elif (react.emoji.name == "🛑") and str(react.member.id) in processed_data_dict['discord_admin']:
-                        if svr_cmd.forceSERVER():
-                            await ctx.invoke(bot.get_command('stopheart'))
+                        svr_cmd.forceSERVER()
+                        # if svr_cmd.forceSERVER():
+                        #     await ctx.invoke(bot.get_command('stopheart'))
                         if len(embed_log) == 0:
                             temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
                             try:

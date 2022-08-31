@@ -63,6 +63,8 @@ class honCMD():
         return server_status_dict
     def getDataDict(self):
         return processed_data_dict
+    def getMatchInfo(self):
+        return game_status
    #   Starts server
     def startSERVER(self):
         #playercount = playercount()
@@ -130,7 +132,7 @@ class honCMD():
                 server_status_dict.update({'elapsed_duration':0})
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
-                server_status_dict.update({'server_starting':True})
+                #server_status_dict.update({'server_starting':True})
                 server_status_dict.update({"hard_reset":False})
                 #self.server_status.update({'restarting_server':False})
                 return True
