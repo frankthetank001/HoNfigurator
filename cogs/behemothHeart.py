@@ -195,9 +195,6 @@ class heartbeat(commands.Cog):
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-            if playercount >=2:
-                if self.server_status['priority_realtime'] == False:
-                    svr_state.changePriority(True)
                 if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
@@ -228,6 +225,9 @@ class heartbeat(commands.Cog):
                     #svr_state.getData("CheckInGame")
                     #print(self.match_status)
 
+            if playercount >=2:
+                if self.server_status['priority_realtime'] == False:
+                    svr_state.changePriority(True)
             #
             #   break out from the heartbeat every threshold_heartbeat if we're in a game
             if counter_heartbeat == threshold_heartbeat:
