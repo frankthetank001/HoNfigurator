@@ -227,6 +227,7 @@ class honCMD():
                             server_status_dict.update({'game_started':True})
                             server_status_dict.update({'tempcount':-5})
                             return True
+                f.close()
             return
         elif dtype == "MatchInformation":
             tempData = {}
@@ -272,6 +273,7 @@ class honCMD():
                             tempData.update({"lobby_created":True})
                             tempData.update({"tempcount":-5})
                             honCMD().updateStatus(tempData)
+                f.close()
         #
         #   Get the last restart time
         elif dtype == "lastRestart":
@@ -427,98 +429,102 @@ class honCMD():
         elif dtype == "GameCheck":
             tempData = {}
             
-            if self.server_status['slave_log_location'] == "empty":
-                honCMD.getData(self,"getLogList_Slave")
+            #if self.server_status['slave_log_location'] == "empty":
+            honCMD.getData(self,"getLogList_Slave")
             #softSlave = mData.getData(self,"loadSoftSlave")
             #hardSlave = mData.getData(self,"loadHardSlave")
 
             #if softSlave is not hardSlave: #and check_lobby is True:
-            dataL = open(self.server_status['slave_log_location'],encoding='utf-16-le')
-            data = dataL.readlines()
-            dataL.close()
             #
-            #   Someone has connected to the server and is about to host a game
-            for line in data:
-                if "Name: " in line:
-                    host = line.split(": ")
-                    host = host[2].replace('\n','')
-                    tempData.update({'game_host':host})
-                    honCMD().updateStatus(tempData)
-                    print ("host: "+host)
-                if "Version: " in line:
-                    version = line.split(": ")
-                    version = version[2].replace('\n','')
-                    tempData.update({'game_version':version})
-                    honCMD().updateStatus(tempData)
-                    print("version: "+version)
-                if "Connection request from: " in line:
-                    client_ip = line.split(": ")
-                    client_ip = client_ip[2].replace('\n','')
-                    tempData.update({'client_ip':client_ip})
-                    honCMD().updateStatus(tempData)
-                    print(client_ip)
+            #   Commenting below 3 lines due to an error with encoding. Trying to be consistent
+            # dataL = open(self.server_status['slave_log_location'],encoding='utf-16-le')
+            # data = dataL.readlines()
+            # dataL.close()
+            with open (self.server_status['slave_log_location'], "r", encoding='utf-16-le') as f:
                 #
-                #   Arguments passed to server, and lobby starting
-                if "GAME_CMD_CREATE_GAME" in line:
-                    print("lobby starting....")
-                    test = line.split(' ')
-                    for parameter in test:
-                        if "map:" in parameter:
-                            map = parameter.split(":")
-                            map = map[1]
-                            tempData.update({'game_map':map})
-                            print("map: "+ map)
-                        if "mode:" in parameter:
-                            mode = parameter.split(":")
-                            mode = mode[1]
-                            tempData.update({'game_mode':mode})
-                            print("mode: "+ mode)
-                        if "teamsize:" in parameter:
-                            teamsize = parameter.split(":")
-                            teamsize = teamsize[1]
-                            slots = int(teamsize)
-                            slots *= 2
-                            tempData.update({'slots':slots})
-                            print("teamsize: "+ teamsize)
-                            print("slots: "+ str(slots))
-                        if "spectators:" in parameter:
-                            spectators = parameter.split(":")
-                            spectators = spectators[1]
-                            spectators = int(spectators)
-                            tempData.update({'spectators':spectators})
-                            print("spectators: "+ str(spectators))
-                        if "referees:" in parameter:
-                            referees = parameter.split(":")
-                            referees = referees[1]
-                            referees = int(referees)
-                            tempData.update({'referees':referees})
-                            print("referees: "+ str(referees))
-                    total_slots = slots + spectators + referees
-                    # 
-                    #   Set firstrunthrough to false so we don't accidentally come back here and waste IO.
-                    #   Also set some other booleans for code logic later on
-                    self.first_run = False
-                    self.just_collected = True
-                    self.lobby_created = True
+                #   Someone has connected to the server and is about to host a game
+                for line in f:
+                    if "Name: " in line:
+                        host = line.split(": ")
+                        host = host[2].replace('\n','')
+                        tempData.update({'game_host':host})
+                        honCMD().updateStatus(tempData)
+                        print ("host: "+host)
+                    if "Version: " in line:
+                        version = line.split(": ")
+                        version = version[2].replace('\n','')
+                        tempData.update({'game_version':version})
+                        honCMD().updateStatus(tempData)
+                        print("version: "+version)
+                    if "Connection request from: " in line:
+                        client_ip = line.split(": ")
+                        client_ip = client_ip[2].replace('\n','')
+                        tempData.update({'client_ip':client_ip})
+                        honCMD().updateStatus(tempData)
+                        print(client_ip)
+                    #
+                    #   Arguments passed to server, and lobby starting
+                    if "GAME_CMD_CREATE_GAME" in line:
+                        print("lobby starting....")
+                        test = line.split(' ')
+                        for parameter in test:
+                            if "map:" in parameter:
+                                map = parameter.split(":")
+                                map = map[1]
+                                tempData.update({'game_map':map})
+                                print("map: "+ map)
+                            if "mode:" in parameter:
+                                mode = parameter.split(":")
+                                mode = mode[1]
+                                tempData.update({'game_mode':mode})
+                                print("mode: "+ mode)
+                            if "teamsize:" in parameter:
+                                teamsize = parameter.split(":")
+                                teamsize = teamsize[1]
+                                slots = int(teamsize)
+                                slots *= 2
+                                tempData.update({'slots':slots})
+                                print("teamsize: "+ teamsize)
+                                print("slots: "+ str(slots))
+                            if "spectators:" in parameter:
+                                spectators = parameter.split(":")
+                                spectators = spectators[1]
+                                spectators = int(spectators)
+                                tempData.update({'spectators':spectators})
+                                print("spectators: "+ str(spectators))
+                            if "referees:" in parameter:
+                                referees = parameter.split(":")
+                                referees = referees[1]
+                                referees = int(referees)
+                                tempData.update({'referees':referees})
+                                print("referees: "+ str(referees))
+                        total_slots = slots + spectators + referees
+                        # 
+                        #   Set firstrunthrough to false so we don't accidentally come back here and waste IO.
+                        #   Also set some other booleans for code logic later on
+                        self.first_run = False
+                        self.just_collected = True
+                        self.lobby_created = True
 
-                    tempData.update({'first_run':self.first_run})
-                    tempData.update({'just_collected':self.just_collected})
-                    tempData.update({'lobby_created':self.lobby_created})
-                    tempData.update({'total_slots':total_slots})
+                        tempData.update({'first_run':self.first_run})
+                        tempData.update({'just_collected':self.just_collected})
+                        tempData.update({'lobby_created':self.lobby_created})
+                        tempData.update({'total_slots':total_slots})
 
-                    honCMD().updateStatus(tempData)
-                    #server_status_dict.update[{"first_run":"true"}]
-                    #server_status_dict.update[{'just_collected':self.just_collected}]
-                    #server_status_dict.update[{'lobby_created':self.lobby_created}]
-                elif "Successfully got a match ID" in line:
-                    self.first_run = False
-                    self.just_collected = True
-                    self.lobby_created = True
+                        honCMD().updateStatus(tempData)
+                        #server_status_dict.update[{"first_run":"true"}]
+                        #server_status_dict.update[{'just_collected':self.just_collected}]
+                        #server_status_dict.update[{'lobby_created':self.lobby_created}]
+                    elif "Successfully got a match ID" in line:
+                        self.first_run = False
+                        self.just_collected = True
+                        self.lobby_created = True
 
-                    tempData.update({'first_run':self.first_run})
-                    tempData.update({'just_collected':self.just_collected})
-                    tempData.update({'lobby_created':self.lobby_created})
-                    honCMD().updateStatus(tempData)
+                        tempData.update({'first_run':self.first_run})
+                        tempData.update({'just_collected':self.just_collected})
+                        tempData.update({'lobby_created':self.lobby_created})
+                        honCMD().updateStatus(tempData)
+            f.close()
             return tempData
         elif dtype == "ServerReadyCheck":
             tempData = {}

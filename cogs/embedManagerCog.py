@@ -386,7 +386,7 @@ class embedManager(commands.Cog):
 
     @bot.command()
     async def embedLog(self,ctx,log_msg):
-        list_limit = 6
+        list_limit = 15
         self.event_list.append(log_msg + "\n")
         self.event_log =  (self.event_log + log_msg + "\n")
         self.event_string = ""
