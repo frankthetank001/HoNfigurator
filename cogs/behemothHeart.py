@@ -72,17 +72,17 @@ class heartbeat(commands.Cog):
                     self.update = False
                     self.server_status.update({'server_starting':False})
                     self.server_status.update({'server_restarting':False})
+                    if self.processed_data_dict['debug_mode'] == 'True':
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except: print(traceback.format_exc())
                 else:
                     self.update = True
                     if self.server_status['server_restarting'] == False:
                         self.server_status.update({'server_starting':True})
                     elif self.server_status['server_restarting'] == True:
                         self.server_status.update({'server_starting':False})
-                if self.server_status['server_ready'] == True and self.processed_data_dict['debug_mode'] == True:
-                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
-                    try:
-                        await embed_log.edit(embed=logEmbed)
-                    except: print(traceback.format_exc())
                 # else:
                 #     self.server_status.update({'server_restarting':True})
 
@@ -100,52 +100,22 @@ class heartbeat(commands.Cog):
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                     # restart notification
-                    if self.processed_data_dict['debug_mode'] == True:
+                    if self.processed_data_dict['debug_mode'] == 'True':
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
-                    svr_state.restartSELF()
+                    svr_state.restartSERVER()
                 if self.server_status['first_run'] == False:
                     self.server_status.update({"server_restarting":True})
                     await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     # restart notification
-                    if self.processed_data_dict['debug_mode'] == True:
-                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [OK] RESTARTING SERVER INBETWEEN GAME {self.server_status['game_name']}")
+                    if self.processed_data_dict['debug_mode'] == 'True':
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {self.server_status['game_name']}")
                         try:
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
-                    svr_state.restartSERVER()
-                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-
-            elif playercount == 1:
-                #
-                #   sinister behaviour detected, save log to file.
-                #   Players can attempt to start a game on an uknown map file. This causes the server to crash and hang.
-                #   We will firstly handle the error, restart the server, and then log the event for investigation.
-                if (self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps):
-                    #hard_reset = svr_state.getData("CheckForUpdates")
-                    self.server_status.update({'restart_required':True})
-                    svr_state.reportPlayer("No_Map")
-                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``), RESTARTING...")
-                    try:
-                        await embed_log.edit(embed=logEmbed)
-                    except: print(traceback.format_exc())
-                    self.server_status.update({"server_restarting":True})
-                    await test.createEmbed(ctx,playercount)
-                    await asyncio.sleep(restart_timer)
-                    svr_state.restartSERVER()
-                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                elif (self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch") and self.processed_data_dict['allow_botmatches'] == 'False':
-                    svr_state.reportPlayer("botmatch")
-                    logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches), RESTARTING...")
-                    try:
-                        await embed_log.edit(embed=logEmbed)
-                    except: print(traceback.format_exc())
-                    self.server_status.update({"server_restarting":True})
-                    await test.createEmbed(ctx,playercount)
-                    await asyncio.sleep(restart_timer)
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
 
@@ -184,12 +154,44 @@ class heartbeat(commands.Cog):
             #
             #   Check if the match has begun
             if playercount >= 1:
+                #
+                # Check if a lobby is made
                 if self.server_status['lobby_created'] == False:
                     counter_lobbycheck+=1
                     if counter_lobbycheck == threshold_lobbycheck:
                         counter_lobbycheck=0
                         if self.server_status['first_run'] == True:
                             svr_state.getData("GameCheck")
+                # Verify the lobby settings. Look out for sinister events and handle it.
+                #
+                #   sinister behaviour detected, save log to file.
+                #   Players can attempt to start a game on an uknown map file. This causes the server to crash and hang.
+                #   We will firstly handle the error, restart the server, and then log the event for investigation.
+                if playercount == 1:
+                    if (self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps):
+                        #hard_reset = svr_state.getData("CheckForUpdates")
+                        self.server_status.update({'restart_required':True})
+                        svr_state.reportPlayer("No_Map")
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``), RESTARTING...")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except: print(traceback.format_exc())
+                        self.server_status.update({"server_restarting":True})
+                        self.server_status.update({"restart_required":True})
+                        svr_state.restartSERVER()
+                        await test.createEmbed(ctx,playercount)
+                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    elif (self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch") and self.processed_data_dict['allow_botmatches'] == 'False':
+                        svr_state.reportPlayer("botmatch")
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches), RESTARTING...")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except: print(traceback.format_exc())
+                        self.server_status.update({"server_restarting":True})
+                        self.server_status.update({"restart_required":True})
+                        svr_state.restartSERVER()
+                        await test.createEmbed(ctx,playercount)
+                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                 if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
                     counter_gamecheck+=1
                     if counter_gamecheck==threshold_gamecheck:
@@ -202,7 +204,7 @@ class heartbeat(commands.Cog):
                             try:
                                 svr_state.getData("MatchInformation")
                             except: print(traceback.format_exc())
-                            if self.server_status['match_info_obtained'] == True and self.server_status['game_started'] == True and self.processed_data_dict['debug_mode'] == True:
+                            if self.server_status['match_info_obtained'] == True and self.server_status['game_started'] == True and self.processed_data_dict['debug_mode'] == 'True':
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started {self.server_status['game_name']}")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
