@@ -1,4 +1,3 @@
-from dataclasses import replace
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
@@ -55,6 +54,8 @@ class heartbeat(commands.Cog):
         counter_hosted = 0
         counter_gamecheck = 0
         counter_lobbycheck = 0
+        #  Debug setting
+        #  playercount = 0
         threshold_heartbeat = 30    # how long to wait before break from heartbeat to update embeds
         threshold_hosted = 60   # how long we wait for someone to host a game without starting
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
@@ -165,6 +166,25 @@ class heartbeat(commands.Cog):
                         counter_lobbycheck=0
                         if self.server_status['first_run'] == True:
                             svr_state.getData("GameCheck")
+                if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
+                    counter_gamecheck+=1
+                    if counter_gamecheck==threshold_gamecheck:
+                        counter_gamecheck=0
+                        if self.server_status['game_started'] == False:
+                            try:
+                                svr_state.getData("CheckInGame")
+                            except: print(traceback.format_exc())
+                        if self.server_status['match_info_obtained'] == False:
+                            try:
+                                svr_state.getData("MatchInformation")
+                            except: print(traceback.format_exc())
+                            if self.server_status['game_started'] == True and self.server_status['match_info_obtained'] == True and self.processed_data_dict['debug_mode'] == 'True':
+                                match_id = self.server_status['match_log_location']
+                                match_id = match_id.replace(".log","")
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started / Lobby made - {match_id}")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
                 # Verify the lobby settings. Look out for sinister events and handle it.
                 #
                 #   sinister behaviour detected, save log to file.
@@ -195,25 +215,6 @@ class heartbeat(commands.Cog):
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                if (self.server_status['game_started'] == False and self.server_status['lobby_created'] == True) or self.server_status['match_info_obtained'] == False:
-                    counter_gamecheck+=1
-                    if counter_gamecheck==threshold_gamecheck:
-                        counter_gamecheck=0
-                        if self.server_status['game_started'] == False:
-                            try:
-                                svr_state.getData("CheckInGame")
-                            except: print(traceback.format_exc())
-                        if self.server_status['match_info_obtained'] == False:
-                            try:
-                                svr_state.getData("MatchInformation")
-                            except: print(traceback.format_exc())
-                            if self.server_status['game_started'] == True and self.server_status['match_info_obtained'] == True and self.processed_data_dict['debug_mode'] == 'True':
-                                match_id = self.server_status['match_log_location']
-                                match_id = match_id.replace(".log","")
-                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started / Lobby made - {match_id}")
-                                try:
-                                    await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
                 #
                 #   Game in progress
                 #   Start a timer so we can show the elapsed time of the match
