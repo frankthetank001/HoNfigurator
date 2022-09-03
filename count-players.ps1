@@ -7,7 +7,7 @@ $thread_security_principal = `
 if ( -NOT $thread_security_principal.IsInRole("Administrators") ) {
     $argv = @($MyInvocation.MyCommand.Definition) + $args
     start-process "powershell.exe" -Arg $argv -Verb RunAs
-    exit 2
+    #exit 2
 }
 echo $PSScriptRoot
 cd $PSScriptRoot
@@ -41,14 +41,18 @@ ForEach($Line in $INI)
 # Write-Host('Here is the hash table:')
 # Write-Host
 
+Function Player-Count{
 ForEach($Line in $IniTemp)
-{
-$SplitArray = $Line.Split("=")
-$IniHash += @{$SplitArray[0] = $SplitArray[1]}
+    {
+    $SplitArray = $Line.Split("=")
+    $IniHash += @{$SplitArray[0] = $SplitArray[1]}
+    }
+    1..$IniHash.svr_total | % {
+        $exe = "KONGOR_ARENA_$_.exe"
+        $result=.\dependencies\server_exe\pingplayerconnected-DC.exe $exe
+        write-host($exe +" = " + $result)
+    }
+    Read-Host -Prompt "Press any key to check again"
+    Player-Count
 }
-1..$IniHash.svr_total | % {
-    $exe = "KONGOR_ARENA_$_.exe"
-    $result=.\dependencies\server_exe\pingplayerconnected-DC.exe $exe
-    write-host($exe +" = " + $result)
-}
-Read-Host -Prompt "Press any key to continue"
+Player-Count
