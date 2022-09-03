@@ -112,6 +112,7 @@ class embedManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server_status = svr_state.getStatus()
+        self.match_status = svr_state.getMatchInfo()
         #self.total_games_played_prev = self.server_status['total_games_played_prev_prev']
         self.total_games_played = svr_state.getData("TotalGamesPlayed")
         self.server_status.update({'total_games_played':self.total_games_played})
@@ -268,6 +269,7 @@ class embedManager(commands.Cog):
     @bot.command()
     async def active(self,rec_embed,playercount):
         self.server_status = svr_state.getStatus()
+        self.match_status = svr_state.getMatchInfo()
         #embedManager.__init__(self,bot)
         #
         #   logic info
@@ -334,9 +336,9 @@ class embedManager(commands.Cog):
             #   Match in progress
             elif self.game_started == True:
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
-                created_embed.add_field(name=f"อยู่ระหว่างการแข่งขัน",value=f"```\nโปรดรอจนกว่าเกมส์จะจบ..\nเวลาที่ผ่านไปหลังจากเริ่มเกมส์: {str(minutes)}:{str(seconds)}```",inline=False)
+                #created_embed.add_field(name=f"อยู่ระหว่างการแข่งขัน",value=f"```\nโปรดรอจนกว่าเกมส์จะจบ..\nเวลาที่ผ่านไปหลังจากเริ่มเกมส์: {self.match_status['match_time']}``",inline=False)
+                created_embed.add_field(name=f"อยู่ระหว่างการแข่งขัน",value=f"```\nโปรดรอจนกว่าเกมส์จะจบ..\nเวลาที่ผ่านไปหลังจากเริ่มเกมส์: {self.match_status['match_time']}```",inline=False)
             created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รีเซิฟเวอร์ล่าสุด: {self.server_status['last_restart']}")
-
             if self.server_status['game_map'] == "caldavar" or self.server_status['game_map'] == "caldavar_old" or self.server_status['game_map'] == "caldavar_reborn":
                 created_embed.set_thumbnail(url=map_caldavar)
             elif self.server_status['game_map'] == "midwars" or self.server_status['game_map'] == "midwars_pbt" or self.server_status['game_map'] == "midwars_reborn":
