@@ -156,13 +156,15 @@ class embedManager(commands.Cog):
         #await ctx.invoke(bot.get_command('createEmbed'),ctx,playercount)
         for embedObjects in self.mEmbed_objects:
             try:
-                if 'server_starting' in self.server_status:
-                    if self.server_status['server_starting']:
+                if 'server_starting' in self.server_status and self.server_status['server_starting'] == True:
+                    #if self.server_status['server_starting'] == True:
                         await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
-                elif self.server_status['server_restarting']:
-                    await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
-                elif self.server_status['hard_reset']:
-                    await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
+                elif 'server_starting' in self.server_status and self.server_status['server_restarting'] == True:
+                    #if self.server_status['server_restarting'] == True:
+                        await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
+                elif 'hard_reset' in self.server_status and self.server_status['hard_reset'] == True:
+                    #if self.server_status['hard_reset'] == True:
+                        await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
                 else:
                     #
                     #   Server is offline
