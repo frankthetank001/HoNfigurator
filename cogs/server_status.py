@@ -108,7 +108,7 @@ class honCMD():
                 server_status_dict.update({"just_collected":self.just_collected})
                 server_status_dict.update({"game_started":self.game_started})
                 server_status_dict.update({"tempcount":self.tempcount})
-                server_status_dict.update({'update_embeds':True})
+                server_status_dict.update({'update_embeds':False})
                 server_status_dict.update({"embed_updated":self.embed_updated})
                 server_status_dict.update({"lobby_created":self.lobby_created})
                 server_status_dict.update({"game_map":"empty"})
@@ -134,7 +134,7 @@ class honCMD():
                 server_status_dict.update({'elapsed_duration':0})
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
-                #server_status_dict.update({'server_starting':True})
+                server_status_dict.update({'server_starting':True})
                 server_status_dict.update({"hard_reset":False})
                 #self.server_status.update({'restarting_server':False})
 
@@ -205,8 +205,8 @@ class honCMD():
         save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         shutil.copyfile(self.server_status['slave_log_location'], save_path)
 
-    def compare_filesizes(self,file):
-        last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{file}_mtime"
+    def compare_filesizes(self,file,name):
+        last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{name}_mtime"
         #
         #   This reads the data if it exists
         if (exists(last_modified_time_file)):
@@ -272,7 +272,7 @@ class honCMD():
                 #if self.server_status["game_log_location"] == "empty":
                 honCMD.getData(self,"getLogList_Game")
                 #print("checking for game started now")
-                hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"])
+                hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
                 soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
 
                 if soft_data > hard_data:
@@ -315,7 +315,7 @@ class honCMD():
                 # Commenting temprarily as there are issues if the match is not restarted in between games.
                 #if self.server_status['match_log_location'] == "empty":
                 honCMD.getData(self,"getLogList_Match")
-                hard_data = honCMD.compare_filesizes(self,self.server_status["match_log_location"])
+                hard_data = honCMD.compare_filesizes(self,self.server_status["match_log_location"],"match")
                 soft_data = os.stat(self.server_status['match_log_location']).st_size # initial file size
                 print("checking match information")
                 with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:

@@ -45,7 +45,7 @@ class heartbeat(commands.Cog):
         self.match_status = svrcmd.honCMD().getMatchInfo()
         self.available_maps = svr_state.getData("availMaps")
         self.server_status.update({'server_restarting':False})
-        self.server_status.update({'server_starting':False})
+        #self.server_status.update({'server_starting':False})
         self.server_status.update({'hard_reset':False})
 
         restart_timer = 5
