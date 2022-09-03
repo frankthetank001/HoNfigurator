@@ -292,16 +292,19 @@ class honCMD():
                                     #Match Time(00:07:00)
                                     if "Match Time" in line:
                                         pattern="(Match Time\()(.*)(\))"
-                                        match_time=re.search(pattern,line)
-                                        match_time = match_time.group(2)
-                                        if match_time != match_status['match_time']:
-                                            tempData.update({'match_time':match_time})
-                                            #tempData.update({'match_log_last_line':num})
-                                            print("match_time: "+ match_time)
-                                            server_status_dict.update({'tempcount':-5})
-                                            self.server_status.update({'update_embeds':True})
-                                            honCMD().updateStatus_GI(tempData)
-                                        break
+                                        try:
+                                            match_time=re.search(pattern,line)
+                                            match_time = match_time.group(2)
+                                            if match_time != match_status['match_time']:
+                                                tempData.update({'match_time':match_time})
+                                                #tempData.update({'match_log_last_line':num})
+                                                print("match_time: "+ match_time)
+                                                server_status_dict.update({'tempcount':-5})
+                                                self.server_status.update({'update_embeds':True})
+                                                honCMD().updateStatus_GI(tempData)
+                                            break
+                                        except AttributeError as e:
+                                            print(e)
                                     #if "Server Skipped" in line:
                     f.close()                   
             return
