@@ -10,6 +10,7 @@ from datetime import datetime
 from random import randint
 from time import sleep
 import traceback
+from discord.ext import tasks
 
 bot = commands.Bot(command_prefix='!',case_insensitive=True)
 client = discord.Client(intents=discord.Intents.default())
@@ -70,8 +71,9 @@ class hsl(commands.Cog):
         return
     def time():
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    @bot.event
-    async def on_ready():
+    @tasks.loop(count=1)
+    async def wait_until_ready():
+        await bot.wait_until_ready()
         global embed_obj
         global discord_admin
         discord_admin = await bot.fetch_user(processed_data_dict['discord_admin'])
@@ -174,6 +176,9 @@ class hsl(commands.Cog):
                 owner_reachable = False
             except: print(traceback.format_exc())
             print(traceback.format_exc())
+    #@bot.event
+    # async def on_ready():
+        
             
     @bot.command()
     async def sendEmbedLog(ctx,embed_log):
@@ -741,15 +746,17 @@ class hsl(commands.Cog):
                     #
                     #   Sends the stop server command
                     elif (react.emoji.name == "🔽"):
-                        if svr_cmd.stopSERVER():
-                            await ctx.invoke(bot.get_command('stopheart'))
+                        svr_cmd.stopSERVER()
+                        # if svr_cmd.stopSERVER():
+                        #     await ctx.invoke(bot.get_command('stopheart'))
                         
                     #
                     #   only admins can force stop.
                     #elif (react.emoji.name == "🛑") and processed_data_dict['discord_admin'] in modRole:
                     elif (react.emoji.name == "🛑") and str(react.member.id) in processed_data_dict['discord_admin']:
-                        if svr_cmd.forceSERVER():
-                            await ctx.invoke(bot.get_command('stopheart'))
+                        svr_cmd.forceSERVER()
+                        # if svr_cmd.forceSERVER():
+                        #     await ctx.invoke(bot.get_command('stopheart'))
                         if len(embed_log) == 0:
                             temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
                             try:
@@ -765,6 +772,7 @@ class hsl(commands.Cog):
                         except: print(traceback.format_exc())
 def run_bot():
     hsl(bot)
+    hsl.wait_until_ready.start()
     bot.run(processed_data_dict['token'])
 if __name__ == '__main__':
     run_bot()

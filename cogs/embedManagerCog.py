@@ -112,6 +112,7 @@ class embedManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server_status = svr_state.getStatus()
+        self.match_status = svr_state.getMatchInfo()
         #self.total_games_played_prev = self.server_status['total_games_played_prev_prev']
         self.total_games_played = svr_state.getData("TotalGamesPlayed")
         self.server_status.update({'total_games_played':self.total_games_played})
@@ -155,12 +156,15 @@ class embedManager(commands.Cog):
         #await ctx.invoke(bot.get_command('createEmbed'),ctx,playercount)
         for embedObjects in self.mEmbed_objects:
             try:
-                if self.server_status['server_starting']:
-                    await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
-                elif self.server_status['server_restarting']:
-                    await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
-                elif self.server_status['hard_reset']:
-                    await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
+                if 'server_starting' in self.server_status and self.server_status['server_starting'] == True:
+                    #if self.server_status['server_starting'] == True:
+                        await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
+                elif 'server_starting' in self.server_status and self.server_status['server_restarting'] == True:
+                    #if self.server_status['server_restarting'] == True:
+                        await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
+                elif 'hard_reset' in self.server_status and self.server_status['hard_reset'] == True:
+                    #if self.server_status['hard_reset'] == True:
+                        await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
                 else:
                     #
                     #   Server is offline
@@ -267,6 +271,7 @@ class embedManager(commands.Cog):
     @bot.command()
     async def active(self,rec_embed,playercount):
         self.server_status = svr_state.getStatus()
+        self.match_status = svr_state.getMatchInfo()
         #embedManager.__init__(self,bot)
         #
         #   logic info
@@ -333,7 +338,8 @@ class embedManager(commands.Cog):
             #   Match in progress
             elif self.game_started == True:
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
-                created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
+                #created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
+                created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {self.match_status['match_time']}```",inline=False)
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
 
             if self.server_status['game_map'] == "caldavar" or self.server_status['game_map'] == "caldavar_old" or self.server_status['game_map'] == "caldavar_reborn":
@@ -386,7 +392,7 @@ class embedManager(commands.Cog):
 
     @bot.command()
     async def embedLog(self,ctx,log_msg):
-        list_limit = 6
+        list_limit = 15
         self.event_list.append(log_msg + "\n")
         self.event_log =  (self.event_log + log_msg + "\n")
         self.event_string = ""
