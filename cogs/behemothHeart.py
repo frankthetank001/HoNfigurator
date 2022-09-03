@@ -72,7 +72,6 @@ class heartbeat(commands.Cog):
             #   Check if the server is ready yet
             if self.server_status['server_ready'] == False:
                 if svr_state.getData("ServerReadyCheck"):
-                    self.update = False
                     self.server_status.update({'server_starting':False})
                     self.server_status.update({'server_restarting':False})
                     if self.processed_data_dict['debug_mode'] == 'True':
@@ -81,7 +80,6 @@ class heartbeat(commands.Cog):
                             await embed_log.edit(embed=logEmbed)
                         except: print(traceback.format_exc())
                 else:
-                    self.update = True
                     if self.server_status['server_restarting'] == False:
                         self.server_status.update({'server_starting':True})
                     elif self.server_status['server_restarting'] == True:
@@ -101,6 +99,7 @@ class heartbeat(commands.Cog):
                     # await test.createEmbed(ctx,playercount)
                     await asyncio.sleep(restart_timer)
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                    self.server_status.update({'update_embeds':False})
                     # restart notification
                     if self.processed_data_dict['debug_mode'] == 'True':
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
@@ -204,6 +203,7 @@ class heartbeat(commands.Cog):
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                        self.server_status.update({'update_embeds':False})
                     elif (self.server_status['game_mode'] == "botmatch" or self.server_status['game_mode'] == "BotMatch") and self.processed_data_dict['allow_botmatches'] == 'False':
                         svr_state.reportPlayer("botmatch")
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches), RESTARTING...")
@@ -215,40 +215,54 @@ class heartbeat(commands.Cog):
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                        self.server_status.update({'update_embeds':False})
                 #
                 #   Game in progress
                 #   Start a timer so we can show the elapsed time of the match
-                if self.server_status['game_started'] == True:
-                    elapsed_duration = self.server_status['elapsed_duration']
-                    elapsed_duration = int(elapsed_duration)
-                    elapsed_duration +=1
-                    self.server_status.update({'elapsed_duration':elapsed_duration})
-                    #svr_state.getData("CheckInGame")
-                    #print(self.match_status)
+                if counter_heartbeat == threshold_heartbeat:
+                    counter_heartbeat=0
+                    counter_heartbeat_attempts +=1
+                    if self.server_status['game_started'] == True:
+                        elapsed_duration = self.server_status['elapsed_duration']
+                        elapsed_duration = int(elapsed_duration)
+                        elapsed_duration +=1
+                        self.server_status.update({'elapsed_duration':elapsed_duration})
+                        # self.server_status.update({'update_embeds':True})
+                        svr_state.getData("CheckInGame")
+                    if playercount != self.server_status['tempcount']:
+                        self.server_status.update({'update_embeds':True})
+
 
             if playercount >=2:
                 if self.server_status['priority_realtime'] == False:
                     svr_state.changePriority(True)
             #
             #   break out from the heartbeat every threshold_heartbeat if we're in a game
-            if counter_heartbeat == threshold_heartbeat:
-                counter_heartbeat=0
-                counter_heartbeat_attempts +=1
-                if playercount >= 1 and self.server_status['game_started'] == True:
-                    self.server_status.update({'tempcount':-5})   # force an update
-                    # if self.server_status['lobby_created'] == True and self.server_status['game_started'] == False:
-                    #     break
-                if counter_heartbeat_attempts == 4 and playercount > 0:
-                    counter_heartbeat_attempts = 0
-                    self.server_status.update({'tempcount':-5})   # force an update
+            # if counter_heartbeat == threshold_heartbeat:
+            #     counter_heartbeat=0
+            #     counter_heartbeat_attempts +=1
+            #     if playercount >= 1:
+            #         if  self.server_status['game_started'] == True:
+            #             self.server_status.update({'tempcount':-5})   # force an update
+            #             svr_state.getData("CheckInGame")
+            #             print(self.match_status)
+            #         # if self.server_status['lobby_created'] == True and self.server_status['game_started'] == False:
+            #         #     break
+            #         self.server_status.update({'update_embeds':True})
+            #     if counter_heartbeat_attempts == 4 and playercount > 0:
+            #         counter_heartbeat_attempts = 0
+            #         #self.server_status.update({'tempcount':-5})   # force an update
+            #         self.server_status.update({'update_embeds':True})
             #   
             #   if nothing new has happened, sit here and take a break for a bit. Every 15 seconds we leave the idle mode in case something has changed and we missed it.
-            if playercount == self.server_status['tempcount'] and self.server_status['just_collected'] != True and (not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
+            #if playercount == self.server_status['tempcount'] and self.server_status['just_collected'] != True and (not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
+            if self.server_status['update_embeds'] == False or playercount == self.server_status['tempcount'] and (self.server_status['just_collected'] != True and not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
                 print("idle")
             #   update embeds.
             else:
                 counter_heartbeat=0
                 self.server_status.update({'tempcount':playercount})
+                self.server_status.update({'update_embeds':False})
                 self.server_status.update({'time_waited':counter_hosted})
                 svr_state.updateStatus(self.server_status)
                 await test.createEmbed(ctx,playercount)
@@ -271,6 +285,16 @@ class heartbeat(commands.Cog):
             except: print(traceback.format_exc())
             if not alive:
                 await ctx.invoke(bot.get_command('startheart'),ctx)
+    @bot.command()
+    async def kick(self,ctx,hoster):
+        if hoster == self.processed_data_dict['svr_hoster'] or hoster == self.processed_data_dict['svr_identifier']:
+            try:
+                await ctx.message.delete()
+            except: print(traceback.format_exc())
+            if hoster == self.processed_data_dict['svr_hoster']:
+                await asyncio.sleep(int(self.processed_data_dict['svr_id']))
+            self.server_status.update({'update_embeds':True})
+            self.server_status.update({'tempcount':-5})
     @bot.command()
     async def pullPlug(self,ctx,hoster):
         if hoster == self.processed_data_dict['svr_identifier']:

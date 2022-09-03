@@ -13,7 +13,8 @@ import re
 
 processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
-game_status = {}
+match_status = {}
+size_changed = True
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
@@ -55,7 +56,7 @@ class honCMD():
     def updateStatus_GI(self,data):
         #
         #   Combine temp data into the sever_status dictionary
-        game_status.update(data)
+        match_status.update(data)
         #print("updated dictionary: " + str(server_status_dict))
         return
 
@@ -64,7 +65,7 @@ class honCMD():
     def getDataDict(self):
         return processed_data_dict
     def getMatchInfo(self):
-        return game_status
+        return match_status
    #   Starts server
     def startSERVER(self):
         #playercount = playercount()
@@ -107,6 +108,7 @@ class honCMD():
                 server_status_dict.update({"just_collected":self.just_collected})
                 server_status_dict.update({"game_started":self.game_started})
                 server_status_dict.update({"tempcount":self.tempcount})
+                server_status_dict.update({'update_embeds':True})
                 server_status_dict.update({"embed_updated":self.embed_updated})
                 server_status_dict.update({"lobby_created":self.lobby_created})
                 server_status_dict.update({"game_map":"empty"})
@@ -135,6 +137,13 @@ class honCMD():
                 #server_status_dict.update({'server_starting':True})
                 server_status_dict.update({"hard_reset":False})
                 #self.server_status.update({'restarting_server':False})
+
+
+
+                #
+                # Match info dictionary
+                match_status.update({'match_log_last_line':0})
+                match_status.update({'match_time':'Preparation phase..'})
                 return True
             else:
                 return False
@@ -175,6 +184,9 @@ class honCMD():
                 #
                 #   Once detects server is offline with above code start the server
                 honCMD().startSERVER()
+        else:
+            self.server_status.update({'update_embeds':True})
+            self.server_status.update({'tempcount':-5})
         return True
 
     def restartSELF(self):
@@ -192,6 +204,37 @@ class honCMD():
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
         save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         shutil.copyfile(self.server_status['slave_log_location'], save_path)
+
+    def compare_filesizes(self,file):
+        last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{file}_mtime"
+        #
+        #   This reads the data if it exists
+        if (exists(last_modified_time_file)):
+            with open(last_modified_time_file, 'r') as last_modified:
+                lastmodData = last_modified.readline()
+            last_modified.close()
+            lastmodData = int(lastmodData)
+            #
+            #   Gets the current byte size of the log
+            fileSize = os.stat(file).st_size
+            #
+            #   After reading data set temporary file to current byte size
+            with open(last_modified_time_file, 'w') as last_modifiedw:
+                last_modifiedw.write(f"{fileSize}")
+            last_modifiedw.close()
+            return lastmodData
+        #
+        #   If there was no temporary file to load data from, create it.
+        else:
+            try:
+                fileSize = os.stat(file).st_size
+                with open(last_modified_time_file, 'w') as last_modified:
+                    last_modified.write(f"{fileSize}")
+                last_modified.close()
+            except Exception as e:
+                print(e)
+                pass
+            return fileSize
 #
 #   reads and parses hon server log data
     def getData(self, dtype):
@@ -217,39 +260,50 @@ class honCMD():
                     tempList.append("M0000.log")
                 total_games_played = len(tempList) 
                 return total_games_played
-            #
-            # Compare the total games played when server started to now. If it's changed, there's a new lobby, come here to check if we're in a match yet.
         elif dtype == "CheckInGame":
+            tempData = {}
             total_games_played_prev_int = int(server_status_dict['total_games_played_prev'])
             total_games_played_now_int = int(honCMD.getData(self,"TotalGamesPlayed"))
-            print ("about to check game started")
+            #print ("about to check game started")
             #if (total_games_played_now_int > total_games_played_prev_int and os.stat(self.server_status['game_log_location']).st_size > 0):
             if (total_games_played_now_int > total_games_played_prev_int):
                 #
                 # Commenting temprarily as there are issues if the match is not restarted in between games.
                 #if self.server_status["game_log_location"] == "empty":
                 honCMD.getData(self,"getLogList_Game")
-                print("checking for game started now")
-                with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
-                    if server_status_dict['game_started'] == False:
-                        for line in f:
-                            if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                                server_status_dict.update({'game_started':True})
-                                server_status_dict.update({'tempcount':-5})
-                                return True
-                    else:
-                        for line in f:
-                            if "Server Status" in line:
-                                #Match Time(00:07:00)
-                                if "Match Time" in line:
-                                    pattern="(Match Time\()(.*)(\))"
-                                    game_time=re.search(pattern,line)
-                                    game_time = game_time.group(2)
-                                    print("game_time: "+ game_time)
-                                    honCMD().updateStatus_GI(tempData)
-                                    print("game_time: "+ game_time)
-                                #if "Server Skipped" in line:
-                f.close()                   
+                #print("checking for game started now")
+                hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"])
+                soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
+
+                if soft_data > hard_data:
+                    with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
+                        if server_status_dict['game_started'] == False:
+                            for line in f:
+                                if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                                    server_status_dict.update({'game_started':True})
+                                    server_status_dict.update({'tempcount':-5})
+                                    server_status_dict.update({'update_embeds':True})
+                                    return True
+                        else:
+                            # for num, line in enumerate(f, 1):
+                            #     if num > match_status['match_log_last_line']:
+                            for line in reversed(list(f)):
+                                if "Server Status" in line:
+                                    #Match Time(00:07:00)
+                                    if "Match Time" in line:
+                                        pattern="(Match Time\()(.*)(\))"
+                                        match_time=re.search(pattern,line)
+                                        match_time = match_time.group(2)
+                                        if match_time != match_status['match_time']:
+                                            tempData.update({'match_time':match_time})
+                                            #tempData.update({'match_log_last_line':num})
+                                            print("match_time: "+ match_time)
+                                            server_status_dict.update({'tempcount':-5})
+                                            self.server_status.update({'update_embeds':True})
+                                            honCMD().updateStatus_GI(tempData)
+                                        break
+                                    #if "Server Skipped" in line:
+                    f.close()                   
             return
         elif dtype == "MatchInformation":
             tempData = {}
@@ -259,8 +313,10 @@ class honCMD():
             if (total_games_played_now_int > total_games_played_prev_int):
                 #
                 # Commenting temprarily as there are issues if the match is not restarted in between games.
-                # if self.server_status['match_log_location'] == "empty":
+                #if self.server_status['match_log_location'] == "empty":
                 honCMD.getData(self,"getLogList_Match")
+                hard_data = honCMD.compare_filesizes(self,self.server_status["match_log_location"])
+                soft_data = os.stat(self.server_status['match_log_location']).st_size # initial file size
                 print("checking match information")
                 with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
                     if self.server_status['match_info_obtained'] == False:
@@ -295,6 +351,7 @@ class honCMD():
                                 tempData.update({"first_run":False})
                                 tempData.update({"lobby_created":True})
                                 tempData.update({"tempcount":-5})
+                                tempData.update({'update_embeds':False})
                                 honCMD().updateStatus(tempData)
                 f.close()
         #
@@ -533,6 +590,8 @@ class honCMD():
                         tempData.update({'just_collected':self.just_collected})
                         tempData.update({'lobby_created':self.lobby_created})
                         tempData.update({'total_slots':total_slots})
+                        tempData.update({'update_embeds':True})
+                        tempData.update({'tempcount':-5})
 
                         honCMD().updateStatus(tempData)
                         #server_status_dict.update[{"first_run":"true"}]
@@ -565,6 +624,7 @@ class honCMD():
             if comp == 0:
                 tempData.update({'server_ready':True})
                 tempData.update({'tempcount':-5})
+                tempData.update({'update_embeds':True})
                 honCMD().updateStatus(tempData)
                 return True
             else:
