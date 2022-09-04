@@ -26,25 +26,31 @@ function Remove-Logs
 {
     $logs = "$_\Documents\Heroes of Newerth x64\game\logs\"
     $replays = "$_\Documents\Heroes of Newerth x64\game\replays\"
+    $replays = "$_\Documents\Heroes of Newerth x64\game\replays\"
     write-host ("cleaning logs... $logs")
     write-host ("cleaning replays... $replays")
     Get-ChildItem -Path $logs -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} | Remove-Item -Force
     Get-ChildItem -Path $replays -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} |  Remove-Item -Force
+    Get-ChildItem -Path $diagnostics -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} |  Remove-Item -Force
 
     # Delete any empty directories left behind after deleting the old files.
     Get-ChildItem -Path $logs -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -Force -Recurse
     Get-ChildItem -Path $replays -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -Force -Recurse
+    Get-ChildItem -Path $diagnostics -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -Force -Recurse
 }
 
 function Remove-Logs-View {
     $logs = "$_\Documents\Heroes of Newerth x64\game\logs\"
+    $diagnostics = "$_\Documents\Heroes of Newerth x64\game\logs\diagnostics"
     $replays = "$_\Documents\Heroes of Newerth x64\game\replays\"
     Get-ChildItem -Path $logs -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} | Remove-Item -WhatIf -Force
     Get-ChildItem -Path $replays -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} |  Remove-Item -WhatIf -Force
+    Get-ChildItem -Path $diagnostics -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit} |  Remove-Item -WhatIf -Force
 
     # Delete any empty directories left behind after deleting the old files.
     Get-ChildItem -Path $logs -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -WhatIf -Force -Recurse
     Get-ChildItem -Path $replays -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -WhatIf -Force -Recurse
+    Get-ChildItem -Path $diagnostics -Force | Where-Object { $_.PSIsContainer -and (Get-ChildItem -Path $_.FullName -Recurse -Force | Where-Object { !$_.PSIsContainer }) -eq $null} | Remove-Item -WhatIf -Force -Recurse
 }
 
 $dir = Get-ChildItem '.\hon_server_*' | ? {$_.PSIsContainer}
