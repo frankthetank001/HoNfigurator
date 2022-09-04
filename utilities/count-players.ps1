@@ -1,18 +1,28 @@
-# Restart this script in elevated mode if this user is not an administrator.
-# ULTRA SUPER NON POWERSHELL-LIKE CODE AHEAD
-# -------------------------------------------------------------------------
-[Threading.Thread]::GetDomain().SetPrincipalPolicy([Security.Principal.PrincipalPolicy]::WindowsPrincipal)
-$thread_security_principal = `
-  [Security.Principal.WindowsPrincipal]([Threading.Thread]::CurrentPrincipal)
-if ( -NOT $thread_security_principal.IsInRole("Administrators") ) {
-    $argv = @($MyInvocation.MyCommand.Definition) + $args
-    start-process "powershell.exe" -Arg $argv -Verb RunAs
-    #exit 2
+#at top of script
+if (!
+    #current role
+    (New-Object Security.Principal.WindowsPrincipal(
+        [Security.Principal.WindowsIdentity]::GetCurrent()
+    #is admin?
+    )).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+) {
+    #elevate script and exit current non-elevated runtime
+    Start-Process `
+        -FilePath 'powershell' `
+        -ArgumentList (
+            #flatten to single array
+            '-File', $MyInvocation.MyCommand.Source, $args `
+            | %{ $_ }
+        ) `
+        -Verb RunAs
+    exit
 }
 echo $PSScriptRoot
 cd $PSScriptRoot
 
-$file = '.\config\local_config.ini'
+$file = '..\config\local_config.ini'
 #Write-Host ('This is the raw INI file contents: ')
 #Write-Host
 $INI = Get-Content $file
@@ -49,7 +59,7 @@ ForEach($Line in $IniTemp)
     }
     1..$IniHash.svr_total | % {
         $exe = "KONGOR_ARENA_$_.exe"
-        $result=.\dependencies\server_exe\pingplayerconnected-DC.exe $exe
+        $result=..\dependencies\server_exe\pingplayerconnected-DC.exe $exe
         write-host($exe +" = " + $result)
     }
     Read-Host -Prompt "Press any key to check again"

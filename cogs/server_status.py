@@ -250,16 +250,32 @@ class honCMD():
             else:
                 return False
         if dtype == "TotalGamesPlayed":
-                tempList = []
-                for item in os.listdir(processed_data_dict['hon_logs_dir']):
-                    if "game" in item or (item.startswith("M") and item.endswith(".log")):
-                        tempList.append(item)
-                if not tempList:
-                    print("NO GAME FILE EITHER, we should make one")
-                    with open(processed_data_dict['hon_logs_dir']+'\\M0000.log', 'w'): pass
-                    tempList.append("M0000.log")
-                total_games_played = len(tempList) 
-                return total_games_played
+            tempList = []
+            total_games_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\total_games_played"
+            if (exists(total_games_file)):
+                #
+                #   Read last value for total games played
+                with open(total_games_file, 'r') as f:
+                    total_games_from_file = f.read().splitlines()
+                f.close()
+            #
+            #   Add new values to file
+            for item in os.listdir(processed_data_dict['hon_logs_dir']):
+                if "game" in item or (item.startswith("M") and item.endswith(".log")):
+                    tempList.append(item)
+            if not tempList:
+                print("NO GAME FILE EITHER, we should make one")
+                with open(processed_data_dict['hon_logs_dir']+'\\M0000.log', 'w'): pass
+                tempList.append("M0000.log")
+            try:
+                resulting_list = sorted(list(set(total_games_from_file + tempList)))
+            except UnboundLocalError:
+                resulting_list = sorted(tempList)
+            with open(total_games_file, 'wt') as f:
+                f.write('\n'.join(resulting_list))
+            f.close()
+            total_games_played = len(resulting_list)
+            return total_games_played
         elif dtype == "CheckInGame":
             tempData = {}
             total_games_played_prev_int = int(server_status_dict['total_games_played_prev'])
