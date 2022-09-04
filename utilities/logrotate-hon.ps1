@@ -1,4 +1,4 @@
-﻿#at top of script
+#at top of script
 if (!
     #current role
     (New-Object Security.Principal.WindowsPrincipal(
