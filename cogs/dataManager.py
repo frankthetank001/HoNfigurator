@@ -98,6 +98,23 @@ class mData():
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
+    def returnDict_basic(self,svr_id):
+        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
+        self.confDict_basic = {}
+        for option in conf_parse_local.options("OPTIONS"):
+            self.confDict_basic.update({option:conf_parse_local['OPTIONS'][option]})
+        for option in conf_parse_global.options("OPTIONS"):
+            self.confDict_basic.update({option:conf_parse_global['OPTIONS'][option]})
+        self.confDict_basic.update({"hon_home_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
+        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_logs_dir']}\\sdc"})
+        self.confDict_basic.update({"nssm_exe":f"{self.confDict_basic['hon_directory']}"+"nssm.exe"})
+        self.confDict_basic.update({"svr_identifier":f"{self.confDict_basic['svr_hoster']}-{svr_id}"})
+        self.confDict_basic.update({"svrid_total":f"{svr_id}/{self.confDict_basic['svr_total']}"})
+        self.confDict_basic.update({"svr_id_w_total":f"{self.confDict_basic['svr_hoster']}-{svr_id}/{self.confDict_basic['svr_total']}"})
+        return self.confDict_basic
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
