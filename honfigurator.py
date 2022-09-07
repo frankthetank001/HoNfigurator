@@ -1219,6 +1219,7 @@ class honfigurator():
                         else:
                             shutil.rmtree(f,onerror=honfigurator.onerror)
                             print("removed "+f)
+                print("DONE.")
             def Uninstall(x):
                 if pcount <= 0:
                     service_state = initialise.get_service(service_name)
