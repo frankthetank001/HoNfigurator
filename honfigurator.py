@@ -824,7 +824,7 @@ class honfigurator():
         #initialise.add_hosts_entry(self)
         if use_proxy == True:
             if not exists(self.dataDict['proxy_exe']):
-                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..")
+                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
                 use_proxy=False
         if identifier == "single":
             print()
