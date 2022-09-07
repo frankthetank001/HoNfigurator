@@ -42,7 +42,7 @@ svr_name = svr_name.strip('"')
 svr_location = server_data_dict['svr_location']
 svr_port = server_data_dict['svr_port']
 svr_port = svr_port.strip('"')
-svr_proxy_enabled = server_data_dict['man_enableProxy']
+#svr_proxy_enabled = server_data_dict['man_enableProxy']
 
 if processed_data_dict['master_server'] == "honmasterserver.com":
     default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://store5.gofile.io/download/direct/d8740070-c73e-43ec-9c00-2ea83c639e8d/HonClientFix-honmasterserver.exe)'

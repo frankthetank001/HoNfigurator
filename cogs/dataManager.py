@@ -63,6 +63,8 @@ class mData():
             self.confDict.update({'voice_starting_port':10060})
         if 'debug_mode' not in self.confDict:
             self.confDict.update({'debug_mode':False})
+        if 'use_proxy' not in self.confDict:
+            self.confDict.update({'use_proxy':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -71,6 +73,8 @@ class mData():
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
+        self.confDict.update({"proxy_exe":f"{self.confDict['hon_directory']}proxy.exe"})
+        self.confDict.update({"proxy_manager_exe":f"{self.confDict['hon_directory']}proxymanager.exe"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
         self.confDict.update({"svr_cgame_dll":f"{self.confDict['hon_directory']}game\\cgame_x64.dll"})
         self.confDict.update({"svr_game_shared_dll":f"{self.confDict['hon_directory']}game\\game_shared_x64.dll"})
@@ -98,6 +102,23 @@ class mData():
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
+    def returnDict_basic(self,svr_id):
+        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
+        self.confDict_basic = {}
+        for option in conf_parse_local.options("OPTIONS"):
+            self.confDict_basic.update({option:conf_parse_local['OPTIONS'][option]})
+        for option in conf_parse_global.options("OPTIONS"):
+            self.confDict_basic.update({option:conf_parse_global['OPTIONS'][option]})
+        self.confDict_basic.update({"hon_home_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
+        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_logs_dir']}\\sdc"})
+        self.confDict_basic.update({"nssm_exe":f"{self.confDict_basic['hon_directory']}"+"nssm.exe"})
+        self.confDict_basic.update({"svr_identifier":f"{self.confDict_basic['svr_hoster']}-{svr_id}"})
+        self.confDict_basic.update({"svrid_total":f"{svr_id}/{self.confDict_basic['svr_total']}"})
+        self.confDict_basic.update({"svr_id_w_total":f"{self.confDict_basic['svr_hoster']}-{svr_id}/{self.confDict_basic['svr_total']}"})
+        return self.confDict_basic
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
@@ -199,12 +220,21 @@ class mData():
         f.close()
         return options
     
-    def setData(self,filename,dict):
+    def setData(self,filename,type,dict_startup,dict_proxy):
         if exists(filename):
             os.chmod(filename,stat.S_IWRITE )
-        with open(filename, 'w') as startup:
-            for k, v in dict.items():
-                startup.write(f'SetSave "{k}" {v} "0"\n')
-        if exists(filename):
-            os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
-        return
+        if type == "startup":
+            with open(filename, 'w') as startup:
+                for k, v in dict_startup.items():
+                    startup.write(f'SetSave "{k}" {v} "0"\n')
+            if exists(filename):
+                os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+            return
+        elif type == "proxy":
+            with open(filename, 'w') as proxy:
+                for k, v in dict_proxy.items():
+                    v = v.replace('"','')
+                    proxy.write(f'{k}={v}\n')
+            if exists(filename):
+                os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+            return

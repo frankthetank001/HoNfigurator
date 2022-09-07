@@ -30,7 +30,47 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
-
+    def check_cookie(server_status,log,name):
+        def write_mtime(log,name):
+            last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
+            #
+            #   This reads the data if it exists
+            if (exists(last_modified_time_file)):
+                with open(last_modified_time_file, 'r') as last_modified:
+                    lastmodData = last_modified.readline()
+                last_modified.close()
+                lastmodData = int(lastmodData)
+                #
+                #   Gets the current byte size of the log
+                fileSize = os.stat(log).st_size
+                #
+                #   After reading data set temporary file to current byte size
+                with open(last_modified_time_file, 'w') as last_modifiedw:
+                    last_modifiedw.write(f"{fileSize}")
+                last_modifiedw.close()
+                return lastmodData
+            #
+            #   If there was no temporary file to load data from, create it.
+            else:
+                try:
+                    fileSize = os.stat(log).st_size
+                    with open(last_modified_time_file, 'w') as last_modified:
+                        last_modified.write(f"{fileSize}")
+                    last_modified.close()
+                except Exception as e:
+                    print(e)
+                    pass
+                return fileSize
+        hard_data = write_mtime(log,name)
+        soft_data = os.stat(log).st_size # initial file size
+        if soft_data > hard_data:
+            with open (log, "r", encoding='utf-16-le') as f:
+                for line in reversed(list(f)):
+                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
+                        return False
+        return True
+        # else:
+        #     return True
     def changePriority(self,priority_realtime):
         if priority_realtime:
             if processed_data_dict['process_priority'] == "normal":
@@ -81,6 +121,15 @@ class honCMD():
                 #   Start the HoN Server!
                 print("starting service")
                 self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
+                #
+                #  using manager, requires %appdata%\HonProxyManager\config.cfg to exist.
+                #  self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_manager_exe']])
+                #
+                #  using standalone, can be passed the config as an argument
+                if processed_data_dict['use_proxy'] == 'True':
+                    self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_exe'],f"{processed_data_dict['hon_game_dir']}\\proxy_config.cfg"])
+                    self.proxyPID = self.proxyEXE.pid
+                    server_status_dict.update({'proxy_pid':self.proxyPID})
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 server_status_dict.update({'hon_exe':self.honEXE})
                 self.honP = self.honEXE.pid
@@ -135,6 +184,8 @@ class honCMD():
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
                 server_status_dict.update({'server_starting':True})
+                server_status_dict.update({'scheduled_shutdown':False})
+                server_status_dict.update({'update_embeds':True})
                 server_status_dict.update({"hard_reset":False})
                 #self.server_status.update({'restarting_server':False})
 
@@ -156,6 +207,13 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
+            if processed_data_dict['use_proxy'] == 'True':
+                try:
+                    p = psutil.Process(self.server_status['proxy_pid'])
+                    p.terminate()
+                except Exception as e:
+                    print(e)
+            self.server_status.update({'update_embeds':True})
             return True
         return
     def forceSERVER(self):
@@ -164,6 +222,13 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
+        if processed_data_dict['use_proxy'] == 'True':        
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
+        self.server_status.update({'update_embeds':True})
         return True
 
     def restartSERVER(self):
@@ -177,6 +242,7 @@ class honCMD():
                 #
                 #   Code is stuck waiting for server to turn off
                 self.server_status.update({'server_restarting':True})
+                #self.server_status.update({'update_embeds':True})
                 playercount = self.playerCount()
                 while playercount >= 0:
                     time.sleep(1)
@@ -192,7 +258,21 @@ class honCMD():
     def restartSELF(self):
         #service_name = "adminbot"+processed_data_dict['svr_id']
         #os.system(f'net stop {service_name} & net start {service_name}')
+        if processed_data_dict['use_proxy'] == 'True':             
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
         sys.exit(1)
+    def stopSELF(self):
+        if processed_data_dict['use_proxy'] == 'True':             
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
+        sys.exit(0)
     def reportPlayer(self,reason):
         #
         #   sinister behaviour detected, save log to file.
@@ -242,6 +322,15 @@ class honCMD():
         #   We look if a file called "restart_required" exists. If it does we determine whether an update is pending for the bot, therefore needing to restart
         if dtype == "CheckForUpdates":
             temFile = processed_data_dict['sdc_home_dir']+"\\pending_restart"
+            if exists(temFile):
+                try:
+                    os.remove(temFile)
+                    return True
+                except Exception as e: print(e)
+            else:
+                return False
+        if dtype == "CheckSchdShutdown":
+            temFile = processed_data_dict['sdc_home_dir']+"\\pending_shutdown"
             if exists(temFile):
                 try:
                     os.remove(temFile)
@@ -337,42 +426,42 @@ class honCMD():
                 hard_data = honCMD.compare_filesizes(self,self.server_status["match_log_location"],"match")
                 soft_data = os.stat(self.server_status['match_log_location']).st_size # initial file size
                 print("checking match information")
-                with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
-                    if self.server_status['match_info_obtained'] == False:
-                        for line in f:
-                            if "INFO_MATCH name:" in line:
-                                game_name = re.findall(r'"([^"]*)"', line)
-                                game_name = game_name[0]
-                                tempData.update({'game_name':game_name})
-                                honCMD().updateStatus(tempData)
-                                print("game_name: "+ game_name)
-                                if 'TMM' in game_name:
-                                    tempData.update({'game_type':'Ranked TMM'})
+                if soft_data > hard_data:
+                    with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
+                        if self.server_status['match_info_obtained'] == False:
+                            for line in f:
+                                if "INFO_MATCH name:" in line:
+                                    game_name = re.findall(r'"([^"]*)"', line)
+                                    game_name = game_name[0]
+                                    tempData.update({'game_name':game_name})
                                     honCMD().updateStatus(tempData)
-                                else:
-                                    tempData.update({'game_type':'Public Games'})
+                                    print("game_name: "+ game_name)
+                                    if 'TMM' in game_name:
+                                        tempData.update({'game_type':'Ranked TMM'})
+                                        honCMD().updateStatus(tempData)
+                                    else:
+                                        tempData.update({'game_type':'Public Games'})
+                                        honCMD().updateStatus(tempData)
+                                if "INFO_MAP name:" in line:
+                                    game_map = re.findall(r'"([^"]*)"', line)
+                                    game_map = game_map[0]
+                                    tempData.update({'game_map':game_map})
                                     honCMD().updateStatus(tempData)
-                            if "INFO_MAP name:" in line:
-                                game_map = re.findall(r'"([^"]*)"', line)
-                                game_map = game_map[0]
-                                tempData.update({'game_map':game_map})
-                                honCMD().updateStatus(tempData)
-                                print("map: "+ game_map)
-                            if "INFO_SETTINGS mode:" in line:
-                                game_mode = re.findall(r'"([^"]*)"', line)
-                                game_mode = game_mode[0]
-                                game_mode = game_mode.replace('Mode_','')
-                                tempData.update({'game_mode':game_mode})
-                                honCMD().updateStatus(tempData)
-                                print("game_mode: "+ game_mode)
-                                tempData.update({"match_info_obtained":True})
-                                tempData.update({"game_started":True})
-                                tempData.update({"first_run":False})
-                                tempData.update({"lobby_created":True})
-                                tempData.update({"tempcount":-5})
-                                tempData.update({'update_embeds':False})
-                                honCMD().updateStatus(tempData)
-                f.close()
+                                    print("map: "+ game_map)
+                                if "INFO_SETTINGS mode:" in line:
+                                    game_mode = re.findall(r'"([^"]*)"', line)
+                                    game_mode = game_mode[0]
+                                    game_mode = game_mode.replace('Mode_','')
+                                    tempData.update({'game_mode':game_mode})
+                                    honCMD().updateStatus(tempData)
+                                    print("game_mode: "+ game_mode)
+                                    tempData.update({"match_info_obtained":True})
+                                    tempData.update({"game_started":True})
+                                    tempData.update({"first_run":False})
+                                    tempData.update({"lobby_created":True})
+                                    tempData.update({"tempcount":-5})
+                                    tempData.update({'update_embeds':False})
+                                    honCMD().updateStatus(tempData)
         #
         #   Get the last restart time
         elif dtype == "lastRestart":
@@ -439,7 +528,7 @@ class honCMD():
             tempList = []
             try:
                 # get list of files that matches pattern
-                pattern="Slave-1_M*console.clog"
+                pattern=f"Slave-1_M*console.clog"
                 #pattern="M*log"
 
                 files = list(filter(os.path.isfile,glob.glob(pattern)))
@@ -460,7 +549,7 @@ class honCMD():
                 print(e)
                 pass
             
-            return True
+            return gameLoc
         #
         #   Get latest server slave log
         elif dtype == "getLogList_Slave":
