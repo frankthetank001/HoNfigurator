@@ -294,41 +294,67 @@ class initialise():
         else:
             return False
 
-    def create_config(self,filename,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+    def create_config(self,filename,type,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+        self.proxy = {}
+        self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
-        print("customising startup.cfg with the following values")
-        print("svr_id: " + str(serverID))
-        print("svr_host: " + str(serverHoster))
-        print("svr_location: " + str(location))
-        print("svr_total: " + str(svr_total))
-        print("svr_ip: " + str(svr_ip))
-        #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
+        tem_game_port = int(game_port)
+        tem_voice_port = int(voice_port)
+        tem_game_port = tem_game_port + iter
+        tem_voice_port = tem_voice_port + iter
         networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         for i in networking:
-            temp_port = self.startup[i]
+            temp_port = self.base[i]
             temp_port = temp_port.strip('"')
             temp_port = int(temp_port)
             temp_port = temp_port + iter
             self.startup.update({i:f'"{temp_port}"'})
-        tem_game_port = int(game_port)
-        tem_game_port = tem_game_port + iter
-        self.startup.update({'svr_port':tem_game_port})
-        tem_voice_port = int(voice_port)
-        tem_voice_port = tem_voice_port + iter
-        self.startup.update({'svr_proxyLocalVoicePort':tem_voice_port})
-        self.startup.update({'svr_voicePortEnd':tem_voice_port})
-        self.startup.update({'svr_voicePortStart':tem_voice_port})
-        print("svr_port: " + str(tem_game_port))
-        print("voice_port: " + str(tem_voice_port))
-        self.startup.update({"man_enableProxy":"false"})
-        self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
-        self.startup.update({"svr_location":f'"{location}"'})
-        self.startup.update({"svr_ip":f'"{svr_ip}"'})
-        self.startup.update({"svr_login":f'"{master_user}"'})
-        self.startup.update({"svr_password":f'"{master_pass}"'})
-        self.startup.update({"svr_desc":f'"{svr_desc}"'})
-        dmgr.mData.setData(NULL,filename,self.startup)
+        if type == "startup":
+            print("customising startup.cfg with the following values")
+            print("svr_id: " + str(serverID))
+            print("svr_host: " + str(serverHoster))
+            print("svr_location: " + str(location))
+            print("svr_total: " + str(svr_total))
+            print("svr_ip: " + str(svr_ip))
+            #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
+                # if i == "svr_port":
+                #     print("svr_port: "+str(temp_port))
+                # if i == "svr_proxyPort" and self.dataDict['use_proxy'] == True:
+                #     print("svr_proxyPort: "+str(temp_port))
+                # if i == "svr_proxyLocalVoicePort" and self.dataDict['use_proxy'] == True:
+                #     print("voice_port"+str(temp_port))
+            # if self.dataDict['use_proxy'] == True:
+            #     tem_game_port_proxy = int(game_port_proxy)
+            #     tem_voice_port_proxy = int(voice_port_proxy)
+            #     tem_game_port_proxy = tem_game_port_proxy + iter
+            #     tem_voice_port_proxy = tem_voice_port_proxy + iter
+            #     self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
+            self.startup.update({'svr_port':f'"{tem_game_port}"'})
+            self.startup.update({'svr_proxyLocalVoicePort':f'"{tem_voice_port}"'})
+            self.startup.update({'svr_voicePortEnd':f'"{tem_voice_port}"'})
+            self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
+            print("svr_port: " + str(tem_game_port))
+            print("voice_port: " + str(tem_voice_port))
+            if self.dataDict['use_proxy']=='True':
+                self.startup.update({"man_enableProxy":f'"true"'})
+            else:
+                self.startup.update({"man_enableProxy":f'"false"'})
+            self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
+            self.startup.update({"svr_location":f'"{location}"'})
+            self.startup.update({"svr_ip":f'"{svr_ip}"'})
+            self.startup.update({"svr_login":f'"{master_user}"'})
+            self.startup.update({"svr_password":f'"{master_pass}"'})
+            self.startup.update({"svr_desc":f'"{svr_desc}"'})
+        elif type == "proxy":
+            self.proxy.update({'redirectIP':'127.0.0.1'})
+            self.proxy.update({'publicip':svr_ip})
+            self.proxy.update({'publicPort':self.startup['svr_proxyPort']})
+            self.proxy.update({'redirectPort':self.startup['svr_port']})
+            self.proxy.update({'voiceRedirectPort':self.startup['svr_proxyLocalVoicePort']})
+            self.proxy.update({'voicePublicPort':self.startup['svr_proxyRemoteVoicePort']})
+            self.proxy.update({'region':'naeu'})
+        dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
         return True
     def configure_firewall(self):
         try:
@@ -444,7 +470,8 @@ class initialise():
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
             # for i in config:
@@ -751,7 +778,7 @@ class honfigurator():
             self.git_branch.set(current_branch)
             return False
         
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -795,6 +822,7 @@ class honfigurator():
             conf_local.set("OPTIONS","voice_starting_port",voice_port)
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -836,6 +864,7 @@ class honfigurator():
                 conf_local.set("OPTIONS","voice_starting_port",voice_port)
                 conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+                conf_local.set("OPTIONS","use_proxy",str(use_proxy))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -1007,6 +1036,13 @@ class honfigurator():
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
         tab1_forceupdate_btn.grid(column= 1, row = 11,sticky="w",pady=4)
+        #   use proxy
+        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=11,sticky="e",padx=[20,0])
+        self.useproxy = tk.BooleanVar(app)
+        if self.dataDict['use_proxy'] == 'True':
+            self.useproxy.set(True)
+        tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
+        tab1_useproxy_btn.grid(column= 2, row = 11,sticky="w",pady=4)
         #
         #
         
@@ -1057,9 +1093,9 @@ class honfigurator():
         # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         # tex.grid(columnspan=6,column=0,row=15,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_singlebutton.grid(columnspan=1,column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
         tab1_allbutton.grid(columnspan=1,column=2, row=13,stick='n',padx=[0,20],pady=[20,10])
         tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
         tab1_updatebutton.grid(columnspan=1,column=3, row=13,stick='n',padx=[20,0],pady=[20,10])
@@ -1069,63 +1105,14 @@ class honfigurator():
         This is the advanced server setup tab
         ui
         """
-        #   
-        #   message
-        # applet.Label(tab2, text="STILL TESTING, DOESN'T DO ANYTHING YET",background=maincolor,foreground='white').grid(columnspan=10,column=0, row=1,sticky="n")
-        # i=1
-        # c1=0
-        # c2=1
-        # for config_item in config_startup:
-        #     value = config_startup[config_item].strip('"')
-        #     valuename = f"tab2{config_item}"
-        #     startup_values = []
-        #     i+=1
-        #     applet.Label(tab2, text=config_item,background=maincolor,foreground='white').grid(column=c1, row=i,sticky="e",padx=[5,0])
-        #     valuename = applet.Entry(tab2,foreground=textcolor,width=10)
-        #     valuename.insert(0,value)
-        #     valuename.grid(column= c2, row = i,sticky="w",pady=4,padx=[5,5])
-        #     startup_values.append(valuename)
-        #     if i == 22:
-        #         i=1
-        #         c1+=2
-        #         c2+=2
-        #   title
-        logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
-        # logolabel_tab2.grid(columnspan=c2+1,column=0, row=0,sticky="n",pady=[10,0])
+        # logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+        # logolabel_tab2.grid(columnspan=2,column=, row=0,sticky="n",pady=[10,0])
         
         """
         
         This is the bot command center tab
         
         """
-        #list of buttons
-        self.bot_cmd_buttons = []
-        # for i in range(0,int(self.dataDict['svr_total'])):
-        #     btn = Button(app,text="view log")
-        #
-        #   creates the buttons
-        # for i in range(0,int(self.dataDict['svr_total'])):
-        #     svr_id = i+1
-        #     pcount = initialise.playerCount(self,svr_id)
-        #     self.tab2_status2_label = applet.Label(tab2, text=f"Bot {i+1}: ",background=maincolor, foreground='white')
-        #     self.tab2_view_logs = applet.Button(tab2, text="view log")
-        #     if pcount < 0:
-        #         tk.StringVar(app,'offline')
-        #         #sends buttons to list44
-        #         self.tab2_status2_current = applet.Label(tab2,background="red")
-        #         self.bot_cmd_buttons.append([self.tab2_status2_label,self.tab2_status2_current,tk.StringVar(app,f'offline')])
-        #     elif pcount == 0:
-        #         #tk.StringVar(app,'online')
-        #         #sends buttons to list
-        #         self.tab2_status2_current = applet.Label(tab2)
-        #         self.tab2_view_logs = applet.Button(tab2)
-        #         self.bot_cmd_buttons.append([self.tab2_status2_label,self.tab2_status2_current,self.tab2_view_logs,tk.StringVar(app,f'online ({pcount})'),tk.StringVar(app,f'test')])
-        #     else:
-        #         tk.StringVar(app,'online')
-        #         #sends buttons to list
-        #         self.tab2_status2_current = applet.Label(tab2,background="green")
-        #         self.bot_cmd_buttons.append([self.tab2_status2_label,self.tab2_status2_current,tk.StringVar(app,f'online ({pcount})')])
-
 
         ButtonString = ['View Log', 'Start', 'Stop']
         LablString = ['hon_server_','test']
@@ -1156,6 +1143,7 @@ class honfigurator():
                 if service['status'] == 'stopped':
                     if initialise.start_service(self,service_name):
                         tex.insert(END,f"{service_name} started successfully.\n")
+                        app.after(10000,refresh)
                     else:
                         tex.insert(END,f"{service_name} failed to start.\n")
             def Stop():
@@ -1178,31 +1166,43 @@ class honfigurator():
                 Stop()
             elif btn == "Start":
                 Start()
-
+        def refresh(*args):
+            if (tabgui.index("current")) == 1:
+                load_server_mgr()
         tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
         #app.attributes("-topmost",True)
-        def load_server_mgr():
+        def load_server_mgr(*args):
+            # if (tabgui.index("current")) == 1:
             app.lift()
             i=0
             c=0
             c_len = len(ButtonString)+len(LablString)
+            mod=11
+            # create a grid of 2x6
+            for t in range(20):
+                tab2.rowconfigure(t, weight=1,pad=0)
+            for o in range(100):
+                tab2.columnconfigure(o, weight=1,pad=0)
             for x in range(0,int(self.dataDict['svr_total'])):
                 x+=1
                 i+=1
+                service_name = f"adminbot{x}"
                 server_status = dmgr.mData.returnDict_basic(self,x)
                 dir_name = f"{server_status['hon_logs_dir']}\\"
                 file = "Slave*.log"
                 list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
                 log = max(list_of_files, key=os.path.getctime)
-                cookie = svrcmd.honCMD.check_cookie(log)
+                cookie = True
+                cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
                 schd_restart = False
                 schd_shutdown = False
                 schd_restart=initialise.check_schd_restart(server_status)
                 schd_shutdown=initialise.check_schd_shutdown(server_status)
+                service_state = initialise.get_service(service_name)
                 pcount = initialise.playerCountX(self,x)
                 #
                 # when total servers goes over <num>, move to the next column, and set row back to 1.
-                if i%13==0:
+                if i%mod==0:
                     c+=c_len
                     i=1
                 LablString[0]=f"hon_server_{x}"
@@ -1217,11 +1217,12 @@ class honfigurator():
                         elif pcount >0:
                             colour = 'SpringGreen4'
                             LablString[1]=f"In-game ({pcount})"
-                        if schd_restart:
-                            colour='indian red'
-                            LablString[1]='schd-restart'
-                        if schd_shutdown:
-                            LablString[1]='schd-shutdown'
+                        if pcount >=0:
+                            if schd_restart:
+                                colour='indian red'
+                                LablString[1]='schd-restart'
+                            if schd_shutdown:
+                                LablString[1]='schd-shutdown'
                     else:
                         if pcount < 0:
                             colour = 'OrangeRed4'
@@ -1232,37 +1233,42 @@ class honfigurator():
                         elif pcount >0:
                             colour = 'SpringGreen4'
                             LablString[1]=f"In-game ({pcount})"
-                    if schd_restart:
-                        colour='indian red'
-                        LablString[1]='schd-restart'
-                    if schd_shutdown:
-                        LablString[1]='schd-shutdown'
-
-                    # if pcount < 0:
-                    #     labl = Label(tab2,width=14,text=f'Hon_Server_{str(x)}:',background=colour, foreground='white')
-                    # else:
-                    #     labl = Label(tab2,width=14,text=f'Hon_Server_{str(x)} ({pcount}):',background=colour, foreground='white')
+                    if service_state['status'] == 'stopped':
+                        colour = 'OrangeRed4'
+                        LablString[1]=f"Stopped"
                     c_pos1 = index1 + c
                     if index1==0:
                         labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
                     elif index1==1:
                         labl = Label(tab2,width=14,text=f"{labl_name}", background=colour, foreground='white')
-                    labl.grid(row=i, column=c_pos1, padx=2, pady=2)
-
-                    #labl.grid(row=i,column=0+c, padx=2, pady=2,columnspan=1)
+                    labl.grid(row=i, column=c_pos1)
                     for index2, btn_name in enumerate(ButtonString):
                         index2 +=len(LablString)
                         c_pos2 = index2 + c
-                        btn = Button(tab2, text=btn_name, command=partial(viewButton,btn_name,x,pcount))
-                        btn.grid(row=i, column=c_pos2, padx=2, pady=2)
-                    app.rowconfigure(0, weight=1)
-                    app.columnconfigure(0, weight=1)
-            tex.grid(row=14, column=0, sticky="sew")
-            app.grid_rowconfigure(0, weight=1)
-            app.grid_columnconfigure(0, weight=1)
-            app.after(10000,load_server_mgr)
-
-
+                        btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
+                        btn.grid(row=i, column=c_pos2)
+                    # tab2.grid_columnconfigure(x,weight=0,pad=4)
+            # for o in range(1,c_len+c):
+            #     tab2.grid_columnconfigure(o,weight=0,pad=4)
+            # for o in range(1,mod):
+            #     tab2.grid_rowconfigure(o, weight=0,pad=4)
+                #print(tabgui.index("current"))
+            # if (tabgui.index("current")) == 1:
+            #     app.after(10000,load_server_mgr)
+            column_rows=(tab2.grid_size())
+            total_columns=column_rows[0]
+            # for o in range(1,total_columns):
+            #     tab2.grid_columnconfigure(o, weight=1,pad=4)
+            total_rows=column_rows[1]
+            print(column_rows)
+            logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+            logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
+            
+            tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: refresh())
+            tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[10,0],pady=[20,10])
+        tex.grid(row=14, column=0, sticky="sew")
+        app.grid_rowconfigure(0, weight=1)
+        app.grid_columnconfigure(0, weight=1)
         # tab1_startBot.grid(columnspan=3, column=1, row=9,stick='n',padx=[0,10],pady=[20,10])
         # tab1_startall = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get()))
         # tab1_startall.grid(columnspan=4, column=1, row=9,stick='n',padx=[10,0],pady=[20,10])
@@ -1285,9 +1291,10 @@ class honfigurator():
 
 
         #self.botCount(int(self.dataDict['svr_total']))
-        load_server_mgr()
+        #load_server_mgr()
         tabgui.select(0)
         self.update_repository(NULL,NULL,NULL)
+        tabgui.bind('<<NotebookTabChanged>>',refresh)
         app.mainloop()
 test = honfigurator()
 test.creategui()

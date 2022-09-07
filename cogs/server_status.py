@@ -30,16 +30,45 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
-    def check_cookie(log):
-        # hard_data = honCMD().compare_filesizes(log,"slave")
-        # soft_data = os.stat(log).st_size # initial file size
-        # if soft_data > hard_data:
-        with open (log, "r", encoding='utf-16-le') as f:
-            for line in reversed(list(f)):
-                if "Session cookie request failed!" in line:
-                    return False
-                else:
-                    return True
+    def check_cookie(server_status,log,name):
+        def write_mtime(log,name):
+            last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
+            #
+            #   This reads the data if it exists
+            if (exists(last_modified_time_file)):
+                with open(last_modified_time_file, 'r') as last_modified:
+                    lastmodData = last_modified.readline()
+                last_modified.close()
+                lastmodData = int(lastmodData)
+                #
+                #   Gets the current byte size of the log
+                fileSize = os.stat(log).st_size
+                #
+                #   After reading data set temporary file to current byte size
+                with open(last_modified_time_file, 'w') as last_modifiedw:
+                    last_modifiedw.write(f"{fileSize}")
+                last_modifiedw.close()
+                return lastmodData
+            #
+            #   If there was no temporary file to load data from, create it.
+            else:
+                try:
+                    fileSize = os.stat(log).st_size
+                    with open(last_modified_time_file, 'w') as last_modified:
+                        last_modified.write(f"{fileSize}")
+                    last_modified.close()
+                except Exception as e:
+                    print(e)
+                    pass
+                return fileSize
+        hard_data = write_mtime(log,name)
+        soft_data = os.stat(log).st_size # initial file size
+        if soft_data > hard_data:
+            with open (log, "r", encoding='utf-16-le') as f:
+                for line in reversed(list(f)):
+                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
+                        return False
+        return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):
@@ -92,6 +121,15 @@ class honCMD():
                 #   Start the HoN Server!
                 print("starting service")
                 self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
+                #
+                #  using manager, requires %appdata%\HonProxyManager\config.cfg to exist.
+                #  self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_manager_exe']])
+                #
+                #  using standalone, can be passed the config as an argument
+                if processed_data_dict['use_proxy'] == 'True':
+                    self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_exe'],f"{processed_data_dict['hon_game_dir']}\\proxy_config.cfg"])
+                    self.proxyPID = self.proxyEXE.pid
+                    server_status_dict.update({'proxy_pid':self.proxyPID})
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 server_status_dict.update({'hon_exe':self.honEXE})
                 self.honP = self.honEXE.pid
@@ -169,6 +207,12 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
+            if processed_data_dict['use_proxy'] == 'True':
+                try:
+                    p = psutil.Process(self.server_status['proxy_pid'])
+                    p.terminate()
+                except Exception as e:
+                    print(e)
             self.server_status.update({'update_embeds':True})
             return True
         return
@@ -178,6 +222,12 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
+        if processed_data_dict['use_proxy'] == 'True':        
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
         self.server_status.update({'update_embeds':True})
         return True
 
@@ -208,8 +258,20 @@ class honCMD():
     def restartSELF(self):
         #service_name = "adminbot"+processed_data_dict['svr_id']
         #os.system(f'net stop {service_name} & net start {service_name}')
+        if processed_data_dict['use_proxy'] == 'True':             
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
         sys.exit(1)
     def stopSELF(self):
+        if processed_data_dict['use_proxy'] == 'True':             
+            try:
+                p = psutil.Process(self.server_status['proxy_pid'])
+                p.terminate()
+            except Exception as e:
+                print(e)
         sys.exit(0)
     def reportPlayer(self,reason):
         #

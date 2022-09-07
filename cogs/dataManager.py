@@ -63,6 +63,8 @@ class mData():
             self.confDict.update({'voice_starting_port':10060})
         if 'debug_mode' not in self.confDict:
             self.confDict.update({'debug_mode':False})
+        if 'use_proxy' not in self.confDict:
+            self.confDict.update({'use_proxy':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -71,6 +73,8 @@ class mData():
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
+        self.confDict.update({"proxy_exe":f"{self.confDict['hon_directory']}proxy.exe"})
+        self.confDict.update({"proxy_manager_exe":f"{self.confDict['hon_directory']}proxymanager.exe"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
         self.confDict.update({"svr_cgame_dll":f"{self.confDict['hon_directory']}game\\cgame_x64.dll"})
         self.confDict.update({"svr_game_shared_dll":f"{self.confDict['hon_directory']}game\\game_shared_x64.dll"})
@@ -216,12 +220,21 @@ class mData():
         f.close()
         return options
     
-    def setData(self,filename,dict):
+    def setData(self,filename,type,dict_startup,dict_proxy):
         if exists(filename):
             os.chmod(filename,stat.S_IWRITE )
-        with open(filename, 'w') as startup:
-            for k, v in dict.items():
-                startup.write(f'SetSave "{k}" {v} "0"\n')
-        if exists(filename):
-            os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
-        return
+        if type == "startup":
+            with open(filename, 'w') as startup:
+                for k, v in dict_startup.items():
+                    startup.write(f'SetSave "{k}" {v} "0"\n')
+            if exists(filename):
+                os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+            return
+        elif type == "proxy":
+            with open(filename, 'w') as proxy:
+                for k, v in dict_proxy.items():
+                    v = v.replace('"','')
+                    proxy.write(f'{k}={v}\n')
+            if exists(filename):
+                os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+            return
