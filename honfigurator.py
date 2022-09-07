@@ -1062,10 +1062,10 @@ class honfigurator():
         # self.useproxy.trace_add('write',self.change_to_proxy2)
         #  starting gameport
         applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=6,sticky="e")
-        self.tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
-        self.tab1_game_port.insert(0,self.dataDict['game_starting_port'])
+        tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
+        tab1_game_port.insert(0,self.dataDict['game_starting_port'])
         # self.tab1_game_port.insert(0,self.change_to_proxy())
-        self.tab1_game_port.grid(column=2,row = 6,sticky="w",pady=4)
+        tab1_game_port.grid(column=2,row = 6,sticky="w",pady=4)
         #  starting gameport
         applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
         tab1_voice_port = applet.Entry(tab1,foreground=textcolor,width=5)
