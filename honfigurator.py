@@ -189,6 +189,7 @@ class initialise():
         except Exception as ex:
             # raise psutil.NoSuchProcess if no service with such name exists
             print(f"{service_name} does not exist")
+            return False
             #print(str(ex))
         return service
     def playerCount(self):
@@ -644,6 +645,24 @@ class honfigurator():
         self.dataDict = self.initdict.returnDict()
         print (self.dataDict)
         return
+    def onerror(func, path, exc_info):
+        """
+        Error handler for ``shutil.rmtree``.
+
+        If the error is due to an access error (read only file)
+        it attempts to add write permission and then retries.
+
+        If the error is for another reason it re-raises the error.
+        
+        Usage : ``shutil.rmtree(path, onerror=onerror)``
+        """
+        import stat
+        # Is the error an access error?
+        if not os.access(path, os.W_OK):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        else:
+            raise
     def git_current_branch(self):
         current_branch = Repository('.').head.shorthand  # 'master'
         return current_branch
@@ -740,8 +759,6 @@ class honfigurator():
             if svrloc == reg.lower():
                 self.svr_loc.set(reglist[0][reglist[0].index(reg)])
                 self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
-    def git_checkout(self,selected_branch):
-        test
     def svr_num_link(self,var,index,mode):
         if self.svr_id_var.get() == "(for single server)":
             return
@@ -749,6 +766,16 @@ class honfigurator():
             self.svr_id_var.set(self.svr_total_var.get())
         # elif str(self.core_assign.get()).lower() == "two":
         #     self.svr_total_var.set()
+    def change_to_proxy(self):
+        if self.useproxy.get() == True:
+            return("test")
+        else:
+            return("wow")
+    def change_to_proxy2(self,var,index,mode):
+        if self.useproxy.get() == True:
+            self.game_port.set("test")
+        else:
+            self.game_port.set("wow")
     def update_repository(self,var,index,mode):
         selected_branch = self.git_branch.get()
         current_branch = Repository('.').head.shorthand  # 'master'
@@ -795,7 +822,10 @@ class honfigurator():
         #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
         # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         #initialise.add_hosts_entry(self)
-
+        if use_proxy == True:
+            if not exists(self.dataDict['proxy_exe']):
+                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..")
+                use_proxy=False
         if identifier == "single":
             print()
             print(f"Selected option to configure adminbot-server{serverid}\n")
@@ -962,15 +992,15 @@ class honfigurator():
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
         #   server total    
         self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
-        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e")
-        self.tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var)
-        self.tab1_servertd.grid(column= 1 , row = 6,sticky="w",pady=4)
+        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
+        self.tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var,width=5)
+        self.tab1_servertd.grid(column= 2 , row = 4,sticky="w",pady=4)
         self.svr_total_var.trace_add('write', self.svr_num_link)
         #  one or two cores
         self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
-        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
         tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
-        tab1_core_assign.grid(column= 1, row = 9,sticky="w",pady=4)
+        tab1_core_assign.grid(column= 1, row = 7,sticky="w",pady=4)
         self.core_assign.trace_add('write', self.coreadjust)
         #   
         #   Simple Server data
@@ -989,61 +1019,64 @@ class honfigurator():
         self.svr_loc.trace_add('write', self.reg_def_link)
         #   regionId
         self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
-        applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-        tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code)
-        tab1_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
+        applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=3,sticky="e")
+        tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code,width=5)
+        tab1_regionsd.grid(column= 2 , row = 3,sticky="w",pady=4)
         self.svr_reg_code.trace_add('write', self.reg_def_link)
         #   server id
         self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
-        applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
+        applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
         self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
-        self.tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4)
+        self.tab1_serveridd.grid(column= 1 , row = 4,sticky="w",pady=4)
         self.svr_id_var.trace_add('write', self.svr_num_link)
         
         #   HoN Directory
-        applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
         tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
         tab1_hondird.insert(0,self.dataDict['hon_directory'])
-        tab1_hondird.grid(column= 1, row = 7,sticky="w",pady=4)
+        tab1_hondird.grid(column= 1, row = 10,sticky="w",pady=4)
         #  HoN master server
         self.master_server = tk.StringVar(app,self.dataDict['master_server'])
-        applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=8,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e",padx=[20,0])
         tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
-        tab1_masterserver.grid(column= 1, row = 8,sticky="w",pady=4)
+        tab1_masterserver.grid(column= 1, row = 5,sticky="w",pady=4)
         
         #  one or two cores
         self.priority = tk.StringVar(app,self.dataDict['process_priority'])
-        applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
         tab1_priority = applet.Combobox(tab1,foreground=textcolor,value=self.priorityassign(),textvariable=self.priority)
-        tab1_priority.grid(column= 1, row = 10,sticky="w",pady=4)
+        tab1_priority.grid(column= 1, row = 6,sticky="w",pady=4)
         #  increment ports
         self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
-        applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=8,sticky="e",padx=[20,0])
-        tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port)
-        tab1_increment_port.grid(column= 2, row = 8,sticky="w",pady=4)
-        #  starting gameport
-        applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=9,sticky="e")
-        tab1_game_port = applet.Entry(tab1,foreground=textcolor)
-        tab1_game_port.insert(0,self.dataDict['game_starting_port'])
-        tab1_game_port.grid(column=2,row = 9,sticky="w",pady=4)
-        #  starting gameport
-        applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=10,sticky="e")
-        tab1_voice_port = applet.Entry(tab1,foreground=textcolor)
-        tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
-        tab1_voice_port.grid(column=2,row = 10,sticky="w",pady=4)
-        #   force update
-        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
-        self.forceupdate = tk.BooleanVar(app)
-        tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-        tab1_forceupdate_btn.grid(column= 1, row = 11,sticky="w",pady=4)
+        applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=5,sticky="e",padx=[20,0])
+        tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port,width=5)
+        tab1_increment_port.grid(column= 2, row = 5,sticky="w",pady=4)
+        #
         #   use proxy
-        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=11,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=9,sticky="e",padx=[20,0])
         self.useproxy = tk.BooleanVar(app)
         if self.dataDict['use_proxy'] == 'True':
             self.useproxy.set(True)
         tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
-        tab1_useproxy_btn.grid(column= 2, row = 11,sticky="w",pady=4)
-        #
+        tab1_useproxy_btn.grid(column= 2, row = 9,sticky="w",pady=4)
+        # self.useproxy.trace_add('write',self.change_to_proxy2)
+        #  starting gameport
+        applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=6,sticky="e")
+        self.tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
+        self.tab1_game_port.insert(0,self.dataDict['game_starting_port'])
+        # self.tab1_game_port.insert(0,self.change_to_proxy())
+        self.tab1_game_port.grid(column=2,row = 6,sticky="w",pady=4)
+        #  starting gameport
+        applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
+        tab1_voice_port = applet.Entry(tab1,foreground=textcolor,width=5)
+        tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
+        tab1_voice_port.grid(column=2,row = 7,sticky="w",pady=4)
+        #   force update
+        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        self.forceupdate = tk.BooleanVar(app)
+        tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
+        tab1_forceupdate_btn.grid(column= 1, row = 9,sticky="w",pady=4)
+        # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
         #
         
         #    Setup Info
@@ -1114,12 +1147,22 @@ class honfigurator():
         
         """
 
-        ButtonString = ['View Log', 'Start', 'Stop']
-        LablString = ['hon_server_','test']
+        ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
+        LablString = ['hon_server_','test','space']
 
         # Calling this function from somewhere else via Queue
         import fnmatch
         import glob
+        
+        def get_size(start_path):
+                total_size = 0
+                for dirpath, dirnames, filenames in os.walk(start_path):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        # skip if it is symbolic link
+                        if not os.path.islink(fp):
+                            total_size += os.path.getsize(fp)
+                return total_size
         def viewButton(btn,i,pcount):
             print(f"{i} {btn}")
             service_name = f"adminbot{i}"
@@ -1149,12 +1192,57 @@ class honfigurator():
             def Stop():
                 if pcount <= 0:
                     if initialise.stop_service(self,service_name):
-                        tex.insert(END,f"{service_name} stoped successfully.\n")
+                        tex.insert(END,f"{service_name} stopped successfully.\n")
                         load_server_mgr()
                     else:
                         tex.insert(END,f"{service_name} failed to stop.\n")
                 else:
                     print("[ABORT] players are connected. Scheduling shutdown instead..")
+                    initialise.schedule_shutdown(server_status)
+            def Clean():
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics"]
+                now = time.time()
+                for path in paths:
+                    for f in os.listdir(path):
+                        f = os.path.join(path, f)
+                        if os.stat(f).st_mtime < now - 7 * 86400:
+                            if os.path.isfile(f):
+                                os.remove(os.path.join(path, f))
+                                print("removed "+f)
+                replays = f"{server_status['hon_game_dir']}\\replays"
+                for f in os.listdir(replays):
+                    f = os.path.join(replays, f)
+                    if os.stat(f).st_mtime < now - 7 * 86400:
+                        if os.path.isfile(f):
+                            os.remove(os.path.join(replays, f))
+                            print("removed "+f)
+                        else:
+                            shutil.rmtree(f,onerror=honfigurator.onerror)
+                            print("removed "+f)
+            def Uninstall(x):
+                if pcount <= 0:
+                    service_state = initialise.get_service(service_name)
+                    if service_state != False and service_state['status'] != 'stopped':
+                        if initialise.stop_service(self,service_name):
+                            tex.insert(END,f"{service_name} stopped successfully.\n")
+                            load_server_mgr()
+                        else:
+                            tex.insert(END,f"{service_name} failed to stop.\n")
+                    service_state = initialise.get_service(service_name)
+                    if service_state == False or service_state['status'] == 'stopped':
+                        try:
+                            #shutil.copy(f"{server_status['sdc_home_dir']}\\cogs\\total_games_played")
+                            rem = shutil.rmtree(server_status['hon_home_dir'],onerror=honfigurator.onerror)
+                            tex.insert(END,f"removed files: {server_status['hon_home_dir']}")
+                        except Exception as e:
+                            print(e)
+                        try:
+                            remove_service = subprocess.run(['sc.exe','delete',f'adminbot{x}'])
+                        except Exception as e:
+                            print(e)
+                else:
+                    print("[ABORT] players are connected. You must stop the service before uninstalling..")
+                    tex.insert(END,"[ABORT] players are connected. You must stop the service before uninstalling..\n")
                     initialise.schedule_shutdown(server_status)
 
 
@@ -1166,6 +1254,10 @@ class honfigurator():
                 Stop()
             elif btn == "Start":
                 Start()
+            elif btn == "Clean":
+                Clean()
+            elif btn == "Uninstall":
+                Uninstall(i)
         def refresh(*args):
             if (tabgui.index("current")) == 1:
                 load_server_mgr()
@@ -1190,8 +1282,11 @@ class honfigurator():
                 server_status = dmgr.mData.returnDict_basic(self,x)
                 dir_name = f"{server_status['hon_logs_dir']}\\"
                 file = "Slave*.log"
-                list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
-                log = max(list_of_files, key=os.path.getctime)
+                try:
+                    list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
+                    log = max(list_of_files, key=os.path.getctime)
+                except Exception as e:
+                    print(e)
                 cookie = True
                 cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
                 schd_restart = False
@@ -1206,6 +1301,8 @@ class honfigurator():
                     c+=c_len
                     i=1
                 LablString[0]=f"hon_server_{x}"
+                # LablString[2]=get_size(server_status['hon_home_dir'])
+                # LablString[2] = f"{LablString[2]/float(1<<30):,.0f} GB"
                 for index1, labl_name in enumerate(LablString):
                     if cookie:
                         if pcount < 0:
@@ -1233,9 +1330,10 @@ class honfigurator():
                         elif pcount >0:
                             colour = 'SpringGreen4'
                             LablString[1]=f"In-game ({pcount})"
-                    if service_state['status'] == 'stopped':
-                        colour = 'OrangeRed4'
-                        LablString[1]=f"Stopped"
+                    if service_state is not None:
+                        if service_state == False or service_state['status'] == 'stopped':
+                            colour = 'OrangeRed4'
+                            LablString[1]=f"Stopped"
                     c_pos1 = index1 + c
                     if index1==0:
                         labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
