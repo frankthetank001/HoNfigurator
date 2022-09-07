@@ -25,6 +25,7 @@ import datetime
 from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
+from functools import partial
 
 # determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
@@ -109,11 +110,11 @@ class initialise():
             return result
         elif rc == 1:
             print("ERROR CHECKING HASHES, you may have issues connecting to the masterserver")
-            guilog.insert(END,"ERROR CHECKING HASHES, you may have issues connecting to the masterserver\n")
+            tex.insert(END,"ERROR CHECKING HASHES, you may have issues connecting to the masterserver\n")
             return False
         elif rc == 3:
             print("ERROR GETTING MAC ADDR")
-            guilog.insert(END,"ERROR GETTING MAC ADDR\n")
+            tex.insert(END,"ERROR GETTING MAC ADDR\n")
             return False
     def getstatus_updater(self,auto_update,selected_branch):
         TASK_ENUM_HIDDEN = 1
@@ -159,15 +160,15 @@ class initialise():
             checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
             if checkout.returncode == 0:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+                tex.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
                 print(f"Updating selected repository: {selected_branch} branch")
                 output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-                guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 return True
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
-                guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+                tex.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                     print()
                 return False
@@ -175,7 +176,7 @@ class initialise():
             print(f"Updating selected repository: {selected_branch} branch")
             output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-            guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
             return output.returncode
     def get_startupcfg(self):
         config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
@@ -201,6 +202,24 @@ class initialise():
         elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
             try:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                i = int(check.stdout.read())
+            except: pass
+        check.terminate()
+        return i
+    def playerCountX(self,svr_id):
+        if self.dataDict['master_server'] == "honmasterserver.com":
+            check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+        elif self.dataDict['master_server'] == "kongor.online:666":
+            check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+        i = int(check.stdout.read())
+        if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
+            try:
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                i = int(check.stdout.read())
+            except: pass
+        elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
+            try:
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
         check.terminate()
@@ -258,42 +277,84 @@ class initialise():
         temFile = f"{self.sdc_home_dir}\\pending_restart"
         with open(temFile, "w") as f:
             f.write("True")
+    def schedule_shutdown(server_status):
+        temFile = f"{server_status['sdc_home_dir']}\\pending_shutdown"
+        with open(temFile, "w") as f:
+            f.write("True")
+    def check_schd_restart(server_status):
+        temFile = server_status['sdc_home_dir']+"\\pending_restart"
+        if exists(temFile):
+            return True
+        else:
+            return False
+    def check_schd_shutdown(server_status):
+        temFile = server_status['sdc_home_dir']+"\\pending_shutdown"
+        if exists(temFile):
+            return True
+        else:
+            return False
 
-    def create_config(self,filename,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+    def create_config(self,filename,type,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+        self.proxy = {}
+        self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
-        print("customising startup.cfg with the following values")
-        print("svr_id: " + str(serverID))
-        print("svr_host: " + str(serverHoster))
-        print("svr_location: " + str(location))
-        print("svr_total: " + str(svr_total))
-        print("svr_ip: " + str(svr_ip))
-        #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
+        tem_game_port = int(game_port)
+        tem_voice_port = int(voice_port)
+        tem_game_port = tem_game_port + iter
+        tem_voice_port = tem_voice_port + iter
         networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         for i in networking:
-            temp_port = self.startup[i]
+            temp_port = self.base[i]
             temp_port = temp_port.strip('"')
             temp_port = int(temp_port)
             temp_port = temp_port + iter
             self.startup.update({i:f'"{temp_port}"'})
-        tem_game_port = int(game_port)
-        tem_game_port = tem_game_port + iter
-        self.startup.update({'svr_port':tem_game_port})
-        tem_voice_port = int(voice_port)
-        tem_voice_port = tem_voice_port + iter
-        self.startup.update({'svr_proxyLocalVoicePort':tem_voice_port})
-        self.startup.update({'svr_voicePortEnd':tem_voice_port})
-        self.startup.update({'svr_voicePortStart':tem_voice_port})
-        print("svr_port: " + str(tem_game_port))
-        print("voice_port: " + str(tem_voice_port))
-        self.startup.update({"man_enableProxy":"false"})
-        self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
-        self.startup.update({"svr_location":f'"{location}"'})
-        self.startup.update({"svr_ip":f'"{svr_ip}"'})
-        self.startup.update({"svr_login":f'"{master_user}"'})
-        self.startup.update({"svr_password":f'"{master_pass}"'})
-        self.startup.update({"svr_desc":f'"{svr_desc}"'})
-        dmgr.mData.setData(NULL,filename,self.startup)
+        if type == "startup":
+            print("customising startup.cfg with the following values")
+            print("svr_id: " + str(serverID))
+            print("svr_host: " + str(serverHoster))
+            print("svr_location: " + str(location))
+            print("svr_total: " + str(svr_total))
+            print("svr_ip: " + str(svr_ip))
+            #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
+                # if i == "svr_port":
+                #     print("svr_port: "+str(temp_port))
+                # if i == "svr_proxyPort" and self.dataDict['use_proxy'] == True:
+                #     print("svr_proxyPort: "+str(temp_port))
+                # if i == "svr_proxyLocalVoicePort" and self.dataDict['use_proxy'] == True:
+                #     print("voice_port"+str(temp_port))
+            # if self.dataDict['use_proxy'] == True:
+            #     tem_game_port_proxy = int(game_port_proxy)
+            #     tem_voice_port_proxy = int(voice_port_proxy)
+            #     tem_game_port_proxy = tem_game_port_proxy + iter
+            #     tem_voice_port_proxy = tem_voice_port_proxy + iter
+            #     self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
+            self.startup.update({'svr_port':f'"{tem_game_port}"'})
+            self.startup.update({'svr_proxyLocalVoicePort':f'"{tem_voice_port}"'})
+            self.startup.update({'svr_voicePortEnd':f'"{tem_voice_port}"'})
+            self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
+            print("svr_port: " + str(tem_game_port))
+            print("voice_port: " + str(tem_voice_port))
+            if self.dataDict['use_proxy']=='True':
+                self.startup.update({"man_enableProxy":f'"true"'})
+            else:
+                self.startup.update({"man_enableProxy":f'"false"'})
+            self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
+            self.startup.update({"svr_location":f'"{location}"'})
+            self.startup.update({"svr_ip":f'"{svr_ip}"'})
+            self.startup.update({"svr_login":f'"{master_user}"'})
+            self.startup.update({"svr_password":f'"{master_pass}"'})
+            self.startup.update({"svr_desc":f'"{svr_desc}"'})
+        elif type == "proxy":
+            self.proxy.update({'redirectIP':'127.0.0.1'})
+            self.proxy.update({'publicip':svr_ip})
+            self.proxy.update({'publicPort':self.startup['svr_proxyPort']})
+            self.proxy.update({'redirectPort':self.startup['svr_port']})
+            self.proxy.update({'voiceRedirectPort':self.startup['svr_proxyLocalVoicePort']})
+            self.proxy.update({'voicePublicPort':self.startup['svr_proxyRemoteVoicePort']})
+            self.proxy.update({'region':'naeu'})
+        dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
         return True
     def configure_firewall(self):
         try:
@@ -312,7 +373,7 @@ class initialise():
     def configureEnvironment(self,configLoc,force_update):
         global hon_api_updated
         global players_connected
-        global guilog
+        global tex
         self.bot_version = float(self.bot_version)
         bot_needs_update = False
         bot_first_launch = False
@@ -324,7 +385,7 @@ class initialise():
         print("==========================================")
         print("CHECKING EXISTING HON ENVIRONMENT")
         print("==========================================")
-        guilog.insert(END,f"================= {self.service_name_bot} ===================\n")
+        tex.insert(END,f"================= {self.service_name_bot} ===================\n")
 
         if exists(f"{self.hon_home_dir}\\Documents"):
             #os.environ["USERPROFILE"] = self.hon_home_dir
@@ -376,9 +437,9 @@ class initialise():
         #   below commented as we are no longer using game_settings_local.cfg
         #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
             if bot_needs_update or force_update == True:
-                #guilog.insert(END,"==========================================\n")
-                guilog.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
-                #guilog.insert(END,"==========================================\n")
+                #tex.insert(END,"==========================================\n")
+                tex.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
+                #tex.insert(END,"==========================================\n")
             #
             #    Kongor testing
             if self.dataDict['master_server'] == "honmasterserver.com":
@@ -409,7 +470,8 @@ class initialise():
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
             # for i in config:
@@ -451,7 +513,7 @@ class initialise():
                 #print("HON Registration API STATUS: " + self.service_name_api)
                 if service_api['status'] == 'running' or service_api['status'] == 'paused':
                     if force_update != True and bot_needs_update != True:
-                        guilog.insert(END,"HON Registration API STATUS: RUNNING\n")
+                        tex.insert(END,"HON Registration API STATUS: RUNNING\n")
                     elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
                         initialise.stop_service(self,self.service_name_api)
                         time.sleep(1)
@@ -460,7 +522,7 @@ class initialise():
                             try:
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                             except PermissionError:
-                                guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                                tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
                                 print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
                             except: print(traceback.format_exc())
                         if initialise.configure_service_api(self,self.service_name_api):
@@ -472,7 +534,7 @@ class initialise():
                         try:
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                         except PermissionError:
-                            guilog.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n")
+                            tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n")
                             print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
                         except: print(traceback.format_exc())
                         #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
@@ -485,9 +547,9 @@ class initialise():
                         initialise.start_service(self,self.service_name_api)
                         service_api = initialise.get_service(self.service_name_api)
                     if service_api['status'] == 'running':
-                        guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
+                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                     else:
-                        guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
+                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
                     print("==========================================")
             else:
                 bot_needs_update = True
@@ -501,16 +563,16 @@ class initialise():
                 print("HON Registration API STATUS: " + self.service_name_api)
                 service_api = initialise.get_service(self.service_name_api)
                 if service_api['status'] == 'running':
-                    guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
+                    tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                 else:
-                    guilog.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
+                    tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
                 print("==========================================")
         
         service_bot = initialise.get_service(self.service_name_bot)
         if service_bot:
             print(f"HONSERVER STATUS: {self.service_name_bot}")
             if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
-                guilog.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
+                tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
                 if force_update == True or bot_needs_update == True:
                     #reconfigure service + restart
                     initialise.configure_service_bot(self,self.service_name_bot)
@@ -544,9 +606,9 @@ class initialise():
                 initialise.start_service(self,self.service_name_bot)
                 service_bot = initialise.get_service(self.service_name_bot)
                 if service_bot['status'] == 'running':
-                    guilog.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
                 else:
-                    guilog.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n")
+                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n")
                 print("==========================================")
         else:
             bot_needs_update = True
@@ -561,22 +623,22 @@ class initialise():
             print(f"HONSERVER STATUS: {self.service_name_bot}")
         if force_update == True or bot_first_launch == True or bot_needs_update == True:
             if players_connected == True:
-                guilog.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+                tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
-            guilog.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+            tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
             if firewall:
-                guilog.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}\n")
+                tex.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}\n")
             print("==========================================")
         else:
             print("==========================================")
-            guilog.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
-            guilog.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
-            #guilog.insert(END,"==============================================\n")
+            tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
+            tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
+            #tex.insert(END,"==============================================\n")
         bot_needs_update = False
         players_connected = False
 
-class gui():
-    global guilog
+class honfigurator():
+    global tex
     def __init__(self):
         self.initdict = dmgr.mData()
         self.dataDict = self.initdict.returnDict()
@@ -694,29 +756,29 @@ class gui():
         checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
         if checkout.returncode == 0:
             # print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
-            #guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
+            #tex.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
             print(f"Updating selected repository: {selected_branch} branch")
             output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
             print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-            guilog.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
-            guilog.insert(END,"==========================================\n")
+            tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+            tex.insert(END,"==========================================\n")
             #os.execv(sys.argv[0], sys.argv)
             try:
                 if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
-                    if gui.popup_bonus():
+                    if honfigurator.popup_bonus():
                         os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
             except Exception as e: print(e)
             return True
         else:
             print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
-            guilog.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
+            tex.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
             if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                 print()
-            guilog.insert(END,"==========================================\n")
+            tex.insert(END,"==========================================\n")
             self.git_branch.set(current_branch)
             return False
         
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -727,7 +789,7 @@ class gui():
         #     self.dataDict.update({'github_branch':selected_branch})
         # if identifier == "update":
         #     update = initialise.update_repository(self,selected_branch)
-        #     guilog.insert(END,"==========================================\n")
+        #     tex.insert(END,"==========================================\n")
         #     # if update:
         #     #     gui.popup_bonus()
         #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
@@ -761,6 +823,7 @@ class gui():
             conf_local.set("OPTIONS","voice_starting_port",voice_port)
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -776,7 +839,7 @@ class gui():
             initialise().configureEnvironment(self,force_update)
             hon_api_updated = False
         if identifier == "all":
-            #guilog.insert(END,"==========================================\n")
+            #tex.insert(END,"==========================================\n")
             print("Selected option to configure ALL servers\n")
             for i in range(0,int(servertotal)):
                 serverid = i + 1
@@ -802,6 +865,7 @@ class gui():
                 conf_local.set("OPTIONS","voice_starting_port",voice_port)
                 conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+                conf_local.set("OPTIONS","use_proxy",str(use_proxy))
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -815,22 +879,26 @@ class gui():
                 # d.close()
                 initialise().configureEnvironment(self,force_update)
                 hon_api_updated = False
-        #guilog.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
+        #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
         return
 
-    # def botCount(self,num_of_bots):
-    #     for i in range(0,num_of_bots):
-    #         for i in range(0,num_of_bots):
-    #             row = i%8
-    #             column1 = (i/8)
-    #             column2 = int(column1)*2
-    #             if int(column2)==0:
-    #                 column2 = 1
-    #             self.bot_cmd_buttons[i][0].grid(column=int(column1),row=row,sticky='e',padx=[60,0],pady=[10,0])
-    #             self.bot_cmd_buttons[i][1].grid(column=column2,row=row,sticky='w',padx=[0,20],pady=[10,0])
-    #             self.bot_cmd_buttons[i][1].configure(textvariable=self.bot_cmd_buttons[i][2])
+    def botCount(self,num_of_bots):
+        for i in range(0,num_of_bots):
+                    row = i%8
+                    column1 = (i/8)
+                    column2 = int(column1)*2
+                    column3 = int(column1)*3
+                    if int(column2)==0:
+                        column2 = 1
+                        column3 = 2
+                    if column1%1 == 0:
+                        column2
+                    self.bot_cmd_buttons[i][0].grid(column=int(column1),row=row,sticky='e',padx=2,pady=2)
+                    self.bot_cmd_buttons[i][1].grid(column=column2,row=row,sticky='w',padx=[0,60],pady=0)
+                    self.bot_cmd_buttons[i][1].grid(column=column3,row=row,sticky='w',padx=[0,60],pady=0)
+                    self.bot_cmd_buttons[i][1].configure(textvariable=self.bot_cmd_buttons[i][2])
     def creategui(self):
-        global guilog
+        global tex
         app = tk.Tk()
         applet = ttk
         app.title(f"HoNfigurator v{self.dataDict['bot_version']} by @{self.dataDict['bot_author']}")
@@ -879,7 +947,7 @@ class gui():
         tab2 = ttk.Frame(tabgui)
         #tab3 = ttk.Frame(tabgui)
         tabgui.add(tab1,text="Server Setup")
-        #tabgui.add(tab2,text="Server Administration")
+        tabgui.add(tab2,text="Server Administration")
         #tabgui.add(tab3,text="Discord Integration")
         
         """
@@ -969,6 +1037,13 @@ class gui():
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
         tab1_forceupdate_btn.grid(column= 1, row = 11,sticky="w",pady=4)
+        #   use proxy
+        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=11,sticky="e",padx=[20,0])
+        self.useproxy = tk.BooleanVar(app)
+        if self.dataDict['use_proxy'] == 'True':
+            self.useproxy.set(True)
+        tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
+        tab1_useproxy_btn.grid(column= 2, row = 11,sticky="w",pady=4)
         #
         #
         
@@ -1016,67 +1091,211 @@ class gui():
         print(self.forceupdate.get())
         
 
-        guilog = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
-        guilog.grid(columnspan=6,column=0,row=15,sticky="n")
+        # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
+        # tex.grid(columnspan=6,column=0,row=15,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_singlebutton.grid(columnspan=1,column=1, row=16,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_allbutton.grid(columnspan=1,column=2, row=16,stick='n',padx=[0,20],pady=[20,10])
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton.grid(columnspan=1,column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton.grid(columnspan=1,column=2, row=13,stick='n',padx=[0,20],pady=[20,10])
         tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
-        tab1_updatebutton.grid(columnspan=1,column=3, row=16,stick='n',padx=[20,0],pady=[20,10])
+        tab1_updatebutton.grid(columnspan=1,column=3, row=13,stick='n',padx=[20,0],pady=[20,10])
         
         """
         
         This is the advanced server setup tab
         ui
         """
-        #   
-        #   message
-        applet.Label(tab2, text="STILL TESTING, DOESN'T DO ANYTHING YET",background=maincolor,foreground='white').grid(columnspan=10,column=0, row=1,sticky="n")
-        i=1
-        c1=0
-        c2=1
-        for config_item in config_startup:
-            value = config_startup[config_item].strip('"')
-            valuename = f"tab2{config_item}"
-            startup_values = []
-            i+=1
-            applet.Label(tab2, text=config_item,background=maincolor,foreground='white').grid(column=c1, row=i,sticky="e",padx=[5,0])
-            valuename = applet.Entry(tab2,foreground=textcolor,width=10)
-            valuename.insert(0,value)
-            valuename.grid(column= c2, row = i,sticky="w",pady=4,padx=[5,5])
-            startup_values.append(valuename)
-            if i == 22:
-                i=1
-                c1+=2
-                c2+=2
-        #   title
-        logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
-        logolabel_tab2.grid(columnspan=c2+1,column=0, row=0,sticky="n",pady=[10,0])
+        # logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+        # logolabel_tab2.grid(columnspan=2,column=, row=0,sticky="n",pady=[10,0])
         
         """
         
         This is the bot command center tab
         
         """
-        ##list of buttons
-        # self.bot_cmd_buttons = []
-        # #
-        # #   creates the buttons
-        # for i in range(0,20):
-        #     tk.StringVar(app,'offline')
-        #     self.tab2_status2_label = applet.Label(tab2, text=f"Bot {i+1}: ",background=maincolor, foreground='white')
-        #     self.tab2_status2_current = applet.Label(tab2)
-        #     #sends buttons to list
-        #     self.bot_cmd_buttons.append([self.tab2_status2_label,self.tab2_status2_current,tk.StringVar(app,'offline')])
-        # tab1_startBot = applet.Button(tab1, text="Configure Single Server")
+
+        ButtonString = ['View Log', 'Start', 'Stop']
+        LablString = ['hon_server_','test']
+
+        # Calling this function from somewhere else via Queue
+        import fnmatch
+        import glob
+        def viewButton(btn,i,pcount):
+            print(f"{i} {btn}")
+            service_name = f"adminbot{i}"
+            server_status = dmgr.mData.returnDict_basic(self,i)
+            def ViewLog():
+                dir_name = f"{server_status['hon_logs_dir']}\\"
+                if pcount > 0:
+                    log_File = "Slave-1_M*console.clog"
+                else:
+                    log_File = "Slave*.log"
+                list_of_files = glob.glob(dir_name + log_File) # * means all if need specific format then *.csv
+                latest_file = max(list_of_files, key=os.path.getctime)
+                print(latest_file)
+                f = open(latest_file, "r", encoding='utf-16-le')
+                text = f.read()
+                tex.insert(tk.END, text)
+                tex.see(tk.END)
+                #app.after(3000,ViewLog)
+            def Start():
+                service = initialise.get_service(service_name)
+                if service['status'] == 'stopped':
+                    if initialise.start_service(self,service_name):
+                        tex.insert(END,f"{service_name} started successfully.\n")
+                        app.after(10000,refresh)
+                    else:
+                        tex.insert(END,f"{service_name} failed to start.\n")
+            def Stop():
+                if pcount <= 0:
+                    if initialise.stop_service(self,service_name):
+                        tex.insert(END,f"{service_name} stoped successfully.\n")
+                        load_server_mgr()
+                    else:
+                        tex.insert(END,f"{service_name} failed to stop.\n")
+                else:
+                    print("[ABORT] players are connected. Scheduling shutdown instead..")
+                    initialise.schedule_shutdown(server_status)
+
+
+            def Tools():
+                pass
+            if btn == "View Log":
+                ViewLog()
+            elif btn == "Stop":
+                Stop()
+            elif btn == "Start":
+                Start()
+        def refresh(*args):
+            if (tabgui.index("current")) == 1:
+                load_server_mgr()
+        tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
+        #app.attributes("-topmost",True)
+        def load_server_mgr(*args):
+            # if (tabgui.index("current")) == 1:
+            app.lift()
+            i=0
+            c=0
+            c_len = len(ButtonString)+len(LablString)
+            mod=11
+            # create a grid of 2x6
+            for t in range(20):
+                tab2.rowconfigure(t, weight=1,pad=0)
+            for o in range(100):
+                tab2.columnconfigure(o, weight=1,pad=0)
+            for x in range(0,int(self.dataDict['svr_total'])):
+                x+=1
+                i+=1
+                service_name = f"adminbot{x}"
+                server_status = dmgr.mData.returnDict_basic(self,x)
+                dir_name = f"{server_status['hon_logs_dir']}\\"
+                file = "Slave*.log"
+                list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
+                log = max(list_of_files, key=os.path.getctime)
+                cookie = True
+                cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
+                schd_restart = False
+                schd_shutdown = False
+                schd_restart=initialise.check_schd_restart(server_status)
+                schd_shutdown=initialise.check_schd_shutdown(server_status)
+                service_state = initialise.get_service(service_name)
+                pcount = initialise.playerCountX(self,x)
+                #
+                # when total servers goes over <num>, move to the next column, and set row back to 1.
+                if i%mod==0:
+                    c+=c_len
+                    i=1
+                LablString[0]=f"hon_server_{x}"
+                for index1, labl_name in enumerate(LablString):
+                    if cookie:
+                        if pcount < 0:
+                            colour = 'OrangeRed4'
+                            LablString[1]="Offline"
+                        elif pcount == 0:
+                            colour = 'MediumPurple3'
+                            LablString[1]="Available"
+                        elif pcount >0:
+                            colour = 'SpringGreen4'
+                            LablString[1]=f"In-game ({pcount})"
+                        if pcount >=0:
+                            if schd_restart:
+                                colour='indian red'
+                                LablString[1]='schd-restart'
+                            if schd_shutdown:
+                                LablString[1]='schd-shutdown'
+                    else:
+                        if pcount < 0:
+                            colour = 'OrangeRed4'
+                            LablString[1]="Offline"
+                        elif pcount == 0:
+                            colour = 'MediumPurple3'
+                            LablString[1]="cookie error"
+                        elif pcount >0:
+                            colour = 'SpringGreen4'
+                            LablString[1]=f"In-game ({pcount})"
+                    if service_state['status'] == 'stopped':
+                        colour = 'OrangeRed4'
+                        LablString[1]=f"Stopped"
+                    c_pos1 = index1 + c
+                    if index1==0:
+                        labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
+                    elif index1==1:
+                        labl = Label(tab2,width=14,text=f"{labl_name}", background=colour, foreground='white')
+                    labl.grid(row=i, column=c_pos1)
+                    for index2, btn_name in enumerate(ButtonString):
+                        index2 +=len(LablString)
+                        c_pos2 = index2 + c
+                        btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
+                        btn.grid(row=i, column=c_pos2)
+                    # tab2.grid_columnconfigure(x,weight=0,pad=4)
+            # for o in range(1,c_len+c):
+            #     tab2.grid_columnconfigure(o,weight=0,pad=4)
+            # for o in range(1,mod):
+            #     tab2.grid_rowconfigure(o, weight=0,pad=4)
+                #print(tabgui.index("current"))
+            # if (tabgui.index("current")) == 1:
+            #     app.after(10000,load_server_mgr)
+            column_rows=(tab2.grid_size())
+            total_columns=column_rows[0]
+            # for o in range(1,total_columns):
+            #     tab2.grid_columnconfigure(o, weight=1,pad=4)
+            total_rows=column_rows[1]
+            print(column_rows)
+            logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+            logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
+            
+            tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: refresh())
+            tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[10,0],pady=[20,10])
+        tex.grid(row=14, column=0, sticky="sew")
+        app.grid_rowconfigure(0, weight=1)
+        app.grid_columnconfigure(0, weight=1)
         # tab1_startBot.grid(columnspan=3, column=1, row=9,stick='n',padx=[0,10],pady=[20,10])
         # tab1_startall = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masteruser.get(),tab1_masterpass.get(),self.forceupdate.get()))
         # tab1_startall.grid(columnspan=4, column=1, row=9,stick='n',padx=[10,0],pady=[20,10])
-        # self.botCount(20)
+
+
+
+
+        # files = [] #creates list to replace your actual inputs for troubleshooting purposes
+        # btn = [] #creates list to store the buttons ins
+
+        # for i in range(50): #this just popultes a list as a replacement for your actual inputs for troubleshooting purposes
+        #     files.append("Button"+str(i))
+
+        # for i in range(len(files)): #this says for *counter* in *however many elements there are in the list files*
+        #     #the below line creates a button and stores it in an array we can call later, it will print the value of it's own text by referencing itself from the list that the buttons are stored in
+        #     btn.append(Button(test, text=files[i], command=lambda c=i: print(btn[c].cget("text"))))
+        #    btn[i].pack() #this packs the buttons
+
+
+
+
+        #self.botCount(int(self.dataDict['svr_total']))
+        #load_server_mgr()
         tabgui.select(0)
         self.update_repository(NULL,NULL,NULL)
+        tabgui.bind('<<NotebookTabChanged>>',refresh)
         app.mainloop()
-test = gui()
+test = honfigurator()
 test.creategui()

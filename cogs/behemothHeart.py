@@ -94,6 +94,15 @@ class heartbeat(commands.Cog):
                     svr_state.changePriority(False)
                 if self.server_status['hard_reset'] == False:
                     self.server_status.update({'hard_reset':svr_state.getData("CheckForUpdates")})
+                if self.server_status['scheduled_shutdown']==False:
+                    self.server_status.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
+                    if self.server_status['scheduled_shutdown']:
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except: print(traceback.format_exc())
+                        await test.createEmbed(ctx,-3)
+                        svr_state.stopSELF()
                 if self.server_status['hard_reset'] == True:
                     self.server_status.update({'restart_required':True})
                     # await test.createEmbed(ctx,playercount)
