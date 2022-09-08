@@ -357,16 +357,18 @@ class initialise():
             self.proxy.update({'region':'naeu'})
         dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
         return True
-    def configure_firewall(self):
+    def configure_firewall(self,name,application):
         try:
-            check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{self.dataDict['hon_file_name']}\"")
+            check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
             if check_rule == 0:
-                add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{self.dataDict['hon_file_name']}\" new program=\"{self.dataDict['hon_exe']}\" dir=in action=allow")
+                add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new program=\"{application}\" dir=in action=allow")
                 print("firewall rule modified.")
+                tex.insert(END,f"Windows firewall configured for application: {application}\n")
                 return True
             elif check_rule == 1:
-                add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{self.dataDict['hon_file_name']}\" program=\"{self.dataDict['hon_exe']}\" dir=in action=allow")
+                add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" program=\"{application}\" dir=in action=allow")
                 print("firewall rule added.")
+                tex.insert(END,f"Windows firewall configured for application: {application}\n")
                 return True
         except: 
             print(traceback.format_exc())
@@ -433,7 +435,7 @@ class initialise():
         if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
             print(f"Server is already configured, checking values for {self.service_name_bot}...")
             dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
-        firewall = initialise.configure_firewall(self)
+        firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
         if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
         #   below commented as we are no longer using game_settings_local.cfg
         #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
@@ -630,8 +632,6 @@ class initialise():
                 tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
             elif self.dataDict['use_proxy'] == 'True':
                 tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
-            if firewall:
-                tex.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}\n")
             print("==========================================")
         else:
             print("==========================================")
@@ -829,6 +829,8 @@ class honfigurator():
             if not exists(self.dataDict['proxy_exe']):
                 tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
                 use_proxy=False
+            else:
+                firewall = initialise.configure_firewall(self,"HoN Proxy",self.dataDict['proxy_exe'])
         if identifier == "single":
             print()
             print(f"Selected option to configure adminbot-server{serverid}\n")
