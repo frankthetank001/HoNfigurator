@@ -306,17 +306,17 @@ class initialise():
         tem_game_port = tem_game_port + iter
         tem_voice_port = tem_voice_port + iter
 
-        tem_game_port_proxy = tem_game_port
-        tem_voice_port_proxy = tem_voice_port
+        tem_game_port_proxy = tem_game_port +10000
+        tem_voice_port_proxy = tem_voice_port +10000
 
         if self.dataDict['use_proxy']=='True':
             self.startup.update({"man_enableProxy":f'"true"'})
-            tem_game_port +=10000
-            tem_voice_port +=10000
+            # tem_game_port +=10000
+            # tem_voice_port +=10000
         else:
             self.startup.update({"man_enableProxy":f'"false"'})
-            tem_game_port_proxy +=10000
-            tem_voice_port_proxy +=10000
+            # tem_game_port_proxy +=10000
+            # tem_voice_port_proxy +=10000
         # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         # for i in networking:
         #     temp_port = self.base[i]
