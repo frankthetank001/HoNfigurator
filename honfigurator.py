@@ -300,17 +300,30 @@ class initialise():
         self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
         iter = self.dataDict['incr_port']
         svr_identifier = self.dataDict['svrid_total']
+
         tem_game_port = int(game_port)
         tem_voice_port = int(voice_port)
         tem_game_port = tem_game_port + iter
         tem_voice_port = tem_voice_port + iter
-        networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
-        for i in networking:
-            temp_port = self.base[i]
-            temp_port = temp_port.strip('"')
-            temp_port = int(temp_port)
-            temp_port = temp_port + iter
-            self.startup.update({i:f'"{temp_port}"'})
+
+        tem_game_port_proxy = tem_game_port
+        tem_voice_port_proxy = tem_voice_port
+
+        if self.dataDict['use_proxy']=='True':
+            self.startup.update({"man_enableProxy":f'"true"'})
+            tem_game_port +=10000
+            tem_voice_port +=10000
+        else:
+            self.startup.update({"man_enableProxy":f'"false"'})
+            tem_game_port_proxy +=10000
+            tem_voice_port_proxy +=10000
+        # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
+        # for i in networking:
+        #     temp_port = self.base[i]
+        #     temp_port = temp_port.strip('"')
+        #     temp_port = int(temp_port)
+        #     temp_port = temp_port + iter
+        #     self.startup.update({i:f'"{temp_port}"'})
         if type == "startup":
             print("customising startup.cfg with the following values")
             print("svr_id: " + str(serverID))
@@ -332,15 +345,13 @@ class initialise():
             #     tem_voice_port_proxy = tem_voice_port_proxy + iter
             #     self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
             self.startup.update({'svr_port':f'"{tem_game_port}"'})
+            self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
             self.startup.update({'svr_proxyLocalVoicePort':f'"{tem_voice_port}"'})
+            self.startup.update({'svr_proxyRemoteVoicePort':f'"{tem_voice_port_proxy}"'})
             self.startup.update({'svr_voicePortEnd':f'"{tem_voice_port}"'})
             self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
             print("svr_port: " + str(tem_game_port))
             print("voice_port: " + str(tem_voice_port))
-            if self.dataDict['use_proxy']=='True':
-                self.startup.update({"man_enableProxy":f'"true"'})
-            else:
-                self.startup.update({"man_enableProxy":f'"false"'})
             self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
             self.startup.update({"svr_location":f'"{location}"'})
             self.startup.update({"svr_ip":f'"{svr_ip}"'})
@@ -1158,7 +1169,33 @@ class honfigurator():
         # Calling this function from somewhere else via Queue
         import fnmatch
         import glob
-        
+        def clean_all():
+            count=0
+            for i in range (1,int(self.dataDict['svr_total'])):
+                server_status = dmgr.mData.returnDict_basic(self,i)
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics"]
+                now = time.time()
+                for path in paths:
+                    for f in os.listdir(path):
+                        f = os.path.join(path, f)
+                        if os.stat(f).st_mtime < now - 7 * 86400:
+                            if os.path.isfile(f):
+                                os.remove(os.path.join(path, f))
+                                count+=1
+                                print("removed "+f)
+                replays = f"{server_status['hon_game_dir']}\\replays"
+                for f in os.listdir(replays):
+                    f = os.path.join(replays, f)
+                    if os.stat(f).st_mtime < now - 7 * 86400:
+                        if os.path.isfile(f):
+                            os.remove(os.path.join(replays, f))
+                            count+=1
+                            print("removed "+f)
+                        else:
+                            shutil.rmtree(f,onerror=honfigurator.onerror)
+                            count+=1
+                            print("removed "+f)
+            print(f"DONE. Cleaned {count} files.")
         def get_size(start_path):
                 total_size = 0
                 for dirpath, dirnames, filenames in os.walk(start_path):
@@ -1207,12 +1244,14 @@ class honfigurator():
             def Clean():
                 paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics"]
                 now = time.time()
+                count=0
                 for path in paths:
                     for f in os.listdir(path):
                         f = os.path.join(path, f)
                         if os.stat(f).st_mtime < now - 7 * 86400:
                             if os.path.isfile(f):
                                 os.remove(os.path.join(path, f))
+                                count+=1
                                 print("removed "+f)
                 replays = f"{server_status['hon_game_dir']}\\replays"
                 for f in os.listdir(replays):
@@ -1220,11 +1259,13 @@ class honfigurator():
                     if os.stat(f).st_mtime < now - 7 * 86400:
                         if os.path.isfile(f):
                             os.remove(os.path.join(replays, f))
+                            count+=1
                             print("removed "+f)
                         else:
                             shutil.rmtree(f,onerror=honfigurator.onerror)
+                            count+=1
                             print("removed "+f)
-                print("DONE.")
+                print(f"DONE. Cleaned {count} files.")
             def Uninstall(x):
                 if pcount <= 0:
                     service_state = initialise.get_service(service_name)
@@ -1371,7 +1412,9 @@ class honfigurator():
             logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
             
             tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: refresh())
-            tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[10,0],pady=[20,10])
+            tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[80,0],pady=[20,10])
+            tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
+            tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,80],pady=[20,10])
         tex.grid(row=14, column=0, sticky="sew")
         app.grid_rowconfigure(0, weight=1)
         app.grid_columnconfigure(0, weight=1)
