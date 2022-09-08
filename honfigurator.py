@@ -1288,13 +1288,15 @@ class honfigurator():
                 server_status = dmgr.mData.returnDict_basic(self,x)
                 dir_name = f"{server_status['hon_logs_dir']}\\"
                 file = "Slave*.log"
+                log = False
                 try:
                     list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
                     log = max(list_of_files, key=os.path.getctime)
                 except Exception as e:
                     print(e)
                 cookie = True
-                cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
+                if log != False:
+                    cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
                 schd_restart = False
                 schd_shutdown = False
                 schd_restart=initialise.check_schd_restart(server_status)
