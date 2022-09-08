@@ -626,7 +626,10 @@ class initialise():
             if players_connected == True:
                 tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
-            tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+            if self.dataDict['use_proxy'] == 'False':
+                tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+            elif self.dataDict['use_proxy'] == 'True':
+                tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
             if firewall:
                 tex.insert(END,f"Windows firewall configured for application: {self.dataDict['hon_file_name']}\n")
             print("==========================================")
