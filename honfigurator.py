@@ -313,14 +313,6 @@ class initialise():
         tem_voice_port_proxy = tem_voice_port_proxy.replace('"','')
         tem_voice_port_proxy = int(tem_voice_port_proxy) + iter
 
-        if self.dataDict['use_proxy']=='True':
-            self.startup.update({"man_enableProxy":f'"true"'})
-            # tem_game_port +=10000
-            # tem_voice_port +=10000
-        else:
-            self.startup.update({"man_enableProxy":f'"false"'})
-            # tem_game_port_proxy +=10000
-            # tem_voice_port_proxy +=10000
         # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         # for i in networking:
         #     temp_port = self.base[i]
@@ -356,6 +348,18 @@ class initialise():
             self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
             print("svr_port: " + str(tem_game_port))
             print("voice_port: " + str(tem_voice_port))
+            if self.dataDict['use_proxy']=='True':
+                self.startup.update({"man_enableProxy":f'"true"'})
+                print("===============PROXY ACTIVE===================")
+                print("svr_proxyPort: " + str(tem_game_port_proxy))
+                print("svr_voiceProxyPort: " + str(tem_voice_port_proxy))
+                print("Because of use of HoN Proxy, the above values are the ones which must be port forwarded.")
+                # tem_game_port +=10000
+                # tem_voice_port +=10000
+            else:
+                self.startup.update({"man_enableProxy":f'"false"'})
+                # tem_game_port_proxy +=10000
+                # tem_voice_port_proxy +=10000
             self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
             self.startup.update({"svr_location":f'"{location}"'})
             self.startup.update({"svr_ip":f'"{svr_ip}"'})
@@ -1177,7 +1181,7 @@ class honfigurator():
             count=0
             for i in range (1,int(self.dataDict['svr_total'])):
                 server_status = dmgr.mData.returnDict_basic(self,i)
-                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics"]
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                 now = time.time()
                 for path in paths:
                     for f in os.listdir(path):
@@ -1246,7 +1250,7 @@ class honfigurator():
                     print("[ABORT] players are connected. Scheduling shutdown instead..")
                     initialise.schedule_shutdown(server_status)
             def Clean():
-                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics"]
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                 now = time.time()
                 count=0
                 for path in paths:
