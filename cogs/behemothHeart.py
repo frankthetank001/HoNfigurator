@@ -67,7 +67,7 @@ class heartbeat(commands.Cog):
             counter_heartbeat+=1
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
-            print(str(playercount))
+            # print(str(playercount))
             #
             #   Check if the server is ready yet
             if self.server_status['server_ready'] == False:
@@ -266,10 +266,12 @@ class heartbeat(commands.Cog):
             #   if nothing new has happened, sit here and take a break for a bit. Every 15 seconds we leave the idle mode in case something has changed and we missed it.
             #if playercount == self.server_status['tempcount'] and self.server_status['just_collected'] != True and (not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
             if self.server_status['update_embeds'] == False or playercount == self.server_status['tempcount'] and (self.server_status['just_collected'] != True and not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
-                print("idle")
+                alive = True
+                #print("idle")
             #   update embeds.
             else:
                 counter_heartbeat=0
+                print("moving to update")
                 self.server_status.update({'tempcount':playercount})
                 self.server_status.update({'update_embeds':False})
                 self.server_status.update({'time_waited':counter_hosted})

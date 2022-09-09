@@ -16,6 +16,7 @@ server_status_dict = {}
 match_status = {}
 size_changed = True
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
+os.environ["APPDATA"] = processed_data_dict['hon_home_dir']
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
 #   hooks onto hon.exe and manages hon
