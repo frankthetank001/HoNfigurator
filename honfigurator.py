@@ -1351,7 +1351,7 @@ class honfigurator():
                     if service_state != False and service_state['status'] != 'stopped':
                         if initialise.stop_service(self,service_name):
                             tex.insert(END,f"{service_name} stopped successfully.\n")
-                            viewButton.load_server_mgr()
+                            viewButton.load_server_mgr(self)
                         else:
                             tex.insert(END,f"{service_name} failed to stop.\n")
                     service_state = initialise.get_service(service_name)
