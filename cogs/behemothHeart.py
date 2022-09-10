@@ -48,7 +48,7 @@ class heartbeat(commands.Cog):
         #self.server_status.update({'server_starting':False})
         self.server_status.update({'hard_reset':False})
 
-        restart_timer = 5
+        restart_timer = 10
         counter_heartbeat = 0
         counter_heartbeat_attempts = 0
         counter_hosted = 0
