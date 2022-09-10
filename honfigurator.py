@@ -845,11 +845,11 @@ class honfigurator():
         # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         #initialise.add_hosts_entry(self)
         if use_proxy == True:
-            if not exists(self.dataDict['proxy_exe']):
+            if not exists(hondirectory+'proxy_exe'):
                 tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
                 use_proxy=False
             else:
-                firewall = initialise.configure_firewall(self,"HoN Proxy",self.dataDict['proxy_exe'])
+                firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy_exe')
         if identifier == "single":
             print()
             print(f"Selected option to configure adminbot-server{serverid}\n")
