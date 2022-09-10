@@ -58,25 +58,25 @@ class initialise():
     global config_local
     def __init__(self):
         self.data = dmgr.mData()
-        dataDict = self.data.returnDict()
+        self.dataDict = self.data.returnDict()
         self.startup = initialise.get_startupcfg(self)
-        self.nssm = dataDict['nssm_exe']
-        self.hon_directory = dataDict['hon_directory']
-        self.hon_game_dir = dataDict['hon_game_dir']
-        self.sdc_home_dir = dataDict['sdc_home_dir']
-        self.hon_logs_dir = dataDict['hon_logs_dir']
-        self.bot_version = dataDict['bot_version']
-        self.hon_home_dir = dataDict['hon_home_dir']
-        self.svr_hoster = dataDict['svr_hoster']
-        self.svr_region = dataDict['svr_region']
-        self.svr_region_short = dataDict['svr_region_short']
-        self.svr_id = dataDict['svr_id']
-        self.svr_ip = dataDict['svr_ip']
-        self.svr_total = dataDict['svr_total']
-        self.bot_token = dataDict['token']
-        self.pythonLoc = dataDict['python_location']
-        # self.master_user = dataDict['master_user']
-        # self.master_pass = dataDict['master_pass']
+        self.nssm = self.dataDict['nssm_exe']
+        self.hon_directory = self.dataDict['hon_directory']
+        self.hon_game_dir = self.dataDict['hon_game_dir']
+        self.sdc_home_dir = self.dataDict['sdc_home_dir']
+        self.hon_logs_dir = self.dataDict['hon_logs_dir']
+        self.bot_version = self.dataDict['bot_version']
+        self.hon_home_dir = self.dataDict['hon_home_dir']
+        self.svr_hoster = self.dataDict['svr_hoster']
+        self.svr_region = self.dataDict['svr_region']
+        self.svr_region_short = self.dataDict['svr_region_short']
+        self.svr_id = self.dataDict['svr_id']
+        self.svr_ip = self.dataDict['svr_ip']
+        self.svr_total = self.dataDict['svr_total']
+        self.bot_token = self.dataDict['token']
+        self.pythonLoc = self.dataDict['python_location']
+        # self.master_user = self.dataDict['master_user']
+        # self.master_pass = self.dataDict['master_pass']
         self.service_name_bot = f"adminbot{self.svr_id}"
         self.service_name_api = "honserver-registration"
         deployed_config = self.sdc_home_dir+"\\config\\global_config.ini"
@@ -192,34 +192,34 @@ class initialise():
             #print(str(ex))
         return service
     def playerCount(self):
-        check = subprocess.Popen([dataDict['player_count_exe_loc'],dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
+        check = subprocess.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
-        if i == -3 and dataDict['master_server'] == "honmasterserver.com":
+        if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
             try:
-                check = subprocess.Popen([dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
-        elif i == -3 and dataDict['master_server'] == "kongor.online:666":
+        elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
             try:
-                check = subprocess.Popen([dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
         check.terminate()
         return i
     def playerCountX(self,svr_id):
-        if dataDict['master_server'] == "honmasterserver.com":
-            check = subprocess.Popen([dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
-        elif dataDict['master_server'] == "kongor.online:666":
-            check = subprocess.Popen([dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+        if self.dataDict['master_server'] == "honmasterserver.com":
+            check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+        elif self.dataDict['master_server'] == "kongor.online:666":
+            check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
-        if i == -3 and dataDict['master_server'] == "honmasterserver.com":
+        if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
             try:
-                check = subprocess.Popen([dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
-        elif i == -3 and dataDict['master_server'] == "kongor.online:666":
+        elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
             try:
-                check = subprocess.Popen([dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                 i = int(check.stdout.read())
             except: pass
         check.terminate()
@@ -297,8 +297,8 @@ class initialise():
     def create_config(self,filename,type,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
         self.proxy = {}
         self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
-        iter = dataDict['incr_port']
-        svr_identifier = dataDict['svrid_total']
+        iter = self.dataDict['incr_port']
+        svr_identifier = self.dataDict['svrid_total']
 
         tem_game_port = int(game_port)
         tem_voice_port = int(voice_port)
@@ -329,11 +329,11 @@ class initialise():
             #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
                 # if i == "svr_port":
                 #     print("svr_port: "+str(temp_port))
-                # if i == "svr_proxyPort" and dataDict['use_proxy'] == True:
+                # if i == "svr_proxyPort" and self.dataDict['use_proxy'] == True:
                 #     print("svr_proxyPort: "+str(temp_port))
-                # if i == "svr_proxyLocalVoicePort" and dataDict['use_proxy'] == True:
+                # if i == "svr_proxyLocalVoicePort" and self.dataDict['use_proxy'] == True:
                 #     print("voice_port"+str(temp_port))
-            # if dataDict['use_proxy'] == True:
+            # if self.dataDict['use_proxy'] == True:
             #     tem_game_port_proxy = int(game_port_proxy)
             #     tem_voice_port_proxy = int(voice_port_proxy)
             #     tem_game_port_proxy = tem_game_port_proxy + iter
@@ -347,7 +347,7 @@ class initialise():
             self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
             print("svr_port: " + str(tem_game_port))
             print("voice_port: " + str(tem_voice_port))
-            if dataDict['use_proxy']=='True':
+            if self.dataDict['use_proxy']=='True':
                 self.startup.update({"man_enableProxy":f'"true"'})
                 print("===============PROXY ACTIVE===================")
                 print("svr_proxyPort: " + str(tem_game_port_proxy))
@@ -453,7 +453,7 @@ class initialise():
         if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
             print(f"Server is already configured, checking values for {self.service_name_bot}...")
             dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
-        firewall = initialise.configure_firewall(self,dataDict['hon_file_name'],dataDict['hon_exe'])
+        firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
         if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
         #   below commented as we are no longer using game_settings_local.cfg
         #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
@@ -463,14 +463,14 @@ class initialise():
                 #tex.insert(END,"==========================================\n")
             #
             #    Kongor testing
-            if dataDict['master_server'] == "honmasterserver.com":
+            if self.dataDict['master_server'] == "honmasterserver.com":
                 if not exists(f"{self.hon_directory}\\HON_SERVER_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
-            if dataDict['master_server'] == "kongor.online:666":
+            if self.dataDict['master_server'] == "kongor.online:666":
                 if not exists(f"{self.hon_directory}\\KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
@@ -491,8 +491,8 @@ class initialise():
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",dataDict['game_starting_port'],dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
-            initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",dataDict['game_starting_port'],dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
             # for i in config:
@@ -520,15 +520,15 @@ class initialise():
             print("Checking and creating required dependencies...")
             #
             #
-            # if not exists(f"{self.hon_directory}{dataDict['player_count_exe']}" or force_update == True or bot_needs_update == True):
+            # if not exists(f"{self.hon_directory}{self.dataDict['player_count_exe']}" or force_update == True or bot_needs_update == True):
             try:
-                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{dataDict['player_count_exe']}",f"{self.hon_directory}{dataDict['player_count_exe']}")
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.hon_directory}{self.dataDict['player_count_exe']}")
             except Exception as e: print(e)
             print("copying other dependencies...")
             if not exists(f"{self.hon_directory}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.hon_directory}\\nssm.exe")
             print("Done!")
-        if dataDict['master_server'] == "honmasterserver.com":
+        if self.dataDict['master_server'] == "honmasterserver.com":
             service_api = initialise.get_service(self.service_name_api)
             if service_api:
                 #print("HON Registration API STATUS: " + self.service_name_api)
@@ -604,12 +604,12 @@ class initialise():
                     if playercount == 0 or playercount == -3:
                         print("No players connected, safe to restart...")
                         initialise.stop_service(self,self.service_name_bot)
-                        if dataDict['master_server'] == "honmasterserver.com":
+                        if self.dataDict['master_server'] == "honmasterserver.com":
                             try:
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
                                 print("copying server exe...")
                             except Exception as e: print(e + "can't replace exe.")
-                        if dataDict['master_server'] == "kongor.online:666":
+                        if self.dataDict['master_server'] == "kongor.online:666":
                             try:
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
                                 print("copying server exe...")
@@ -646,9 +646,9 @@ class initialise():
             if players_connected == True:
                 tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
-            if dataDict['use_proxy'] == 'False':
+            if self.dataDict['use_proxy'] == 'False':
                 tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
-            elif dataDict['use_proxy'] == 'True':
+            elif self.dataDict['use_proxy'] == 'True':
                 tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
             print("==========================================")
         else:
@@ -662,10 +662,10 @@ class initialise():
 class honfigurator():
     global tex
     def __init__(self):
-        global dataDict
+        # global self.dataDict
         self.initdict = dmgr.mData()
-        dataDict = self.initdict.returnDict()
-        print (dataDict)
+        self.dataDict = self.initdict.returnDict()
+        print (self.dataDict)
         return
     def onerror(func, path, exc_info):
         """
@@ -746,12 +746,12 @@ class honfigurator():
         total_cores = psutil.cpu_count(logical = True)
         half_core_count = total_cores / 2
         half_core_count = int(half_core_count)
-        if dataDict['core_assignment'] == "two":
+        if self.dataDict['core_assignment'] == "two":
             total_cores = half_core_count
             #for i in range(half_core_count):
                 #cores.append(i+1)
             #self.svr_total_var.set(half_core_count)
-        elif dataDict['core_assignment'] == "two servers/core":
+        elif self.dataDict['core_assignment'] == "two servers/core":
             total_cores = total_cores * 2
         for i in range(total_cores):
             cores.append(i+1)
@@ -834,8 +834,8 @@ class honfigurator():
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
-        # if 'github_branch' not in dataDict:
-        #     dataDict.update({'github_branch':selected_branch})
+        # if 'github_branch' not in self.dataDict:
+        #     self.dataDict.update({'github_branch':selected_branch})
         # if identifier == "update":
         #     update = initialise.update_repository(self,selected_branch)
         #     tex.insert(END,"==========================================\n")
@@ -845,11 +845,11 @@ class honfigurator():
         # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
         #initialise.add_hosts_entry(self)
         if use_proxy == True:
-            if not exists(dataDict['proxy_exe']):
-                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
+            if not exists(self.dataDict['proxy_exe']):
+                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
                 use_proxy=False
             else:
-                firewall = initialise.configure_firewall(self,"HoN Proxy",dataDict['proxy_exe'])
+                firewall = initialise.configure_firewall(self,"HoN Proxy",self.dataDict['proxy_exe'])
         if identifier == "single":
             print()
             print(f"Selected option to configure adminbot-server{serverid}\n")
@@ -862,7 +862,7 @@ class honfigurator():
             conf_local.set("OPTIONS","svr_region",region)
             conf_local.set("OPTIONS","svr_region_short",regionshort)
             conf_local.set("OPTIONS","svr_id",serverid)
-            conf_local.set("OPTIONS","svr_ip",dataDict['svr_ip'])
+            conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
             conf_local.set("OPTIONS","svr_total",servertotal)
             conf_local.set("OPTIONS","token",bottoken)
             conf_local.set("OPTIONS","hon_directory",hondirectory)
@@ -884,7 +884,7 @@ class honfigurator():
             #   global values
             # if not conf_global.has_section("OPTIONS"):
             #     conf_global.add_section("OPTIONS")
-            # conf_global.set("OPTIONS","bot_version",dataDict['bot_version'])
+            # conf_global.set("OPTIONS","bot_version",self.dataDict['bot_version'])
 
             # with open(config_global, "w") as b:
             #     conf_global.write(b)
@@ -904,7 +904,7 @@ class honfigurator():
                 conf_local.set("OPTIONS","svr_region",region)
                 conf_local.set("OPTIONS","svr_region_short",regionshort)
                 conf_local.set("OPTIONS","svr_id",str(serverid))
-                conf_local.set("OPTIONS","svr_ip",dataDict['svr_ip'])
+                conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
                 conf_local.set("OPTIONS","svr_total",servertotal)
                 conf_local.set("OPTIONS","token",bottoken)
                 conf_local.set("OPTIONS","hon_directory",hondirectory)
@@ -926,7 +926,7 @@ class honfigurator():
                 # #   global values
                 # if not conf_global.has_section("OPTIONS"):
                 #     conf_global.add_section("OPTIONS")
-                # conf_global.set("OPTIONS","bot_version",dataDict['bot_version'])
+                # conf_global.set("OPTIONS","bot_version",self.dataDict['bot_version'])
                 # with open(config_global, "w") as d:
                 #     conf_global.write(d)
                 # d.close()
@@ -954,7 +954,7 @@ class honfigurator():
         global tex
         app = tk.Tk()
         applet = ttk
-        app.title(f"HoNfigurator v{dataDict['bot_version']} by @{dataDict['bot_author']}")
+        app.title(f"HoNfigurator v{self.dataDict['bot_version']} by @{self.dataDict['bot_author']}")
         #   importing icon
         honico = PhotoImage(file = os.path.abspath(application_path)+f"\\icons\\honico.png")
         app.iconphoto(False, honico) 
@@ -1015,13 +1015,13 @@ class honfigurator():
         logolabel_tab1 = applet.Label(tab1,text=f"HoNfigurator",background=maincolor,foreground='white',image=honlogo)
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
         #   server total    
-        self.svr_total_var = tk.StringVar(app,dataDict['svr_total'])
+        self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
         applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
         self.tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var,width=5)
         self.tab1_servertd.grid(column= 2 , row = 4,sticky="w",pady=4)
         self.svr_total_var.trace_add('write', self.svr_num_link)
         #  one or two cores
-        self.core_assign = tk.StringVar(app,dataDict['core_assignment'])
+        self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
         applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
         tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
         tab1_core_assign.grid(column= 1, row = 7,sticky="w",pady=4)
@@ -1032,23 +1032,23 @@ class honfigurator():
         #   hoster
         applet.Label(tab1, text="Server Name:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
         tab1_hosterd = applet.Entry(tab1,foreground=textcolor)
-        tab1_hosterd.insert(0,dataDict['svr_hoster'])
+        tab1_hosterd.insert(0,self.dataDict['svr_hoster'])
         tab1_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4)
         #
         #   region
-        self.svr_loc = tk.StringVar(app,dataDict["svr_region"])
+        self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
         applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=3,sticky="e")
         tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc)
         tab1_regiond.grid(column= 1 , row = 3,sticky="w",pady=4)
         self.svr_loc.trace_add('write', self.reg_def_link)
         #   regionId
-        self.svr_reg_code = tk.StringVar(app,dataDict["svr_region_short"])
+        self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
         applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=3,sticky="e")
         tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code,width=5)
         tab1_regionsd.grid(column= 2 , row = 3,sticky="w",pady=4)
         self.svr_reg_code.trace_add('write', self.reg_def_link)
         #   server id
-        self.svr_id_var = tk.StringVar(app,dataDict['svr_id'])
+        self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
         applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
         self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
         self.tab1_serveridd.grid(column= 1 , row = 4,sticky="w",pady=4)
@@ -1057,21 +1057,21 @@ class honfigurator():
         #   HoN Directory
         applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
         tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
-        tab1_hondird.insert(0,dataDict['hon_directory'])
+        tab1_hondird.insert(0,self.dataDict['hon_directory'])
         tab1_hondird.grid(column= 1, row = 10,sticky="w",pady=4)
         #  HoN master server
-        self.master_server = tk.StringVar(app,dataDict['master_server'])
+        self.master_server = tk.StringVar(app,self.dataDict['master_server'])
         applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e",padx=[20,0])
         tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
         tab1_masterserver.grid(column= 1, row = 5,sticky="w",pady=4)
         
         #  one or two cores
-        self.priority = tk.StringVar(app,dataDict['process_priority'])
+        self.priority = tk.StringVar(app,self.dataDict['process_priority'])
         applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
         tab1_priority = applet.Combobox(tab1,foreground=textcolor,value=self.priorityassign(),textvariable=self.priority)
         tab1_priority.grid(column= 1, row = 6,sticky="w",pady=4)
         #  increment ports
-        self.increment_port = tk.StringVar(app,dataDict['incr_port_by'])
+        self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
         applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=5,sticky="e",padx=[20,0])
         tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port,width=5)
         tab1_increment_port.grid(column= 2, row = 5,sticky="w",pady=4)
@@ -1079,7 +1079,7 @@ class honfigurator():
         #   use proxy
         applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=9,sticky="e",padx=[20,0])
         self.useproxy = tk.BooleanVar(app)
-        if dataDict['use_proxy'] == 'True':
+        if self.dataDict['use_proxy'] == 'True':
             self.useproxy.set(True)
         tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
         tab1_useproxy_btn.grid(column= 2, row = 9,sticky="w",pady=4)
@@ -1087,13 +1087,13 @@ class honfigurator():
         #  starting gameport
         applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=6,sticky="e")
         tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
-        tab1_game_port.insert(0,dataDict['game_starting_port'])
+        tab1_game_port.insert(0,self.dataDict['game_starting_port'])
         # self.tab1_game_port.insert(0,self.change_to_proxy())
         tab1_game_port.grid(column=2,row = 6,sticky="w",pady=4)
         #  starting gameport
         applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
         tab1_voice_port = applet.Entry(tab1,foreground=textcolor,width=5)
-        tab1_voice_port.insert(0,dataDict['voice_starting_port'])
+        tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
         tab1_voice_port.grid(column=2,row = 7,sticky="w",pady=4)
         #   force update
         applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
@@ -1108,12 +1108,12 @@ class honfigurator():
         #   discord admin
         applet.Label(tab1, text="Bot Owner (discord ID):",background=maincolor,foreground='white').grid(column=3, row=2,sticky="e",padx=[20,0])
         tab1_discordadmin = applet.Entry(tab1,foreground=textcolor,width=45)
-        tab1_discordadmin.insert(0,dataDict['discord_admin'])
+        tab1_discordadmin.insert(0,self.dataDict['discord_admin'])
         tab1_discordadmin.grid(column= 4, row = 2,sticky="w",pady=4)
         #   token
         applet.Label(tab1, text="Bot Token (SECRET):",background=maincolor,foreground='white').grid(column=3, row=3,sticky="e",padx=[20,0])
         tab1_bottokd = applet.Entry(tab1,foreground=textcolor,width=45)
-        tab1_bottokd.insert(0,dataDict['token'])
+        tab1_bottokd.insert(0,self.dataDict['token'])
         tab1_bottokd.grid(column= 4, row = 3,sticky="w",pady=4,padx=[0,20])
         #  allow bot matches 
         applet.Label(tab1, text="Allow bot matches:",background=maincolor,foreground='white').grid(column=3, row=4,sticky="e",padx=[20,0])
@@ -1123,14 +1123,14 @@ class honfigurator():
         #  Debug mode 
         applet.Label(tab1, text="Debug mode:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
         self.debugmode = tk.BooleanVar(app)
-        if dataDict['debug_mode'] == 'True':
+        if self.dataDict['debug_mode'] == 'True':
             self.debugmode.set(True)
         tab1_debugmode_btn = applet.Checkbutton(tab1,variable=self.debugmode)
         tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
         # #   auto update
         # applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
         # self.autoupdate = tk.BooleanVar(app)
-        # if dataDict['auto_update'] == 'True':
+        # if self.dataDict['auto_update'] == 'True':
         #     self.autoupdate.set(True)
         # tab1_autoupdate_btn = applet.Checkbutton(tab1,variable=self.autoupdate)
         # tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
@@ -1143,7 +1143,7 @@ class honfigurator():
 
         #   bot version
         applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
-        applet.Label(tab1,text=f"{dataDict['bot_version']}-{dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
+        applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
         print(self.forceupdate.get())
         
 
@@ -1199,9 +1199,9 @@ class honfigurator():
         import glob
         def clean_all():
             count=0
-            for i in range (1,int(dataDict['svr_total'])):
+            for i in range (1,int(self.dataDict['svr_total'])):
                 server_status = dmgr.mData.returnDict_basic(self,i)
-                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{dataDict['hon_home_dir']}\\HoNProxyManager"]
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                 now = time.time()
                 for path in paths:
                     for f in os.listdir(path):
@@ -1246,7 +1246,8 @@ class honfigurator():
                 service_name = f"adminbot{i}"
                 id = i
                 pcount = p
-
+                self.initdict = dmgr.mData()
+                self.dataDict = self.initdict.returnDict()
                 server_status = dmgr.mData.returnDict_basic(self,id)
                 # self.pcount = pcount
                 print(f"{i} {btn}")
@@ -1320,7 +1321,7 @@ class honfigurator():
                     print("[ABORT] players are connected. Scheduling shutdown instead..")
                     initialise.schedule_shutdown(server_status)
             def Clean(self):
-                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{dataDict['hon_home_dir']}\\HoNProxyManager"]
+                paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{server_status['hon_home_dir']}\\HoNProxyManager"]
                 now = time.time()
                 count=0
                 for path in paths:
@@ -1383,7 +1384,7 @@ class honfigurator():
                     tab2.rowconfigure(t, weight=1,pad=0)
                 for o in range(100):
                     tab2.columnconfigure(o, weight=1,pad=0)
-                for x in range(0,int(dataDict['svr_total'])):
+                for x in range(0,int(self.dataDict['svr_total'])):
                     x+=1
                     i+=1
                     service_name = f"adminbot{x}"
