@@ -307,10 +307,10 @@ class initialise():
 
         tem_game_port_proxy = self.base['svr_proxyPort']
         tem_game_port_proxy = tem_game_port_proxy.replace('"','')
-        tem_game_port_proxy = int(tem_game_port_proxy) + iter
+        tem_game_port_proxy = int(tem_game_port_proxy) + (int(serverID) - 1)
         tem_voice_port_proxy = self.base['svr_proxyRemoteVoicePort']
         tem_voice_port_proxy = tem_voice_port_proxy.replace('"','')
-        tem_voice_port_proxy = int(tem_voice_port_proxy) + iter
+        tem_voice_port_proxy = int(tem_voice_port_proxy) + (int(serverID) - 1)
 
         # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         # for i in networking:
@@ -846,7 +846,7 @@ class honfigurator():
         #initialise.add_hosts_entry(self)
         if use_proxy == True:
             if not exists(hondirectory+'proxy.exe'):
-                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {self.dataDict['hon_directory']} and try again. Continuing with proxy disabled..\n")
+                tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again. Continuing with proxy disabled..\n")
                 use_proxy=False
             else:
                 firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
