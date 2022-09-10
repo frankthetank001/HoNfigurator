@@ -601,7 +601,7 @@ class initialise():
                     svr_state = svrcmd.honCMD()
                     svr_state.getDataDict()
                     playercount = initialise.playerCount(self)
-                    if playercount == 0 or playercount == -3:
+                    if playercount <= 0:
                         print("No players connected, safe to restart...")
                         initialise.stop_service(self,self.service_name_bot)
                         if self.dataDict['master_server'] == "honmasterserver.com":
