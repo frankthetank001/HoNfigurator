@@ -121,16 +121,29 @@ class honCMD():
                 #
                 #   Start the HoN Server!
                 print("starting service")
-                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
-                #
-                #  using manager, requires %appdata%\HonProxyManager\config.cfg to exist.
-                #  self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_manager_exe']])
-                #
-                #  using standalone, can be passed the config as an argument
+                print("collecting port info...")
+                tempData = {}
+                svr_port = int(processed_data_dict['game_starting_port']) + processed_data_dict['incr_port']
+                svr_proxyport = 21235 + (int(processed_data_dict['svr_id']) - 1)
+                svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
+                svr_proxyRemoteVoicePort = 21435 + (int(processed_data_dict['svr_id']) - 1)
+                svr_ip = dmgr.mData.getData(self,"svr_ip")
+                tempData.update({'svr_port':svr_port})
+                tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})
+                tempData.update({'svr_proxyport':svr_proxyport})
+                tempData.update({'svr_proxyRemoteVoicePort':svr_proxyRemoteVoicePort})
+                honCMD.updateStatus(self,tempData)
+
+                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
                 if processed_data_dict['use_proxy'] == 'True':
+                    #  using manager, requires %appdata%\HonProxyManager\config.cfg to exist.
+                    #  self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_manager_exe']])
                     self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_exe'],f"{processed_data_dict['hon_game_dir']}\\proxy_config.cfg"])
                     self.proxyPID = self.proxyEXE.pid
                     server_status_dict.update({'proxy_pid':self.proxyPID})
+                # else:
+                #     self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
+
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 server_status_dict.update({'hon_exe':self.honEXE})
                 self.honP = self.honEXE.pid

@@ -1,6 +1,7 @@
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
+import cogs.dataManager as dmgr
 from datetime import datetime
 import traceback
 
@@ -130,6 +131,18 @@ class heartbeat(commands.Cog):
                         except: print(traceback.format_exc())
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                if counter_heartbeat_attempts == 4:
+                    check_ip = dmgr.mData.getData(self,"svr_ip")
+                    if check_ip != self.server_status['svr_ip']:
+                        self.server_status.update({"server_restarting":True})
+                        await test.createEmbed(ctx,playercount)
+                        if self.processed_data_dict['debug_mode'] == 'True':
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom{self.server_status['svr_ip']} to {check_ip}")
+                            try:
+                                await embed_log.edit(embed=logEmbed)
+                            except: print(traceback.format_exc())
+                        svr_state.restartSERVER()
+                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
 
                 """
                 60 second hosted kick
