@@ -132,12 +132,13 @@ class heartbeat(commands.Cog):
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                 if counter_heartbeat_attempts == 4:
+                    counter_heartbeat_attempts = 0
                     check_ip = dmgr.mData.getData(self,"svr_ip")
-                    if check_ip != self.server_status['svr_ip']:
+                    if check_ip != self.processed_data_dict['svr_ip']:
                         self.server_status.update({"server_restarting":True})
                         await test.createEmbed(ctx,playercount)
                         if self.processed_data_dict['debug_mode'] == 'True':
-                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom{self.server_status['svr_ip']} to {check_ip}")
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom ``{self.processed_data_dict['svr_ip']}`` to ``{check_ip}``")
                             try:
                                 await embed_log.edit(embed=logEmbed)
                             except: print(traceback.format_exc())
