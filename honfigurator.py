@@ -312,6 +312,8 @@ class initialise():
         tem_voice_port_proxy = tem_voice_port_proxy.replace('"','')
         tem_voice_port_proxy = int(tem_voice_port_proxy) + (int(serverID) - 1)
 
+        svr_ip = dmgr.mData.getData(self,"svr_ip")
+
         # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
         # for i in networking:
         #     temp_port = self.base[i]
@@ -368,10 +370,10 @@ class initialise():
         elif type == "proxy":
             self.proxy.update({'redirectIP':'127.0.0.1'})
             self.proxy.update({'publicip':svr_ip})
-            self.proxy.update({'publicPort':self.startup['svr_proxyPort']})
-            self.proxy.update({'redirectPort':self.startup['svr_port']})
-            self.proxy.update({'voiceRedirectPort':self.startup['svr_proxyLocalVoicePort']})
-            self.proxy.update({'voicePublicPort':self.startup['svr_proxyRemoteVoicePort']})
+            self.proxy.update({'publicPort':tem_game_port_proxy})
+            self.proxy.update({'redirectPort':tem_game_port})
+            self.proxy.update({'voiceRedirectPort':tem_voice_port})
+            self.proxy.update({'voicePublicPort':tem_voice_port_proxy})
             self.proxy.update({'region':'naeu'})
         dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
         return True
