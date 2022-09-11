@@ -237,7 +237,7 @@ class mData():
         elif type == "proxy":
             with open(filename, 'w') as proxy:
                 for k, v in dict_proxy.items():
-                    v = v.replace('"','')
+                    # v = v.replace('"','')
                     proxy.write(f'{k}={v}\n')
             if exists(filename):
                 os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
