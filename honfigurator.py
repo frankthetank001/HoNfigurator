@@ -490,8 +490,9 @@ class initialise():
             # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
                 print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
             #   below commented as we are no longer using game_settings_local.cfg
+            # COMMENTED OUT DUE TO TESTING LAUNCHING WITH COMMANDLINE ARGUMENTS
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            #initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
@@ -827,7 +828,7 @@ class honfigurator():
             self.git_branch.set(current_branch)
             return False
         
-    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+    def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
         global config_local
         global config_global
         conf_local = configparser.ConfigParser()
@@ -877,6 +878,8 @@ class honfigurator():
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             conf_local.set("OPTIONS","debug_mode",str(debug_mode))
             conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+            conf_local.set("OPTIONS","svr_login",svr_login)
+            conf_local.set("OPTIONS","svr_password",svr_password)
             with open(config_local, "w") as a:
                 conf_local.write(a)
             a.close()
@@ -919,6 +922,8 @@ class honfigurator():
                 conf_local.set("OPTIONS","github_branch",str(selected_branch))
                 conf_local.set("OPTIONS","debug_mode",str(debug_mode))
                 conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+                conf_local.set("OPTIONS","svr_login",svr_login)
+                conf_local.set("OPTIONS","svr_password",svr_password)
                 with open(config_local, "w") as c:
                     conf_local.write(c)
                 c.close()
@@ -1016,90 +1021,100 @@ class honfigurator():
         logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
         #   server total    
         self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
-        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
+        applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=1, row=5,sticky="e")
         self.tab1_servertd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_total_var,width=5)
-        self.tab1_servertd.grid(column= 2 , row = 4,sticky="w",pady=4)
+        self.tab1_servertd.grid(column= 2 , row = 5,sticky="w",pady=4)
         self.svr_total_var.trace_add('write', self.svr_num_link)
         #  one or two cores
         self.core_assign = tk.StringVar(app,self.dataDict['core_assignment'])
-        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
-        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign)
-        tab1_core_assign.grid(column= 1, row = 7,sticky="w",pady=4)
+        applet.Label(tab1, text="CPU cores assigned per server:",background=maincolor,foreground='white').grid(column=0, row=8,sticky="e",padx=[20,0])
+        tab1_core_assign = applet.Combobox(tab1,foreground=textcolor,value=self.coreassign(),textvariable=self.core_assign,width=16)
+        tab1_core_assign.grid(column= 1, row = 8,sticky="w",pady=4,padx=[0,130])
         self.core_assign.trace_add('write', self.coreadjust)
         #   
         #   Simple Server data
         applet.Label(tab1, text="Hon Server Data",background=maincolor,foreground='white').grid(columnspan=1,column=1, row=1,sticky="w")
         #   hoster
         applet.Label(tab1, text="Server Name:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
-        tab1_hosterd = applet.Entry(tab1,foreground=textcolor)
+        tab1_hosterd = applet.Entry(tab1,foreground=textcolor,width=16)
         tab1_hosterd.insert(0,self.dataDict['svr_hoster'])
-        tab1_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4)
+        tab1_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4,padx=[0,130])
+        #   server name
+        applet.Label(tab1, text="HoN Username:",background=maincolor,foreground='white').grid(column=0,row=3,sticky="e")
+        tab1_user = applet.Entry(tab1,foreground=textcolor,width=16)
+        tab1_user.insert(0,self.dataDict['svr_login'])
+        tab1_user.grid(column= 1 , row = 3,sticky="w",pady=4,padx=[0,130])
+        #   server password
+        applet.Label(tab1, text="HoN Password:",background=maincolor,foreground='white').grid(column=1,row=3,sticky="e")
+        tab1_pass = applet.Entry(tab1,foreground=textcolor,width=16)
+        tab1_pass.insert(0,self.dataDict['svr_password'])
+        tab1_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
         #
         #   region
         self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
-        applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=3,sticky="e")
-        tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc)
-        tab1_regiond.grid(column= 1 , row = 3,sticky="w",pady=4)
+        applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+        tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
+        tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
         self.svr_loc.trace_add('write', self.reg_def_link)
         #   regionId
         self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
-        applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=3,sticky="e")
+        applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
         tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code,width=5)
-        tab1_regionsd.grid(column= 2 , row = 3,sticky="w",pady=4)
+        tab1_regionsd.grid(column= 2 , row = 4,sticky="w",pady=4)
         self.svr_reg_code.trace_add('write', self.reg_def_link)
         #   server id
         self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
-        applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-        self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var)
-        self.tab1_serveridd.grid(column= 1 , row = 4,sticky="w",pady=4)
+        applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
+        self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var,width=5)
+        self.tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4,padx=[0,130])
         self.svr_id_var.trace_add('write', self.svr_num_link)
         
         #   HoN Directory
-        applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
         tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
         tab1_hondird.insert(0,self.dataDict['hon_directory'])
-        tab1_hondird.grid(column= 1, row = 10,sticky="w",pady=4)
+        tab1_hondird.grid(columnspan=3,column= 1, row = 11,sticky="w",pady=4)
         #  HoN master server
         self.master_server = tk.StringVar(app,self.dataDict['master_server'])
-        applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e",padx=[20,0])
-        tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server)
-        tab1_masterserver.grid(column= 1, row = 5,sticky="w",pady=4)
+        applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
+        tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server,width=16)
+        tab1_masterserver.grid(column= 1, row = 6,sticky="w",pady=4,padx=[0,130])
         
         #  one or two cores
         self.priority = tk.StringVar(app,self.dataDict['process_priority'])
-        applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
-        tab1_priority = applet.Combobox(tab1,foreground=textcolor,value=self.priorityassign(),textvariable=self.priority)
-        tab1_priority.grid(column= 1, row = 6,sticky="w",pady=4)
+        applet.Label(tab1, text="In-game CPU process priority:",background=maincolor,foreground='white').grid(column=0, row=7,sticky="e",padx=[20,0])
+        tab1_priority = applet.Combobox(tab1,foreground=textcolor,value=self.priorityassign(),textvariable=self.priority,width=16)
+        tab1_priority.grid(column= 1, row = 7,sticky="w",pady=4,padx=[0,130])
         #  increment ports
         self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
-        applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=5,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=6,sticky="e",padx=[20,0])
         tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port,width=5)
-        tab1_increment_port.grid(column= 2, row = 5,sticky="w",pady=4)
+        tab1_increment_port.grid(column= 2, row = 6,sticky="w",pady=4)
         #
         #   use proxy
-        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=9,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=10,sticky="e",padx=[20,0])
         self.useproxy = tk.BooleanVar(app)
         if self.dataDict['use_proxy'] == 'True':
             self.useproxy.set(True)
         tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
-        tab1_useproxy_btn.grid(column= 2, row = 9,sticky="w",pady=4)
+        tab1_useproxy_btn.grid(column= 2, row = 10,sticky="w",pady=4)
         # self.useproxy.trace_add('write',self.change_to_proxy2)
         #  starting gameport
-        applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=6,sticky="e")
+        applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
         tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
         tab1_game_port.insert(0,self.dataDict['game_starting_port'])
         # self.tab1_game_port.insert(0,self.change_to_proxy())
-        tab1_game_port.grid(column=2,row = 6,sticky="w",pady=4)
+        tab1_game_port.grid(column=2,row = 7,sticky="w",pady=4)
         #  starting gameport
-        applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
+        applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=8,sticky="e")
         tab1_voice_port = applet.Entry(tab1,foreground=textcolor,width=5)
         tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
-        tab1_voice_port.grid(column=2,row = 7,sticky="w",pady=4)
+        tab1_voice_port.grid(column=2,row = 8,sticky="w",pady=4)
         #   force update
-        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
+        applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
         self.forceupdate = tk.BooleanVar(app)
         tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-        tab1_forceupdate_btn.grid(column= 1, row = 9,sticky="w",pady=4)
+        tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w",pady=4)
         # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
         #
         
@@ -1150,12 +1165,14 @@ class honfigurator():
         # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
         # tex.grid(columnspan=6,column=0,row=15,sticky="n")
         #   button
-        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_singlebutton.grid(columnspan=1,column=1, row=13,stick='n',padx=[10,0],pady=[20,10])
-        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-        tab1_allbutton.grid(columnspan=1,column=2, row=13,stick='n',padx=[0,20],pady=[20,10])
+        tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_singlebutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[0,300],pady=[20,10])
+        tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+        tab1_allbutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[30,30],pady=[20,10])
         tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
-        tab1_updatebutton.grid(columnspan=1,column=3, row=13,stick='n',padx=[20,0],pady=[20,10])
+        tab1_updatebutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[300,0],pady=[20,10])
+        app.rowconfigure(13,weight=1)
+        app.columnconfigure(0,weight=1)
         
         """
         

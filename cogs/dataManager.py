@@ -65,6 +65,10 @@ class mData():
             self.confDict.update({'debug_mode':False})
         if 'use_proxy' not in self.confDict:
             self.confDict.update({'use_proxy':'True'})
+        if 'svr_login' not in self.confDict:
+            self.confDict.update({'svr_login':'<username>'})
+        if 'svr_password' not in self.confDict:
+            self.confDict.update({'svr_password':'<password>'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
