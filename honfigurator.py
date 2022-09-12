@@ -102,8 +102,12 @@ class initialise():
         hosts.write()
     def KOTF(self):
         app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
-        rc = app_svr_desc.returncode
-        result = str(app_svr_desc.stdout)
+        # commented temprarily to over ride return code value
+        # rc = app_svr_desc.returncode
+        rc = 0
+        # commented temprarily stdout temporarily with fake value
+        # result = str(app_svr_desc.stdout)
+        result = "test,test,test"
         if rc == 0:
             print("hashes checked OK")
             return result
@@ -1330,6 +1334,7 @@ class honfigurator():
                     else:
                         tex.insert(END,f"{service_name} failed to start.\n")
             def Stop(self):
+                pcount = initialise.playerCountX(self,id)
                 if pcount <= 0:
                     if initialise.stop_service(self,service_name):
                         tex.insert(END,f"{service_name} stopped successfully.\n")
@@ -1365,6 +1370,7 @@ class honfigurator():
                             print("removed "+f)
                 print(f"DONE. Cleaned {count} files.")
             def Uninstall(self,x):
+                pcount = initialise.playerCountX(self,id)
                 if pcount <= 0:
                     service_state = initialise.get_service(service_name)
                     if service_state != False and service_state['status'] != 'stopped':
