@@ -479,7 +479,8 @@ class initialise():
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
-            self.secrets = initialise.KOTF(self)
+            # Commented temporarily given the patching of certain DLL files
+            #self.secrets = initialise.KOTF(self)
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
                 self.svr_desc = self.svr_desc.replace('\n','')
