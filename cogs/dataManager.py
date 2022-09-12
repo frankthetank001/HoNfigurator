@@ -105,6 +105,9 @@ class mData():
         elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+        else:
+            self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
     def returnDict_basic(self,svr_id):
         conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
