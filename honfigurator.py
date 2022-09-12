@@ -481,6 +481,8 @@ class initialise():
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
             # Commented temporarily given the patching of certain DLL files
             #self.secrets = initialise.KOTF(self)
+            # the below boolean is temporary only
+            self.secrets=True
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
                 self.svr_desc = self.svr_desc.replace('\n','')
@@ -1331,6 +1333,7 @@ class honfigurator():
                     else:
                         tex.insert(END,f"{service_name} failed to start.\n")
             def Stop(self):
+                pcount = initialise.playerCountX(self,id)
                 if pcount <= 0:
                     if initialise.stop_service(self,service_name):
                         tex.insert(END,f"{service_name} stopped successfully.\n")
@@ -1366,6 +1369,7 @@ class honfigurator():
                             print("removed "+f)
                 print(f"DONE. Cleaned {count} files.")
             def Uninstall(self,x):
+                pcount = initialise.playerCountX(self,id)
                 if pcount <= 0:
                     service_state = initialise.get_service(service_name)
                     if service_state != False and service_state['status'] != 'stopped':
