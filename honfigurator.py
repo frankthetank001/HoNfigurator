@@ -962,7 +962,8 @@ class honfigurator():
                 initialise().configureEnvironment(self,force_update)
                 hon_api_updated = False
         #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-        tex.insert(END,("\nPORTS TO FORWARD: "+'Game: '+', '.join(ports_to_forward_game))+' '+'Voice: '+', '.join(ports_to_forward_voice)+'\n')
+        tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
+        tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice))+'\n')
         return
 
     def botCount(self,num_of_bots):
