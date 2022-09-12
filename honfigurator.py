@@ -51,6 +51,16 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 hon_api_updated = False
 players_connected = False
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 #
 #
 class initialise():
@@ -102,22 +112,18 @@ class initialise():
         hosts.write()
     def KOTF(self):
         app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
-        # commented temprarily to over ride return code value
-        # rc = app_svr_desc.returncode
-        rc = 0
-        # commented temprarily stdout temporarily with fake value
-        # result = str(app_svr_desc.stdout)
-        result = "test,test,test"
+        rc = app_svr_desc.returncode
+        result = str(app_svr_desc.stdout)
         if rc == 0:
             print("hashes checked OK")
             return result
         elif rc == 1:
-            print("ERROR CHECKING HASHES, you may have issues connecting to the masterserver")
-            tex.insert(END,"ERROR CHECKING HASHES, you may have issues connecting to the masterserver\n")
+            print(bcolors.FAIL +"ERROR CHECKING HASHES, please obtain correct server binaries" + bcolors.ENDC)
+            tex.insert(END,"ERROR CHECKING HASHES, please obtain correct server binaries\n",'warning')
             return False
         elif rc == 3:
-            print("ERROR GETTING MAC ADDR")
-            tex.insert(END,"ERROR GETTING MAC ADDR\n")
+            print(bcolors.FAIL +"ERROR GETTING MAC ADDR" + bcolors.ENDC)
+            tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
             return False
     def getstatus_updater(self,auto_update,selected_branch):
         TASK_ENUM_HIDDEN = 1
@@ -454,6 +460,18 @@ class initialise():
         if not exists(f"{self.sdc_home_dir}\\cogs"):
             print(f"creating: {self.sdc_home_dir}\\cogs ...")
             os.makedirs(f"{self.sdc_home_dir}\\cogs")
+        self.secrets = initialise.KOTF(self)
+        if self.secrets:
+            self.svr_desc = self.secrets.split(',')[0]
+            self.svr_desc = self.svr_desc.replace('\n','')
+            self.master_user = self.secrets.split(',')[1]
+            self.master_user = self.master_user.replace('\n','')
+            self.master_pass = self.secrets.split(',')[2]
+            self.master_pass = self.master_pass.replace('\n','')
+        else:
+            bot_needs_update = False
+            force_update = False
+            bot_first_launch = False
         #
         #   Check if startup.cfg exists.
         if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
@@ -483,14 +501,6 @@ class initialise():
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
-            self.secrets = initialise.KOTF(self)
-            if self.secrets:
-                self.svr_desc = self.secrets.split(',')[0]
-                self.svr_desc = self.svr_desc.replace('\n','')
-                self.master_user = self.secrets.split(',')[1]
-                self.master_user = self.master_user.replace('\n','')
-                self.master_pass = self.secrets.split(',')[2]
-                self.master_pass = self.master_pass.replace('\n','')
             if not exists(f"{self.hon_game_dir}\\startup.cfg"):
             #   below commented as we are no longer using game_settings_local.cfg
             # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
@@ -498,7 +508,7 @@ class initialise():
             #   below commented as we are no longer using game_settings_local.cfg
             # COMMENTED OUT DUE TO TESTING LAUNCHING WITH COMMANDLINE ARGUMENTS
             #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-            #initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+            initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
             print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
             #config = ["sdc.py","multiguild.py"]
@@ -550,8 +560,8 @@ class initialise():
                             try:
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                             except PermissionError:
-                                tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
-                                print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                                tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n",'warning')
+                                print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n" + bcolors.ENDC)
                             except: print(traceback.format_exc())
                         if initialise.configure_service_api(self,self.service_name_api):
                             hon_api_updated = True
@@ -562,8 +572,8 @@ class initialise():
                         try:
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                         except PermissionError:
-                            tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n")
-                            print("COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n")
+                            tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n",'warning')
+                            print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n") + bcolors.ENDC
                         except: print(traceback.format_exc())
                         #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.hon_directory}API_HON_SERVER.exe")
                         if initialise.configure_service_api(self,self.service_name_api):
@@ -577,7 +587,7 @@ class initialise():
                     if service_api['status'] == 'running':
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                     else:
-                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
+                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
             else:
                 bot_needs_update = True
@@ -593,7 +603,7 @@ class initialise():
                 if service_api['status'] == 'running':
                     tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                 else:
-                    tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n")
+                    tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                 print("==========================================")
         
         service_bot = initialise.get_service(self.service_name_bot)
@@ -636,7 +646,7 @@ class initialise():
                 if service_bot['status'] == 'running':
                     tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
                 else:
-                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n")
+                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
                 print("==========================================")
         else:
             bot_needs_update = True
@@ -651,12 +661,16 @@ class initialise():
             print(f"HONSERVER STATUS: {self.service_name_bot}")
         if force_update == True or bot_first_launch == True or bot_needs_update == True:
             if players_connected == True:
-                tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+                tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
             if self.dataDict['use_proxy'] == 'False':
                 tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+                ports_to_forward.append(self.startup['svr_port'])
+                ports_to_forward.append(self.startup['svr_proxyLocalVoicePort'])
             elif self.dataDict['use_proxy'] == 'True':
                 tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
+                ports_to_forward.append(self.startup['svr_proxyPort'])
+                ports_to_forward.append(self.startup['svr_proxyRemoteVoicePort'])                
             print("==========================================")
         else:
             print("==========================================")
@@ -837,10 +851,12 @@ class honfigurator():
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
         global config_local
         global config_global
+        global ports_to_forward
         conf_local = configparser.ConfigParser()
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
+        ports_to_forward=[]
         # if 'github_branch' not in self.dataDict:
         #     self.dataDict.update({'github_branch':selected_branch})
         # if identifier == "update":
@@ -944,6 +960,7 @@ class honfigurator():
                 initialise().configureEnvironment(self,force_update)
                 hon_api_updated = False
         #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
+        tex.insert(END,("\nPORTS TO FORWARD: "+ ', '.join(ports_to_forward))+'\n')
         return
 
     def botCount(self,num_of_bots):
@@ -1208,7 +1225,7 @@ class honfigurator():
             # create a Text widget
                 tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
                 tex.grid(row=14, column=0, sticky="nsew", padx=2, pady=2)
-
+                tex.tag_config('warning', background="yellow", foreground="red")
             # create a Scrollbar and associate it with txt
                 scrollb = ttk.Scrollbar(app, command=tex.yview)
                 scrollb.grid(row=14, column=1, sticky='nsew')
