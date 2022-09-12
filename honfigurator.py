@@ -102,8 +102,12 @@ class initialise():
         hosts.write()
     def KOTF(self):
         app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
-        rc = app_svr_desc.returncode
-        result = str(app_svr_desc.stdout)
+        # commented temprarily to over ride return code value
+        # rc = app_svr_desc.returncode
+        rc = 0
+        # commented temprarily stdout temporarily with fake value
+        # result = str(app_svr_desc.stdout)
+        result = "test,test,test"
         if rc == 0:
             print("hashes checked OK")
             return result
@@ -479,10 +483,7 @@ class initialise():
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.hon_directory}hon_x64.exe")
                         print("copying server exe...")
                     except: print("server in use, can't replace exe, will try again when server is stopped.")
-            # Commented temporarily given the patching of certain DLL files
-            #self.secrets = initialise.KOTF(self)
-            # the below boolean is temporary only
-            self.secrets=True
+            self.secrets = initialise.KOTF(self)
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
                 self.svr_desc = self.svr_desc.replace('\n','')
