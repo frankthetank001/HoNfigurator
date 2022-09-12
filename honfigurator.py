@@ -665,12 +665,12 @@ class initialise():
                 print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
             if self.dataDict['use_proxy'] == 'False':
                 tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
-                ports_to_forward.append(self.startup['svr_port'])
-                ports_to_forward.append(self.startup['svr_proxyLocalVoicePort'])
+                ports_to_forward_game.append(self.startup['svr_port'])
+                ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
             elif self.dataDict['use_proxy'] == 'True':
                 tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
-                ports_to_forward.append(self.startup['svr_proxyPort'])
-                ports_to_forward.append(self.startup['svr_proxyRemoteVoicePort'])                
+                ports_to_forward_game.append(self.startup['svr_proxyPort'])
+                ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])                
             print("==========================================")
         else:
             print("==========================================")
@@ -851,12 +851,14 @@ class honfigurator():
     def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
         global config_local
         global config_global
-        global ports_to_forward
+        global ports_to_forward_game
+        global ports_to_forward_voice
         conf_local = configparser.ConfigParser()
         conf_global = configparser.ConfigParser()
         #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
         hondirectory = os.path.join(hondirectory, '')
-        ports_to_forward=[]
+        ports_to_forward_game=[]
+        ports_to_forward_voice=[]
         # if 'github_branch' not in self.dataDict:
         #     self.dataDict.update({'github_branch':selected_branch})
         # if identifier == "update":
@@ -960,7 +962,7 @@ class honfigurator():
                 initialise().configureEnvironment(self,force_update)
                 hon_api_updated = False
         #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-        tex.insert(END,("\nPORTS TO FORWARD: "+ ', '.join(ports_to_forward))+'\n')
+        tex.insert(END,("\nPORTS TO FORWARD: "+'Game: '+', '.join(ports_to_forward_game))+' '+'Voice: '+', '.join(ports_to_forward_voice)+'\n')
         return
 
     def botCount(self,num_of_bots):
