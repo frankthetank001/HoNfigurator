@@ -919,6 +919,8 @@ if is_admin():
                     print("Manager exists")
                     #if force_update or bot_needs_update or bot_first_launch:
                     if force_update:
+                        if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
+                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}KONGOR ARENA MANAGER.exe")
                         initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.restart_service(self,service_manager_name)
@@ -926,15 +928,33 @@ if is_admin():
                             initialise.start_service(self,service_manager_name)
                         service_manager = initialise.get_service(service_manager_name)
                 else:
+                    if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}KONGOR ARENA MANAGER.exe")
                     initialise.create_service_generic(self,service_manager_name,manger_application)
                     initialise.start_service(self,service_manager_name)
                     service_manager = initialise.get_service(service_manager_name)
                     if service_manager:
                         print("Manager started")
-                if service_proxy:
-                    print("proxy exists")
-                    #if force_update or bot_needs_update or bot_first_launch:
-                    if force_update:
+                if 'use_proxy':
+                    if service_proxy:
+                        print("proxy exists")
+                        #if force_update or bot_needs_update or bot_first_launch:
+                        if force_update:
+                            proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
+                            proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
+                            if not exists(proxy_config_location):
+                                os.mkdir(proxy_config_location)
+                            proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
+                            with open(proxy_config_location,"w") as f:
+                                for items in proxy_config:
+                                    f.write(f"{items}\n")
+                            initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                            if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
+                                initialise.restart_service(self,service_proxy_name)
+                            else:
+                                initialise.start_service(self,service_proxy_name)
+                            #service_manager = initialise.get_service(service_proxy)
+                    else:
                         proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                         proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
                         if not exists(proxy_config_location):
@@ -942,27 +962,12 @@ if is_admin():
                         proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
                         with open(proxy_config_location,"w") as f:
                             for items in proxy_config:
-                                f.write(f"{items}\n")
-                        initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
-                        if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                            initialise.restart_service(self,service_proxy_name)
-                        else:
-                            initialise.start_service(self,service_proxy_name)
-                        #service_manager = initialise.get_service(service_proxy)
-                else:
-                    proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
-                    proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
-                    if not exists(proxy_config_location):
-                        os.mkdir(proxy_config_location)
-                    proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
-                    with open(proxy_config_location,"w") as f:
-                        for items in proxy_config:
-                            f.writelines([items])
-                    application="proxymanager.exe"
-                    initialise.create_service_generic(self,service_proxy_name,application)
-                    time.sleep(1)
-                    initialise.start_service(self,service_proxy_name)
-                    #service_manager = initialise.get_service(service_manager_name)
+                                f.writelines([items])
+                        application="proxymanager.exe"
+                        initialise.create_service_generic(self,service_proxy_name,application)
+                        time.sleep(1)
+                        initialise.start_service(self,service_proxy_name)
+                        #service_manager = initialise.get_service(service_manager_name)
             if identifier == "single":
                 print()
                 print(f"Selected option to configure adminbot-server{serverid}\n")
