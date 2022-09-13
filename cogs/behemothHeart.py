@@ -285,7 +285,7 @@ class heartbeat(commands.Cog):
             #   update embeds.
             else:
                 counter_heartbeat=0
-                print("moving to update")
+                print(f"moving to updatee discord message.. playercount ({str(playercount)})")
                 self.server_status.update({'tempcount':playercount})
                 self.server_status.update({'update_embeds':False})
                 self.server_status.update({'time_waited':counter_hosted})
