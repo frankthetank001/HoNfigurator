@@ -265,9 +265,10 @@ if is_admin():
             return True
         def configure_service_generic(self,service_name,application,arguments):
             sp.Popen([self.nssm, "set",service_name,"Application",f"{self.hon_directory}{application}"])
+            time.sleep
             if arguments is not None:
                 sp.Popen([self.nssm, "set",service_name,"AppParameters",arguments])
-            time.sleep(1)
+                time.sleep(1)
             sp.Popen([self.nssm, "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
             sp.Popen([self.nssm, "set",service_name,f"AppExit","Default","Restart"])
