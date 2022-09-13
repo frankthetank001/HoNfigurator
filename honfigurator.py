@@ -429,6 +429,7 @@ if is_admin():
             global hon_api_updated
             global players_connected
             global tex
+
             self.bot_version = float(self.bot_version)
             bot_needs_update = False
             bot_first_launch = False
@@ -458,6 +459,24 @@ if is_admin():
                 bot_first_launch = True
             if not exists(f"{self.dataDict['hon_root_dir']}\\Documents"):
                 os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
+
+            try:
+                deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
+                if deployed_status['hon_directory'] != self.dataDict['hon_directory']:
+                    # think about migrating here, like
+                    #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
+                    try:
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
+                    except Exception as e:
+                        print(e)
+                if deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
+                    try:
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                    except Exception as e:
+                        print(e)
+            except Exception as e:
+                            print(e)
 
             if exists(self.hon_logs_dir):
                 print("exists: " + self.hon_logs_dir)
@@ -892,6 +911,8 @@ if is_admin():
             hondirectory = os.path.join(hondirectory, '')
             ports_to_forward_game=[]
             ports_to_forward_voice=[]
+
+
             # if 'github_branch' not in self.dataDict:
             #     self.dataDict.update({'github_branch':selected_branch})
             # if identifier == "update":
@@ -1011,6 +1032,8 @@ if is_admin():
                 # with open(config_global, "w") as b:
                 #     conf_global.write(b)
                 # b.close()
+                
+
                 initialise().configureEnvironment(self,force_update,use_console)
                 hon_api_updated = False
             if identifier == "all":
@@ -1055,7 +1078,6 @@ if is_admin():
                     # with open(config_global, "w") as d:
                     #     conf_global.write(d)
                     # d.close()
-                    initialise().configureEnvironment(self,force_update,use_console)
                     hon_api_updated = False
             #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
             tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
