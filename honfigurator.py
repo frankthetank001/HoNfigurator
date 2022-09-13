@@ -1341,10 +1341,7 @@ if is_admin():
                     print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
-                        if pcount > 0:
-                            log_File = "Slave-*_M*console.clog"
-                        else:
-                            log_File = "Slave*.log"
+                        log_File = "Slave*log"
                     if (tabgui2.index("current")) == 1:
                         if pcount > 0:
                             logs_dir = f"{deployed_status['hon_logs_dir']}\\"
