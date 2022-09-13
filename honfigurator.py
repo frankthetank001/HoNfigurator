@@ -1328,7 +1328,7 @@ if is_admin():
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[30,30],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[300,0],pady=[20,10])
-            app.rowconfigure(13,weight=1)
+            app.rowconfigure(14,weight=1)
             app.columnconfigure(0,weight=1)
             
             """
@@ -1358,11 +1358,11 @@ if is_admin():
 
                 # create a Text widget
                     tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
-                    tex.grid(row=14, column=0, sticky="nsew", padx=2, pady=2)
+                    tex.grid(row=15, column=0, sticky="nsew", padx=2, pady=2)
                     tex.tag_config('warning', background="yellow", foreground="red")
                 # create a Scrollbar and associate it with txt
                     scrollb = ttk.Scrollbar(app, command=tex.yview)
-                    scrollb.grid(row=14, column=1, sticky='nsew')
+                    scrollb.grid(row=15, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
             ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
