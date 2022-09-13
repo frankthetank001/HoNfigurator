@@ -1338,10 +1338,11 @@ if is_admin():
                 def ViewLog(self):
                     tex.delete('1.0', END)
                     logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                    print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
                         if pcount > 0:
-                            log_File = "Slave-1_M*console.clog"
+                            log_File = "Slave-*_M*console.clog"
                         else:
                             log_File = "Slave*.log"
                     if (tabgui2.index("current")) == 1:
