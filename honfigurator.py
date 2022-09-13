@@ -258,41 +258,41 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            sp.Popen([self.nssm, "install",service_name,"python.exe",f"sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"sdc.py"])
             return True
         def create_service_generic(self,service_name,application):
-            sp.Popen([self.nssm, "install",service_name,f"{self.hon_directory}{application}"])
+            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.hon_directory}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
-            sp.Popen([self.nssm, "set",service_name,"Application",f"{self.hon_directory}{application}"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.hon_directory}{application}"])
             time.sleep
             if arguments is not None:
-                sp.Popen([self.nssm, "set",service_name,"AppParameters",arguments])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
                 time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,"Start","SERVICE_DEMAND_START"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,f"AppExit","Default","Restart"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.nssm, "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_root_dir']}"])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_root_dir']}"])
             elif service_name == "HoN Proxy Manager":
-                sp.Popen([self.nssm, "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
-            sp.Popen([self.nssm, "set",service_name,f"Application",f"{self.hon_directory}API_HON_SERVER.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.hon_directory}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            sp.Popen([self.nssm, "set",service_name,"Application","python.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application","python.exe"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,"Start","SERVICE_DEMAND_START"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,f"AppExit","Default","Restart"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
-            sp.Popen([self.nssm, "set",service_name,"AppParameters","sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters","sdc.py"])
             return True
 
         def restart_service(self,service_name):
