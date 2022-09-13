@@ -23,6 +23,7 @@ import multiprocessing
 
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser()
+conf_parse_deployed = configparser.ConfigParser()
 
 class mData():
     def __init__(self):
@@ -41,6 +42,7 @@ class mData():
         self.svr_id = self.confDict['svr_id']
         #
         #   Update the dictionary with some processed data
+        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
         self.confDict.update({"hon_home_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
         self.confDict.update({"hon_game_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}\\Documents\\Heroes of Newerth x64\\game"})
         self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
@@ -65,6 +67,8 @@ class mData():
             self.confDict.update({'debug_mode':False})
         if 'use_proxy' not in self.confDict:
             self.confDict.update({'use_proxy':'True'})
+        if 'use_console' not in self.confDict:
+            self.confDict.update({'use_console':'False'})
         if 'svr_login' not in self.confDict:
             self.confDict.update({'svr_login':'<username>'})
         if 'svr_password' not in self.confDict:
@@ -105,24 +109,34 @@ class mData():
         elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+        else:
+            self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
     def returnDict_basic(self,svr_id):
         conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
         conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
-        self.confDict_basic = {}
+        
+        self.confDict_root = {}
+        self.confDict_deployed = {}
         for option in conf_parse_local.options("OPTIONS"):
-            self.confDict_basic.update({option:conf_parse_local['OPTIONS'][option]})
+            self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
-            self.confDict_basic.update({option:conf_parse_global['OPTIONS'][option]})
-        self.confDict_basic.update({"hon_home_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
-        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
-        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_logs_dir']}\\sdc"})
-        self.confDict_basic.update({"nssm_exe":f"{self.confDict_basic['hon_directory']}"+"nssm.exe"})
-        self.confDict_basic.update({"svr_identifier":f"{self.confDict_basic['svr_hoster']}-{svr_id}"})
-        self.confDict_basic.update({"svrid_total":f"{svr_id}/{self.confDict_basic['svr_total']}"})
-        self.confDict_basic.update({"svr_id_w_total":f"{self.confDict_basic['svr_hoster']}-{svr_id}/{self.confDict_basic['svr_total']}"})
-        return self.confDict_basic
+            self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+        self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
+        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\sdc"})
+        self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
+        self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
+        self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
+        self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
+        conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+        for option in conf_parse_deployed.options("OPTIONS"):
+            self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+        if 'use_console' not in self.confDict_deployed:
+            self.confDict_deployed.update({'use_console':'False'})
+        return self.confDict_deployed
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
@@ -237,7 +251,7 @@ class mData():
         elif type == "proxy":
             with open(filename, 'w') as proxy:
                 for k, v in dict_proxy.items():
-                    v = v.replace('"','')
+                    # v = v.replace('"','')
                     proxy.write(f'{k}={v}\n')
             if exists(filename):
                 os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
