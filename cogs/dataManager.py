@@ -22,8 +22,8 @@ import multiprocessing
 #import cogs.server_status as svrcmd
 
 conf_parse_global = configparser.ConfigParser()
-conf_parse_local = configparser.ConfigParser()
-conf_parse_deployed = configparser.ConfigParser()
+conf_parse_local = configparser.ConfigParser(interpolation=None)
+conf_parse_deployed = configparser.ConfigParser(interpolation=None)
 
 class mData():
     def __init__(self):
