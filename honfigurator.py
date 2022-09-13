@@ -1160,7 +1160,7 @@ if is_admin():
             tab1_user.grid(column= 1 , row = 3,sticky="w",pady=4,padx=[0,130])
             #   server password
             applet.Label(tab1, text="HoN Password:",background=maincolor,foreground='white').grid(column=1,row=3,sticky="e")
-            tab1_pass = applet.Entry(tab1,foreground=textcolor,width=16)
+            tab1_pass = applet.Entry(tab1,foreground=textcolor,width=16,show="*")
             tab1_pass.insert(0,self.dataDict['svr_password'])
             tab1_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
             #
