@@ -920,7 +920,7 @@ if is_admin():
                     #if force_update or bot_needs_update or bot_first_launch:
                     if force_update:
                         if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}KONGOR ARENA MANAGER.exe")
+                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
                         initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.restart_service(self,service_manager_name)
@@ -929,7 +929,7 @@ if is_admin():
                         service_manager = initialise.get_service(service_manager_name)
                 else:
                     if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
-                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}KONGOR ARENA MANAGER.exe")
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
                     initialise.create_service_generic(self,service_manager_name,manger_application)
                     initialise.start_service(self,service_manager_name)
                     service_manager = initialise.get_service(service_manager_name)
