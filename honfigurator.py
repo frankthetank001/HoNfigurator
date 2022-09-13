@@ -685,7 +685,7 @@ if is_admin():
                     application="proxymanager.exe"
                     initialise.create_service_generic(self,service_proxy_name,application)
                     time.sleep(1)
-                    initialise.start_service(self,service_manager_name)
+                    initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_manager_name)
                 service_bot = initialise.get_service(self.service_name_bot)
                 if service_bot:
