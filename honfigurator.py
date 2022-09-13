@@ -651,7 +651,7 @@ if is_admin():
                             initialise.start_service(self,service_manager_name)
                         service_manager = initialise.get_service(service_manager_name)
                 else:
-                    initialise.create_service_generic(self,service_manager_name,manger_application,manager_arguments)
+                    initialise.create_service_generic(self,service_manager_name,manger_application)
                     initialise.start_service(self,service_manager_name)
                     service_manager = initialise.get_service(service_manager_name)
                     if service_manager:
