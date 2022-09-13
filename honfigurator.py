@@ -1079,6 +1079,7 @@ if is_admin():
                     #     conf_global.write(d)
                     # d.close()
                     hon_api_updated = False
+                    initialise().configureEnvironment(self,force_update,use_console)
             #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
             tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
             tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice))+'\n')
