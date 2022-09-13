@@ -634,6 +634,7 @@ if is_admin():
                     else:
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
+            if use_console == False:
                 service_bot = initialise.get_service(self.service_name_bot)
                 if service_bot:
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
@@ -901,7 +902,7 @@ if is_admin():
             #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
             # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
             #initialise.add_hosts_entry(self)
-            if use_proxy == True:
+            if use_proxy:
                 if not exists(hondirectory+'proxy.exe'):
                     tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again. Continuing with proxy disabled..\n")
                     use_proxy=False
@@ -935,7 +936,7 @@ if is_admin():
                     service_manager = initialise.get_service(service_manager_name)
                     if service_manager:
                         print("Manager started")
-                if 'use_proxy':
+                if use_proxy:
                     if service_proxy:
                         print("proxy exists")
                         #if force_update or bot_needs_update or bot_first_launch:
