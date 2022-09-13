@@ -456,7 +456,7 @@ if is_admin():
                 print("Created & Configured HoN environment: " + (os.environ["USERPROFILE"] + "!"))
                 bot_first_launch = True
             if not exists(f"{self.dataDict['hon_root_dir']}\\Documents"):
-                os.makedirs(f"{self.hon_home_dir}\\Documents")
+                os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
 
             if exists(self.hon_logs_dir):
                 print("exists: " + self.hon_logs_dir)
