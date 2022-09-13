@@ -1329,6 +1329,7 @@ if is_admin():
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[300,0],pady=[20,10])
             app.rowconfigure(14,weight=1)
+            app.rowconfigure(15,weight=1)
             app.columnconfigure(0,weight=1)
             
             """
