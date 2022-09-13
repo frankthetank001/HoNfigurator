@@ -25,6 +25,7 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 # determine if application is a script file or frozen exe
+
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
@@ -105,6 +106,13 @@ if is_admin():
             #     config = configparser.ConfigParser()
             #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
             # return
+        def start_bot(self,deployed):
+            #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
+            if deployed:
+                os.system(f"start cmd /k \"{deployed_status['sdc_home_dir']}\\sdc.py\"")
+            else:
+                os.system(f"start cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
+            #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
         def add_hosts_entry(self):
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
             hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
@@ -289,18 +297,18 @@ if is_admin():
             temFile = f"{self.sdc_home_dir}\\pending_restart"
             with open(temFile, "w") as f:
                 f.write("True")
-        def schedule_shutdown(server_status):
-            temFile = f"{server_status['sdc_home_dir']}\\pending_shutdown"
+        def schedule_shutdown(deployed_status):
+            temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
             with open(temFile, "w") as f:
                 f.write("True")
-        def check_schd_restart(server_status):
-            temFile = server_status['sdc_home_dir']+"\\pending_restart"
+        def check_schd_restart(deployed_status):
+            temFile = deployed_status['sdc_home_dir']+"\\pending_restart"
             if exists(temFile):
                 return True
             else:
                 return False
-        def check_schd_shutdown(server_status):
-            temFile = server_status['sdc_home_dir']+"\\pending_shutdown"
+        def check_schd_shutdown(deployed_status):
+            temFile = deployed_status['sdc_home_dir']+"\\pending_shutdown"
             if exists(temFile):
                 return True
             else:
@@ -405,7 +413,7 @@ if is_admin():
             except: 
                 print(traceback.format_exc())
                 return False
-        def configureEnvironment(self,configLoc,force_update):
+        def configureEnvironment(self,configLoc,force_update,use_console):
             global hon_api_updated
             global players_connected
             global tex
@@ -608,81 +616,84 @@ if is_admin():
                     else:
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
-            
-            service_bot = initialise.get_service(self.service_name_bot)
-            if service_bot:
-                print(f"HONSERVER STATUS: {self.service_name_bot}")
-                if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
-                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
-                    if force_update == True or bot_needs_update == True:
-                        #reconfigure service + restart
-                        initialise.configure_service_bot(self,self.service_name_bot)
-                        time.sleep(1)
-                        svr_state = svrcmd.honCMD()
-                        svr_state.getDataDict()
-                        playercount = initialise.playerCount(self)
-                        if playercount <= 0:
-                            print("No players connected, safe to restart...")
-                            initialise.stop_service(self,self.service_name_bot)
-                            if self.dataDict['master_server'] == "honmasterserver.com":
-                                try:
-                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
-                                    print("copying server exe...")
-                                except Exception as e: print(e + "can't replace exe.")
-                            if self.dataDict['master_server'] == "kongor.online:666":
-                                try:
-                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
-                                    print("copying server exe...")
-                                except Exception as e: print(e + "can't replace exe.")
-                            initialise.start_service(self,self.service_name_bot)
-                        else:
-                            players_connected = True
-                            initialise.schedule_restart(self)
-                else:
-                    if force_update == True or bot_needs_update == True:
-                        #reconfigure service + restart
-                        initialise.configure_service_bot(self,self.service_name_bot)
-                        time.sleep(1)
+            if use_console == False:
+                service_bot = initialise.get_service(self.service_name_bot)
+                if service_bot:
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
-                    initialise.start_service(self,self.service_name_bot)
-                    service_bot = initialise.get_service(self.service_name_bot)
-                    if service_bot['status'] == 'running':
-                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                    if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
+                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
+                        if force_update == True or bot_needs_update == True:
+                            #reconfigure service + restart
+                            initialise.configure_service_bot(self,self.service_name_bot)
+                            time.sleep(1)
+                            svr_state = svrcmd.honCMD()
+                            svr_state.getDataDict()
+                            playercount = initialise.playerCount(self)
+                            if playercount <= 0:
+                                print("No players connected, safe to restart...")
+                                initialise.stop_service(self,self.service_name_bot)
+                                if self.dataDict['master_server'] == "honmasterserver.com":
+                                    try:
+                                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}HON_SERVER_{self.svr_id}.exe")
+                                        print("copying server exe...")
+                                    except Exception as e: print(e + "can't replace exe.")
+                                if self.dataDict['master_server'] == "kongor.online:666":
+                                    try:
+                                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.hon_directory}KONGOR_ARENA_{self.svr_id}.exe")
+                                        print("copying server exe...")
+                                    except Exception as e: print(e + "can't replace exe.")
+                                initialise.start_service(self,self.service_name_bot)
+                            else:
+                                players_connected = True
+                                initialise.schedule_restart(self)
                     else:
-                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                        if force_update == True or bot_needs_update == True:
+                            #reconfigure service + restart
+                            initialise.configure_service_bot(self,self.service_name_bot)
+                            time.sleep(1)
+                        print(f"HONSERVER STATUS: {self.service_name_bot}")
+                        initialise.start_service(self,self.service_name_bot)
+                        service_bot = initialise.get_service(self.service_name_bot)
+                        if service_bot['status'] == 'running':
+                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                        else:
+                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                        print("==========================================")
+                else:
+                    bot_needs_update = True
                     print("==========================================")
+                    print(f"Creating adminbot: {self.service_name_bot}..")
+                    print("==========================================")
+                    initialise.create_service_bot(self,self.service_name_bot)
+                    time.sleep(1)
+                    initialise.configure_service_bot(self,self.service_name_bot)
+                    initialise.start_service(self,self.service_name_bot)
+                    print("==========================================")
+                    print(f"HONSERVER STATUS: {self.service_name_bot}")
+                if force_update == True or bot_first_launch == True or bot_needs_update == True:
+                    if players_connected == True:
+                        tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
+                        print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+                    if self.dataDict['use_proxy'] == 'False':
+                        tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+                        ports_to_forward_game.append(self.startup['svr_port'])
+                        ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
+                    elif self.dataDict['use_proxy'] == 'True':
+                        tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
+                        ports_to_forward_game.append(self.startup['svr_proxyPort'])
+                        ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])                
+                    print("==========================================")
+                else:
+                    print("==========================================")
+                    tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
+                    tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
+                    #tex.insert(END,"==============================================\n")
+                bot_needs_update = False
+                players_connected = False
             else:
-                bot_needs_update = True
-                print("==========================================")
-                print(f"Creating adminbot: {self.service_name_bot}..")
-                print("==========================================")
-                initialise.create_service_bot(self,self.service_name_bot)
-                time.sleep(1)
-                initialise.configure_service_bot(self,self.service_name_bot)
-                initialise.start_service(self,self.service_name_bot)
-                print("==========================================")
-                print(f"HONSERVER STATUS: {self.service_name_bot}")
-            if force_update == True or bot_first_launch == True or bot_needs_update == True:
-                if players_connected == True:
-                    tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
-                    print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
-                if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
-                    ports_to_forward_game.append(self.startup['svr_port'])
-                    ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
-                elif self.dataDict['use_proxy'] == 'True':
-                    tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
-                    ports_to_forward_game.append(self.startup['svr_proxyPort'])
-                    ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])                
-                print("==========================================")
-            else:
-                print("==========================================")
-                tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
-                tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
-                #tex.insert(END,"==============================================\n")
-            bot_needs_update = False
-            players_connected = False
-
+                playercount = initialise.playerCount(self)
+                if playercount == -3:
+                    initialise.start_bot(self,False)
     class honfigurator():
         global tex
         def __init__(self):
@@ -851,11 +862,12 @@ if is_admin():
                 self.git_branch.set(current_branch)
                 return False
             
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
             global ports_to_forward_voice
+            
             conf_local = configparser.ConfigParser()
             conf_global = configparser.ConfigParser()
             #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
@@ -907,6 +919,7 @@ if is_admin():
                 conf_local.set("OPTIONS","use_proxy",str(use_proxy))
                 conf_local.set("OPTIONS","svr_login",svr_login)
                 conf_local.set("OPTIONS","svr_password",svr_password)
+                conf_local.set("OPTIONS","use_console",str(use_console))
                 with open(config_local, "w") as a:
                     conf_local.write(a)
                 a.close()
@@ -919,7 +932,7 @@ if is_admin():
                 # with open(config_global, "w") as b:
                 #     conf_global.write(b)
                 # b.close()
-                initialise().configureEnvironment(self,force_update)
+                initialise().configureEnvironment(self,force_update,use_console)
                 hon_api_updated = False
             if identifier == "all":
                 #tex.insert(END,"==========================================\n")
@@ -951,6 +964,7 @@ if is_admin():
                     conf_local.set("OPTIONS","use_proxy",str(use_proxy))
                     conf_local.set("OPTIONS","svr_login",svr_login)
                     conf_local.set("OPTIONS","svr_password",svr_password)
+                    conf_local.set("OPTIONS","use_console",str(use_console))
                     with open(config_local, "w") as c:
                         conf_local.write(c)
                     c.close()
@@ -962,7 +976,7 @@ if is_admin():
                     # with open(config_global, "w") as d:
                     #     conf_global.write(d)
                     # d.close()
-                    initialise().configureEnvironment(self,force_update)
+                    initialise().configureEnvironment(self,force_update,use_console)
                     hon_api_updated = False
             #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
             tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
@@ -1099,10 +1113,10 @@ if is_admin():
             self.svr_id_var.trace_add('write', self.svr_num_link)
             
             #   HoN Directory
-            applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
             tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
             tab1_hondird.insert(0,self.dataDict['hon_directory'])
-            tab1_hondird.grid(columnspan=3,column= 1, row = 11,sticky="w",pady=4)
+            tab1_hondird.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
             #  HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
@@ -1143,7 +1157,14 @@ if is_admin():
             applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
             self.forceupdate = tk.BooleanVar(app)
             tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-            tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w",pady=4)
+            tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w",pady=2)
+            #   console windows, for launching servers locally (not as windows services)
+            applet.Label(tab1, text="Launch as Console (BETA):",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+            self.console = tk.BooleanVar(app)
+            if self.dataDict['use_console'] == 'True':
+                self.console.set(True)
+            tab1_console_btn = applet.Checkbutton(tab1,variable=self.console)
+            tab1_console_btn.grid(column= 1, row = 11,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
             #
             
@@ -1194,9 +1215,9 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[0,300],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[30,30],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=13,stick='n',padx=[300,0],pady=[20,10])
@@ -1246,8 +1267,8 @@ if is_admin():
             def clean_all():
                 count=0
                 for i in range (1,int(self.dataDict['svr_total'])):
-                    server_status = dmgr.mData.returnDict_basic(self,i)
-                    paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
+                    deployed_status = dmgr.mData.returnDict_basic(self,i)
+                    paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
                     for path in paths:
                         for f in os.listdir(path):
@@ -1257,7 +1278,7 @@ if is_admin():
                                     os.remove(os.path.join(path, f))
                                     count+=1
                                     print("removed "+f)
-                    replays = f"{server_status['hon_game_dir']}\\replays"
+                    replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
                         if os.stat(f).st_mtime < now - 7 * 86400:
@@ -1286,7 +1307,7 @@ if is_admin():
                 def __init__(self,btn,i,p):
                     global id
                     global pcount
-                    global server_status
+                    global deployed_status
                     global service_name
 
                     service_name = f"adminbot{i}"
@@ -1294,7 +1315,7 @@ if is_admin():
                     pcount = p
                     self.initdict = dmgr.mData()
                     self.dataDict = self.initdict.returnDict()
-                    server_status = dmgr.mData.returnDict_basic(self,id)
+                    deployed_status = dmgr.mData.returnDict_basic(self,id)
                     # self.pcount = pcount
                     print(f"{i} {btn}")
                     if btn == "View Log":
@@ -1316,7 +1337,7 @@ if is_admin():
 
                 def ViewLog(self):
                     tex.delete('1.0', END)
-                    logs_dir = f"{server_status['hon_logs_dir']}\\"
+                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
                     # Server Log
                     if (tabgui2.index("current")) == 0:
                         if pcount > 0:
@@ -1325,16 +1346,16 @@ if is_admin():
                             log_File = "Slave*.log"
                     if (tabgui2.index("current")) == 1:
                         if pcount > 0:
-                            logs_dir = f"{server_status['hon_logs_dir']}\\"
+                            logs_dir = f"{deployed_status['hon_logs_dir']}\\"
                             log_File = "M*.log"
                         else:
                             tex.insert(END,'No match in progress.')
                             return
                     if (tabgui2.index("current")) == 2:
-                        logs_dir = f"{server_status['sdc_home_dir']}\\"
+                        logs_dir = f"{deployed_status['sdc_home_dir']}\\"
                         log_File = "sdc.log"
                     if (tabgui2.index("current")) == 3:
-                        logs_dir = f"{server_status['hon_home_dir']}\\HoNProxyManager\\"
+                        logs_dir = f"{deployed_status['hon_home_dir']}\\HoNProxyManager\\"
                         log_File = "*proxy*"
                     list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
 
@@ -1349,26 +1370,34 @@ if is_admin():
                     tex.see(tk.END)
 
                 def Start(self):
-                    self.service = initialise.get_service(service_name)
-                    if self.service['status'] == 'stopped':
-                        if initialise.start_service(self,service_name):
-                            tex.insert(END,f"{service_name} started successfully.\n")
-                            app.after(10000,viewButton.refresh)
-                        else:
-                            tex.insert(END,f"{service_name} failed to start.\n")
+                    if deployed_status['use_console'] == 'True':
+                        pcount = initialise.playerCountX(self,id)
+                        if pcount == -3:
+                            initialise.start_bot(self,True)
+                    else:
+                        self.service = initialise.get_service(service_name)
+                        if self.service['status'] == 'stopped':
+                            if initialise.start_service(self,service_name):
+                                tex.insert(END,f"{service_name} started successfully.\n")
+                                app.after(10000,viewButton.refresh)
+                            else:
+                                tex.insert(END,f"{service_name} failed to start.\n")
                 def Stop(self):
                     pcount = initialise.playerCountX(self,id)
                     if pcount <= 0:
-                        if initialise.stop_service(self,service_name):
-                            tex.insert(END,f"{service_name} stopped successfully.\n")
-                            viewButton.load_server_mgr(self)
-                        else:
-                            tex.insert(END,f"{service_name} failed to stop.\n")
+                        if deployed_status['use_console'] == 'False':
+                            if initialise.stop_service(self,service_name):
+                                tex.insert(END,f"{service_name} stopped successfully.\n")
+                                viewButton.load_server_mgr(self)
+                            else:
+                                tex.insert(END,f"{service_name} failed to stop.\n")
+                        # else:
+
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
-                        initialise.schedule_shutdown(server_status)
+                        initialise.schedule_shutdown(deployed_status)
                 def Clean(self):
-                    paths = [f"{server_status['hon_logs_dir']}",f"{server_status['hon_logs_dir']}\\diagnostics",f"{server_status['hon_home_dir']}\\HoNProxyManager"]
+                    paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
                     count=0
                     for path in paths:
@@ -1379,7 +1408,7 @@ if is_admin():
                                     os.remove(os.path.join(path, f))
                                     count+=1
                                     print("removed "+f)
-                    replays = f"{server_status['hon_game_dir']}\\replays"
+                    replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
                         if os.stat(f).st_mtime < now - 7 * 86400:
@@ -1405,9 +1434,9 @@ if is_admin():
                         service_state = initialise.get_service(service_name)
                         if service_state == False or service_state['status'] == 'stopped':
                             try:
-                                #shutil.copy(f"{server_status['sdc_home_dir']}\\cogs\\total_games_played")
-                                rem = shutil.rmtree(server_status['hon_home_dir'],onerror=honfigurator.onerror)
-                                tex.insert(END,f"removed files: {server_status['hon_home_dir']}")
+                                #shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played")
+                                rem = shutil.rmtree(deployed_status['hon_home_dir'],onerror=honfigurator.onerror)
+                                tex.insert(END,f"removed files: {deployed_status['hon_home_dir']}")
                             except Exception as e:
                                 print(e)
                             try:
@@ -1417,7 +1446,7 @@ if is_admin():
                     else:
                         print("[ABORT] players are connected. You must stop the service before uninstalling..")
                         tex.insert(END,"[ABORT] players are connected. You must stop the service before uninstalling..\n")
-                        initialise.schedule_shutdown(server_status)
+                        initialise.schedule_shutdown(deployed_status)
             #app.attributes("-topmost",True)
                 def load_server_mgr(self,*args):
                     global total_columns
@@ -1427,6 +1456,7 @@ if is_admin():
                     c=0
                     c_len = len(ButtonString)+len(LablString)
                     mod=11
+                    svc_or_con="svc"
                     # create a grid of 2x6
                     for t in range(20):
                         tab2.rowconfigure(t, weight=1,pad=0)
@@ -1436,8 +1466,8 @@ if is_admin():
                         x+=1
                         i+=1
                         service_name = f"adminbot{x}"
-                        server_status = dmgr.mData.returnDict_basic(self,x)
-                        dir_name = f"{server_status['hon_logs_dir']}\\"
+                        deployed_status = dmgr.mData.returnDict_basic(self,x)
+                        dir_name = f"{deployed_status['hon_logs_dir']}\\"
                         file = "Slave*.log"
                         log = False
                         try:
@@ -1447,11 +1477,11 @@ if is_admin():
                             print(e)
                         cookie = True
                         if log != False:
-                            cookie = svrcmd.honCMD.check_cookie(server_status,log,"honfigurator_log_check")
+                            cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                         schd_restart = False
                         schd_shutdown = False
-                        schd_restart=initialise.check_schd_restart(server_status)
-                        schd_shutdown=initialise.check_schd_shutdown(server_status)
+                        schd_restart=initialise.check_schd_restart(deployed_status)
+                        schd_shutdown=initialise.check_schd_shutdown(deployed_status)
                         service_state = initialise.get_service(service_name)
                         pcount = initialise.playerCountX(self,x)
                         #
@@ -1487,15 +1517,20 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
-                            if service_state is not None:
+                            if service_state is not None and deployed_status['use_console'] == 'False':
                                 if service_state == False or service_state['status'] == 'stopped':
                                     colour = 'OrangeRed4'
-                                    LablString[1]=f"Stopped"
+                                    svc_or_con="svc"
+                                    #LablString[1]=f"svc-Stopped"
+                            elif deployed_status['use_console'] == 'True' and pcount <0:
+                                colour = 'OrangeRed4'
+                                svc_or_con="con"
+                                #LablString[1]=f"con-Stopped"
                             c_pos1 = index1 + c
                             if index1==0:
                                 labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
                             elif index1==1:
-                                labl = Label(tab2,width=14,text=f"{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')
                             labl.grid(row=i, column=c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
