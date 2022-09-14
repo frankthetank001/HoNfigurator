@@ -436,6 +436,14 @@ if is_admin():
             except: 
                 print(traceback.format_exc())
                 return False
+        def remove_firewall(self,name,application):
+            try:
+                check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
+                if check_rule == 0:
+                    remove_rule = os.system(f"netsh advfirewall firewall delete rule name \"{name}\"")
+            except: 
+                print(traceback.format_exc())
+                return False
         def configureEnvironment(self,configLoc,force_update,use_console):
             global hon_api_updated
             global players_connected
@@ -535,7 +543,10 @@ if is_admin():
             if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
                 print(f"Server is already configured, checking values for {self.service_name_bot}...")
                 dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
-            firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
+            if self.dataDict['use_proxy'] == True:
+                firewall = initialise.remove_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
+            else:
+                firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
             if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
             #   below commented as we are no longer using game_settings_local.cfg
             #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
@@ -1842,8 +1853,8 @@ if is_admin():
                         labl = applet.Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                     else:
                         labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
-                        btn = applet.Button(tab2, text="Start",command=lambda: viewButton.StartProxy())
-                        btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[250,0])
+                        # btn = applet.Button(tab2, text="Start",command=lambda: viewButton.StartProxy())
+                        # btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[250,0])
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n')
                     if manager_service['status'] == 'running':
                         labl = applet.Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
