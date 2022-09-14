@@ -1454,6 +1454,8 @@ if is_admin():
                 def ViewLog(self):
                     tex.delete('1.0', END)
                     logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                    status = Label(tab2,width=14,text=f"testing", background=maincolor,foreground='white')
+                    status.grid(row=13,column=0)
                     #print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
@@ -1470,7 +1472,7 @@ if is_admin():
                                 tem=line.lower()
                                 if any(x.lower() in tem for x in warnings):
                                     tex.insert(tk.END,line,'warning')
-                                if any(x.lower() in tem for x in info):
+                                elif any(x.lower() in tem for x in info):
                                     tex.insert(tk.END,line,'interest')
                                 else:
                                     tex.insert(tk.END,line)
@@ -1490,7 +1492,7 @@ if is_admin():
                                 tem=line.lower()
                                 if any(x.lower() in tem for x in warnings):
                                     tex.insert(tk.END,line,'warning')
-                                if any(x.lower() in tem for x in info):
+                                elif any(x.lower() in tem for x in info):
                                     tex.insert(tk.END,line,'interest')
                                 else:
                                     tex.insert(tk.END,line)
@@ -1698,7 +1700,7 @@ if is_admin():
                     tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[80,0],pady=[20,10])
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                     tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,80],pady=[20,10])
-                    tabgui2.grid(column=0,row=13,sticky='ew',columnspan=total_columns)
+                    tabgui2.grid(column=0,row=14,sticky='ew',columnspan=total_columns)
                 def Tools():
                     pass
             # create a Scrollbar and associate it with txt
