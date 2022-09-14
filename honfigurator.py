@@ -1012,7 +1012,7 @@ if is_admin():
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
                     if not exists(proxy_config_location):
-                        os.mkdir(proxy_config_location)
+                        os.makedirs(proxy_config_location)
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
@@ -1039,7 +1039,7 @@ if is_admin():
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
                     if not exists(proxy_config_location):
-                        os.mkdir(proxy_config_location)
+                        os.makedirs(proxy_config_location)
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
@@ -1443,6 +1443,7 @@ if is_admin():
 
             ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
             LablString = ['hon_server_','test','space']
+            LablStringTop = ['ProxyManager','test']
 
             # Calling this function from somewhere else via Queue
             import fnmatch
@@ -1585,7 +1586,7 @@ if is_admin():
                         log_File = f"proxy_{20000 + int(deployed_status['svr_id']) - 1}*.log"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
-                        warnings=["BANNED","BLOCKED","CLOSED"]
+                        warnings=["BANNED","BLOCKED","CLOSED","UNDER ATTACK"]
                         with open(latest_file,'r') as file:
                             for line in file:
                                 tem=line.lower()
@@ -1622,7 +1623,12 @@ if is_admin():
                             else:
                                 tex.insert(END,f"{service_name} failed to stop.\n")
                         else:
-                            initialise.stop_bot(self,)
+                            self.service = initialise.get_service(service_name)
+                            if self.service['status'] == 'running' or 'paused':
+                                if initialise.stop_service(self,service_name):
+                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                    viewButton.load_server_mgr(self)
+                            initialise.stop_bot(self,NULL)
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
@@ -1682,9 +1688,11 @@ if is_admin():
                     global total_columns
                     # if (tabgui.index("current")) == 1:
                     app.lift()
-                    i=0
+                    i=2
+                    z=0
                     c=0
                     c_len = len(ButtonString)+len(LablString)
+                    c_len_top = len(ButtonString)+len(LablStringTop)
                     mod=11
                     svc_or_con="svc"
                     # create a grid of 2x6
@@ -1692,6 +1700,16 @@ if is_admin():
                         tab2.rowconfigure(t, weight=1,pad=0)
                     for o in range(100):
                         tab2.columnconfigure(o, weight=1,pad=0)
+                    #Proxy and Manager
+                    n=0
+                    for m in range(1,3):
+                        z+=1
+                        if z == 2:
+                            n+=c_len_top
+                        for index1, labl_name in enumerate(LablStringTop):
+                            c_pos1 = index1 + n
+                            labl = Label(tab2,width=12,text=f"{labl_name}", background="red", foreground='white')
+                            labl.grid(row=1, column=n)
                     for x in range(0,int(self.dataDict['svr_total'])):
                         x+=1
                         i+=1
@@ -1705,7 +1723,6 @@ if is_admin():
                             log = max(list_of_files, key=os.path.getctime)
                         except Exception as e:
                             print(e)
-                        cookie = True
                         if log != False:
                             cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                         schd_restart = False
@@ -1718,8 +1735,9 @@ if is_admin():
                         # when total servers goes over <num>, move to the next column, and set row back to 1.
                         if i%mod==0:
                             c+=c_len
-                            i=1
-                        LablString[0]=f"hon_server_{x}"
+                            i=3
+                        else:
+                            LablString[0]=f"hon_server_{x}"
                         for index1, labl_name in enumerate(LablString):
                             if cookie:
                                 if pcount < 0:
@@ -1773,7 +1791,6 @@ if is_admin():
                     print(column_rows)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
-                    
                     tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
                     tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[80,0],pady=[20,10])
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
