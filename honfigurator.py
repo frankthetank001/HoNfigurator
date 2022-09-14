@@ -1498,7 +1498,7 @@ if is_admin():
                                 tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 3:
                         logs_dir = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
-                        log_File = f"proxy_{20000 + int(deployed_status['svr_id'])}*.log"
+                        log_File = f"proxy_{20000 - int(deployed_status['svr_id'])}*.log"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
                         warnings=["BANNED","BLOCKED","CLOSED"]
