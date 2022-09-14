@@ -1743,7 +1743,7 @@ if is_admin():
                     else:
                         labl = Label(tab2,width=20,text=f"Server Manager - Down", background="red", foreground='white')
                     labl.grid(row=1, column=0,columnspan=60,padx=[0,200],sticky='n')
-                    tab2.rowconfigure(1,weight=1)
+                    tab2.grid_rowconfigure(1,weight=1)
                     for x in range(0,int(self.dataDict['svr_total'])):
                         x+=1
                         i+=1
