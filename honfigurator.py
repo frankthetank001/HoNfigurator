@@ -990,6 +990,11 @@ if is_admin():
                             print("Manager started")
             if use_proxy:
                 application="proxymanager.exe"
+                proxy_running=False
+                for proc in psutil.process_iter():
+                    # check whether the process name matches
+                    if proc.name() == "proxymanager.exe":
+                        proxy_running = True
                 if service_proxy:
                     print("proxy exists")
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
@@ -1012,11 +1017,6 @@ if is_admin():
                             initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
                 else:
-                    proxy_running=False
-                    for proc in psutil.process_iter():
-                        # check whether the process name matches
-                        if proc.name() == manger_application:
-                            proxy_running = True
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
                     if not exists(proxy_config_location):
