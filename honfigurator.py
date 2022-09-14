@@ -440,7 +440,7 @@ if is_admin():
             try:
                 check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
                 if check_rule == 0:
-                    remove_rule = os.system(f"netsh advfirewall firewall delete rule name \"{name}\"")
+                    remove_rule = os.system(f"netsh advfirewall firewall delete rule name=\"{name}\"")
             except: 
                 print(traceback.format_exc())
                 return False
