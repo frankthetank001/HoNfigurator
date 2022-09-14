@@ -15,7 +15,7 @@ processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
 match_status = {}
 size_changed = True
-os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
+os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
 os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
