@@ -902,7 +902,7 @@ if is_admin():
                             #test
                             path=os.path.abspath(__file__)
                             path=f"\"{path}\""
-                            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                            os.execl(sys.executable, path, *sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
