@@ -693,10 +693,10 @@ if is_admin():
                                     except Exception as e: print(e + "can't replace exe.")
                                 if self.dataDict['use_proxy']=='True':
                                     if proxy_service['status'] != 'running':
-                                        initialise.start_service(self,self.service_name_bot)
-                                    else:
                                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                                         tex.see(tk.END)
+                                    else:
+                                        initialise.start_service(self,self.service_name_bot)
                                 else:
                                     initialise.start_service(self,self.service_name_bot)
                             else:
@@ -710,10 +710,10 @@ if is_admin():
                         print(f"HONSERVER STATUS: {self.service_name_bot}")
                         if self.dataDict['use_proxy']=='True':
                             if proxy_service['status'] != 'running':
-                                initialise.start_service(self,self.service_name_bot)
-                            else:
                                 tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                                 tex.see(tk.END)
+                            else:
+                                initialise.start_service(self,self.service_name_bot)
                         else:
                             initialise.start_service(self,self.service_name_bot)
                         service_bot = initialise.get_service(self.service_name_bot)
@@ -732,10 +732,10 @@ if is_admin():
                     initialise.configure_service_bot(self,self.service_name_bot)
                     if self.dataDict['use_proxy']=='True':
                         if proxy_service['status'] != 'running':
-                            initialise.start_service(self,self.service_name_bot)
-                        else:
                             tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                             tex.see(tk.END)
+                        else:
+                            initialise.start_service(self,self.service_name_bot)
                     else:
                         initialise.start_service(self,self.service_name_bot)
                     print("==========================================")
@@ -768,12 +768,12 @@ if is_admin():
                 if playercount == -3:
                     if self.dataDict['use_proxy']=='True':
                         if proxy_service['status'] != 'running':
-                            initialise.start_bot(self,False)
-                        else:
                             tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                             tex.see(tk.END)
+                        else:
+                            initialise.start_bot(self,False)
                     else:
-                        initialise.start_bot(self,False)
+                        initialise.start_bot(self,True)
     class honfigurator():
         global tex
         def __init__(self):
@@ -1645,10 +1645,10 @@ if is_admin():
                         if pcount == -3:
                             if self.dataDict['use_proxy']=='True':
                                 if proxy_service['status'] != 'running':
-                                    initialise.start_bot(self,False)
-                                else:
                                     tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                                     tex.see(tk.END)
+                                else:
+                                    initialise.start_bot(self,False)
                             else:
                                 initialise.start_bot(self,True)
                     else:
