@@ -1005,7 +1005,7 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if force_update or restart_proxy:
+                    if restart_proxy or proxy_running=False:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                             if use_console:
@@ -1025,7 +1025,7 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.writelines([items])
-                    if force_update or restart_proxy or proxy_running == False:
+                    if restart_proxy or proxy_running == False:
                         if use_console:
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
