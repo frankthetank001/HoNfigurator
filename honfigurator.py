@@ -1722,7 +1722,6 @@ if is_admin():
                     i=2
                     c=0
                     c_len = len(ButtonString)+len(LablString)
-                    c_len_top = len(ButtonString)+len(LablStringTop)
                     mod=11
                     svc_or_con="svc"
                     # create a grid of 2x6
@@ -1730,20 +1729,6 @@ if is_admin():
                         tab2.rowconfigure(t, weight=1,pad=0)
                     for o in range(100):
                         tab2.columnconfigure(o, weight=1,pad=0)
-                    #Proxy and Manager
-                    manager_service=initialise.get_service("HoN Server Manager")
-                    proxy_service=initialise.get_service("HoN Proxy Manager")
-                    if proxy_service['status'] == 'running':
-                        labl = Label(tab2,width=20,text=f"Proxy Manager - UP", background="green", foreground='white')
-                    else:
-                        labl = Label(tab2,width=20,text=f"Proxy Manager - Down", background="red", foreground='white')
-                    labl.grid(row=1, column=0,columnspan=60,padx=[200,0],sticky='n')
-                    if manager_service['status'] == 'running':
-                        labl = Label(tab2,width=20,text=f"Server Manager - UP", background="green", foreground='white')
-                    else:
-                        labl = Label(tab2,width=20,text=f"Server Manager - Down", background="red", foreground='white')
-                    labl.grid(row=1, column=0,columnspan=60,padx=[0,200],sticky='n')
-                    tab2.grid_rowconfigure(1,weight=1)
                     for x in range(0,int(self.dataDict['svr_total'])):
                         x+=1
                         i+=1
@@ -1823,6 +1808,21 @@ if is_admin():
                     total_columns=column_rows[0]
                     total_rows=column_rows[1]
                     print(column_rows)
+
+                    #Proxy and Manager
+                    manager_service=initialise.get_service("HoN Server Manager")
+                    proxy_service=initialise.get_service("HoN Proxy Manager")
+                    if proxy_service['status'] == 'running':
+                        labl = applet.Label(tab2,width=20,text=f"Proxy Manager - UP", background="green", foreground='white')
+                    else:
+                        labl = applet.Label(tab2,width=20,text=f"Proxy Manager - Down", background="red", foreground='white')
+                    labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n')
+                    if manager_service['status'] == 'running':
+                        labl = applet.Label(tab2,width=20,text=f"Server Manager - UP", background="green", foreground='white')
+                    else:
+                        labl = applet.Label(tab2,width=20,text=f"Server Manager - Down", background="red", foreground='white')
+                    labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n')
+                    #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
                     tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
