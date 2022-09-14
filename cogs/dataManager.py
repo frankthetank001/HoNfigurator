@@ -123,6 +123,7 @@ class mData():
             self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
             self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})

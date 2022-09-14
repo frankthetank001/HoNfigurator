@@ -1361,6 +1361,7 @@ if is_admin():
                     tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
                     tex.grid(row=15, column=0, sticky="nsew", padx=2, pady=2)
                     tex.tag_config('warning', background="yellow", foreground="red")
+                    tex.tag_config('interest', background="green")
                 # create a Scrollbar and associate it with txt
                     scrollb = ttk.Scrollbar(app, command=tex.yview)
                     scrollb.grid(row=15, column=1, sticky='nsew')
@@ -1449,7 +1450,23 @@ if is_admin():
                     #print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
-                        log_File = "Slave*log"
+                        if pcount <=0:
+                            log_File = f"Slave*{deployed_status['svr_id']}*.log"
+                        else:
+                            log_File = f"Slave*{deployed_status['svr_id']}*.clog"
+                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                        latest_file = max(list_of_files, key=os.path.getctime)
+                        info=["New session cookie","Connected"]
+                        warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
+                        with open(latest_file,'r',encoding='utf-16-le') as file:
+                            for line in file:
+                                tem=line.lower()
+                                if any(x.lower() in tem for x in warnings):
+                                    tex.insert(tk.END,line,'warning')
+                                if any(x.lower() in tem for x in info):
+                                    tex.insert(tk.END,line,'interest')
+                                else:
+                                    tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 1:
                         if pcount > 0:
                             logs_dir = f"{deployed_status['hon_logs_dir']}\\"
@@ -1457,22 +1474,42 @@ if is_admin():
                         else:
                             tex.insert(END,'No match in progress.')
                             return
+                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                        latest_file = max(list_of_files, key=os.path.getctime)
+                        info=["[ALL]"]
+                        warnings=["Skipped","Session cookie request failed!","No session cookie returned!"]
+                        with open(latest_file,'r',encoding='utf-16-le') as file:
+                            for line in file:
+                                tem=line.lower()
+                                if any(x.lower() in tem for x in warnings):
+                                    tex.insert(tk.END,line,'warning')
+                                if any(x.lower() in tem for x in info):
+                                    tex.insert(tk.END,line,'interest')
+                                else:
+                                    tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 2:
                         logs_dir = f"{deployed_status['sdc_home_dir']}\\"
                         log_File = "sdc.log"
+                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                        latest_file = max(list_of_files, key=os.path.getctime)
+                        with open(latest_file,'r') as file:
+                            for line in file:
+                                tem=line.lower()
+                                tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 3:
-                        logs_dir = f"{deployed_status['hon_home_dir']}\\HoNProxyManager\\"
-                        log_File = "*proxy*"
-                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-
-                    latest_file = max(list_of_files, key=os.path.getctime)
-                    print(latest_file)
-                    if (tabgui2.index("current")) == 2 or (tabgui2.index("current")) == 3:
-                        f = open(latest_file, "r")
-                    else:
-                        f = open(latest_file, "r", encoding='utf-16-le')
-                    text = f.read()
-                    tex.insert(tk.END, text)
+                        logs_dir = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
+                        log_File = f"proxy_{20000 + int(deployed_status['svr_id'])}*.log"
+                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                        latest_file = max(list_of_files, key=os.path.getctime)
+                        warnings=["BANNED","BLOCKED","CLOSED"]
+                        with open(latest_file,'r') as file:
+                            for line in file:
+                                tem=line.lower()
+                                if any(x.lower() in tem for x in warnings):
+                                    tex.insert(tk.END,line,'warning')
+                                else:
+                                    tex.insert(tk.END,line)
+                    print(latest_file)                   
                     tex.see(tk.END)
 
                 def Start(self):
