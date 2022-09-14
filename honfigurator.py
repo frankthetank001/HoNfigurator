@@ -897,6 +897,7 @@ if is_admin():
                 tex.insert(END,"==========================================\n")
                 #os.execv(sys.argv[0], sys.argv)
                 print(str(os.path.abspath(__file__)))
+                print(str(sys.executable))
                 try:
                     if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
                         if honfigurator.popup_bonus():
