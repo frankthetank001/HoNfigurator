@@ -944,6 +944,8 @@ if is_admin():
                 else:
                     firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
             #if use_console == False:
+            if hondirectory != self.dataDict['hon_directory']:
+                self.dataDict.update({'hon_directory':hondirectory})
             service_proxy_name="HoN Proxy Manager"
             service_manager_name="HoN Server Manager"
             service_proxy = initialise.get_service(service_proxy_name)
