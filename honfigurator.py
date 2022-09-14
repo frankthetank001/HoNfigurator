@@ -543,7 +543,7 @@ if is_admin():
             if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
                 print(f"Server is already configured, checking values for {self.service_name_bot}...")
                 dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
-            if self.dataDict['use_proxy'] == True:
+            if self.dataDict['use_proxy'] == "True":
                 firewall = initialise.remove_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
             else:
                 firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
