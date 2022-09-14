@@ -285,9 +285,9 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_root_dir']}"])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_root_dir']}\""])
             elif service_name == "HoN Proxy Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"APPDATA={self.dataDict['hon_root_dir']}\""])
             return True
         def configure_service_api(self,service_name):
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
@@ -666,6 +666,7 @@ if is_admin():
                     print("==========================================")
             if use_console == False:
                 service_bot = initialise.get_service(self.service_name_bot)
+                proxy_service = initialise.get_service("HoN Proxy Manager")
                 if service_bot:
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
                     if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
@@ -690,7 +691,14 @@ if is_admin():
                                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                                         print("copying server exe...")
                                     except Exception as e: print(e + "can't replace exe.")
-                                initialise.start_service(self,self.service_name_bot)
+                                if self.dataDict['use_proxy']=='True':
+                                    if proxy_service['status'] != 'running':
+                                        initialise.start_service(self,self.service_name_bot)
+                                    else:
+                                        tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
+                                        tex.see(tk.END)
+                                else:
+                                    initialise.start_service(self,self.service_name_bot)
                             else:
                                 players_connected = True
                                 initialise.schedule_restart(self)
@@ -700,7 +708,14 @@ if is_admin():
                             initialise.configure_service_bot(self,self.service_name_bot)
                             time.sleep(1)
                         print(f"HONSERVER STATUS: {self.service_name_bot}")
-                        initialise.start_service(self,self.service_name_bot)
+                        if self.dataDict['use_proxy']=='True':
+                            if proxy_service['status'] != 'running':
+                                initialise.start_service(self,self.service_name_bot)
+                            else:
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
+                                tex.see(tk.END)
+                        else:
+                            initialise.start_service(self,self.service_name_bot)
                         service_bot = initialise.get_service(self.service_name_bot)
                         if service_bot['status'] == 'running':
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
@@ -715,7 +730,14 @@ if is_admin():
                     initialise.create_service_bot(self,self.service_name_bot)
                     time.sleep(1)
                     initialise.configure_service_bot(self,self.service_name_bot)
-                    initialise.start_service(self,self.service_name_bot)
+                    if self.dataDict['use_proxy']=='True':
+                        if proxy_service['status'] != 'running':
+                            initialise.start_service(self,self.service_name_bot)
+                        else:
+                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
+                            tex.see(tk.END)
+                    else:
+                        initialise.start_service(self,self.service_name_bot)
                     print("==========================================")
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
                 if force_update == True or bot_first_launch == True or bot_needs_update == True:
@@ -1452,7 +1474,7 @@ if is_admin():
 
             ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
             LablString = ['hon_server_','test','space']
-            LablStringTop = ['ProxyManager','test']
+            LablStringTop = ['Manager','test']
 
             # Calling this function from somewhere else via Queue
             import fnmatch
@@ -1698,7 +1720,6 @@ if is_admin():
                     # if (tabgui.index("current")) == 1:
                     app.lift()
                     i=2
-                    z=0
                     c=0
                     c_len = len(ButtonString)+len(LablString)
                     c_len_top = len(ButtonString)+len(LablStringTop)
@@ -1710,15 +1731,18 @@ if is_admin():
                     for o in range(100):
                         tab2.columnconfigure(o, weight=1,pad=0)
                     #Proxy and Manager
-                    n=0
-                    for m in range(1,3):
-                        z+=1
-                        if z == 2:
-                            n+=c_len_top
-                        for index1, labl_name in enumerate(LablStringTop):
-                            c_pos1 = index1 + n
-                            labl = Label(tab2,width=12,text=f"{labl_name}", background="red", foreground='white')
-                            labl.grid(row=1, column=n)
+                    manager_service=initialise.get_service("HoN Server Manager")
+                    proxy_service=initialise.get_service("HoN Proxy Manager")
+                    if proxy_service['status'] == 'running':
+                        labl = Label(tab2,width=20,text=f"Proxy Manager - UP", background="green", foreground='white')
+                    else:
+                        labl = Label(tab2,width=20,text=f"Proxy Manager - Down", background="red", foreground='white')
+                    labl.grid(row=1, column=0,columnspan=40,padx=[200,0])
+                    if manager_service['status'] == 'running':
+                        labl = Label(tab2,width=20,text=f"Server Manager - UP", background="green", foreground='white')
+                    else:
+                        labl = Label(tab2,width=20,text=f"Server Manager - Down", background="red", foreground='white')
+                    labl.grid(row=1, column=0,columnspan=40,padx=[0,200])
                     for x in range(0,int(self.dataDict['svr_total'])):
                         x+=1
                         i+=1
