@@ -1017,17 +1017,19 @@ if is_admin():
                     if restart_proxy or proxy_running==False:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                            if use_console:
-                                initialise.stop_service(self,service_proxy_name)
-                                subprocess.Popen([hondirectory+"proxymanager.exe"])
-                            else:
+                            # uncomment below for proxy manager console
+                            # if use_console:
+                            #     initialise.stop_service(self,service_proxy_name)
+                            #     subprocess.Popen([hondirectory+"proxymanager.exe"])
+                            # else:
                                 initialise.restart_service(self,service_proxy_name)
                         else:
-                            if use_console:
-                                if proxy_running==True:
-                                    proxy_proc.kill()
-                                subprocess.Popen([hondirectory+"proxymanager.exe"])
-                            else:
+                            # uncomment below for proxy manager console
+                            # if use_console:
+                            #     if proxy_running==True:
+                            #         proxy_proc.kill()
+                            #     subprocess.Popen([hondirectory+"proxymanager.exe"])
+                            # else:
                                 initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
                 else:
@@ -1040,14 +1042,15 @@ if is_admin():
                         for items in proxy_config:
                             f.writelines([items])
                     if restart_proxy or proxy_running == False:
-                        if proxy_running==True:
-                            proxy_proc.kill()
-                        if use_console:
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == manger_application:
-                                    proc.kill()
-                        else:
+                        # uncomment below for proxy manager console
+                        # if proxy_running==True:
+                        #     proxy_proc.kill()
+                        # if use_console:
+                        #     for proc in psutil.process_iter():
+                        #         # check whether the process name matches
+                        #         if proc.name() == manger_application:
+                        #             proc.kill()
+                        # else:
                             initialise.create_service_generic(self,service_proxy_name,application)
                             time.sleep(1)
                             initialise.start_service(self,service_proxy_name)
