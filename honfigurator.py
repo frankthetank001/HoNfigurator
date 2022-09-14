@@ -1005,7 +1005,7 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if restart_proxy or proxy_running=False:
+                    if restart_proxy or proxy_running==False:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                             if use_console:
