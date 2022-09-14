@@ -1023,7 +1023,12 @@ if is_admin():
                             else:
                                 initialise.restart_service(self,service_proxy_name)
                         else:
-                            initialise.start_service(self,service_proxy_name)
+                            if use_console:
+                                if proxy_running==True:
+                                    proxy_proc.kill()
+                                subprocess.Popen([hondirectory+"proxymanager.exe"])
+                            else:
+                                initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
                 else:
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
