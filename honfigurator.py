@@ -949,14 +949,14 @@ if is_admin():
             manger_application=f"KONGOR ARENA MANAGER.exe"
             manager_arguments=f"-manager -noconfig -execute \"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {self.dataDict['master_server']}"
             manager_arguments_console=f"\"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {self.dataDict['master_server']}"
-            if force_update:
-                manager_running=False
-                for proc in psutil.process_iter():
+            manager_running=False
+            if service_manager:
+                print("Manager exists")
+                if force_update:
+                    for proc in psutil.process_iter():
                     # check whether the process name matches
-                    if proc.name() == manger_application:
-                        manager_running=True
-                if service_manager:
-                    print("Manager exists")
+                        if proc.name() == manger_application:
+                            manager_running=True
                     #if force_update or bot_needs_update or bot_first_launch:
                     if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
@@ -980,22 +980,22 @@ if is_admin():
                         #    subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
                         #else:
                             initialise.start_service(self,service_manager_name)
-                else:
-                    if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
-                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
-                    # uncomment the below for server manager console visibility
-                    # if use_console:
-                    #     for proc in psutil.process_iter():
-                    #         # check whether the process name matches
-                    #         if proc.name() == manger_application:
-                    #             proc.kill()
-                        subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
-                    else:
-                        initialise.create_service_generic(self,service_manager_name,manger_application)
-                        initialise.start_service(self,service_manager_name)
-                        service_manager = initialise.get_service(service_manager_name)
-                        if service_manager:
-                            print("Manager started")
+            else:
+                if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
+                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
+                # uncomment the below for server manager console visibility
+                # if use_console:
+                #     for proc in psutil.process_iter():
+                #         # check whether the process name matches
+                #         if proc.name() == manger_application:
+                #             proc.kill()
+                #    subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
+                #else:
+                initialise.create_service_generic(self,service_manager_name,manger_application)
+                initialise.start_service(self,service_manager_name)
+                service_manager = initialise.get_service(service_manager_name)
+                if service_manager:
+                    print("Manager started")
             if use_proxy:
                 application="proxymanager.exe"
                 proxy_running=False
