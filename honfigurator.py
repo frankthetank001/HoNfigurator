@@ -899,6 +899,7 @@ if is_admin():
                 try:
                     if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
                         if honfigurator.popup_bonus():
+                            #test
                             path=os.path.abspath(__file__)
                             path=f"\"{path}\""
                             os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
