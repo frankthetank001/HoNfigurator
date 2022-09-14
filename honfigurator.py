@@ -278,6 +278,8 @@ if is_admin():
             if arguments is not None:
                 sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
                 time.sleep(1)
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
+            time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
