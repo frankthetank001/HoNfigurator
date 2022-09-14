@@ -999,6 +999,9 @@ if is_admin():
                 #    subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
                 #else:
                 initialise.create_service_generic(self,service_manager_name,manger_application)
+                time.sleep(1)
+                initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
+                time.sleep(1)
                 initialise.start_service(self,service_manager_name)
                 service_manager = initialise.get_service(service_manager_name)
                 if service_manager:
@@ -1059,6 +1062,8 @@ if is_admin():
                         #             proc.kill()
                         # else:
                             initialise.create_service_generic(self,service_proxy_name,application)
+                            time.sleep(1)
+                            initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                             time.sleep(1)
                             initialise.start_service(self,service_proxy_name)
                             #service_manager = initialise.get_service(service_manager_name)
