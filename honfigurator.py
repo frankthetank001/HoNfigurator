@@ -1025,7 +1025,7 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.writelines([items])
-                    if force_update or restart_proxy or proxy_running = False:
+                    if force_update or restart_proxy or proxy_running == False:
                         if use_console:
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
