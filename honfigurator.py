@@ -766,7 +766,14 @@ if is_admin():
             else:
                 playercount = initialise.playerCount(self)
                 if playercount == -3:
-                    initialise.start_bot(self,False)
+                    if self.dataDict['use_proxy']=='True':
+                        if proxy_service['status'] != 'running':
+                            initialise.start_bot(self,False)
+                        else:
+                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
+                            tex.see(tk.END)
+                    else:
+                        initialise.start_bot(self,False)
     class honfigurator():
         global tex
         def __init__(self):
