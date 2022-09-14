@@ -1640,9 +1640,17 @@ if is_admin():
 
                 def Start(self):
                     if deployed_status['use_console'] == 'True':
+                        proxy_service = initialise.get_service("HoN Proxy Manager")
                         pcount = initialise.playerCountX(self,id)
                         if pcount == -3:
-                            initialise.start_bot(self,True)
+                            if self.dataDict['use_proxy']=='True':
+                                if proxy_service['status'] != 'running':
+                                    initialise.start_bot(self,False)
+                                else:
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
+                                    tex.see(tk.END)
+                            else:
+                                initialise.start_bot(self,True)
                     else:
                         self.service = initialise.get_service(service_name)
                         if self.service['status'] == 'stopped':
