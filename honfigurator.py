@@ -896,12 +896,11 @@ if is_admin():
                 tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,"==========================================\n")
                 #os.execv(sys.argv[0], sys.argv)
+                print(str(os.path.abspath(__file__)))
                 try:
                     if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
                         if honfigurator.popup_bonus():
-                            print(str(os.path.abspath(__file__)))
                             os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-                            #test
                 except Exception as e: print(e)
                 return True
             else:
