@@ -902,6 +902,7 @@ if is_admin():
                             print(str(sys.executable))
                             print(str(os.path.abspath(__file__)))
                             os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                            #test
                 except Exception as e: print(e)
                 return True
             else:
