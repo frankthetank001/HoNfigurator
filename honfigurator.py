@@ -855,7 +855,7 @@ if is_admin():
             b.wait_variable(var)
             return True
         def regions(self):
-            return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil"],["USW","USE","SEA","AU","SEA","RU","EU","BR","NEWERTH"]]
+            return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil","NEWERTH"],["USW","USE","SEA","AU","SEA","RU","EU","BR","NEWERTH"]]
         def masterserver(self):
             return ["kongor.online:666","honmasterserver.com"]
         def reg_def_link(self,var,index,mode):
