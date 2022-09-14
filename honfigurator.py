@@ -184,18 +184,21 @@ if is_admin():
                     output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
                     print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                     tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                    tex.see(tk.END)
                     return True
                 else:
                     print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
                     tex.insert(END,f"Repository: {selected_branch}\nCheckout Status ({checkout.returncode}): {checkout.stderr}")
                     if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                         print()
+                    tex.see(tk.END)
                     return False
             else:
                 print(f"Updating selected repository: {selected_branch} branch")
                 output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
+                tex.see(tk.END)
                 return output.returncode
         def get_startupcfg(self):
             config_startup = dmgr.mData().parse_config(os.path.abspath(application_path)+"\\config\\honfig.ini")
@@ -715,15 +718,18 @@ if is_admin():
                         tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
                         ports_to_forward_game.append(self.startup['svr_port'])
                         ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
+                        tex.see(tk.END)
                     elif self.dataDict['use_proxy'] == 'True':
                         tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
                         ports_to_forward_game.append(self.startup['svr_proxyPort'])
-                        ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])                
+                        ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])
+                        tex.see(tk.END)           
                     print("==========================================")
                 else:
                     print("==========================================")
                     tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
                     tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
+                    tex.see(tk.END)
                     #tex.insert(END,"==============================================\n")
                 bot_needs_update = False
                 players_connected = False
@@ -925,7 +931,7 @@ if is_admin():
             #initialise.add_hosts_entry(self)
             if use_proxy:
                 if not exists(hondirectory+'proxy.exe'):
-                    tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again. Continuing with proxy disabled..\n")
+                    tex.insert(END,f"NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again. Continuing with proxy disabled..\n",'warning')
                     use_proxy=False
                 else:
                     firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
@@ -1083,6 +1089,7 @@ if is_admin():
             #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
             tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
             tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice))+'\n')
+            tex.see(tk.END)
             return
 
         def botCount(self,num_of_bots):
@@ -1456,7 +1463,7 @@ if is_admin():
                             log_File = f"Slave*{deployed_status['svr_id']}*.clog"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["New session cookie","Connected"]
+                        info=["New session cookie"," Connected","[ALL]","lag","spike","ddos"]
                         warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
                         with open(latest_file,'r',encoding='utf-16-le') as file:
                             for line in file:
@@ -1476,7 +1483,7 @@ if is_admin():
                             return
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["[ALL]"]
+                        info=["[ALL]","chat","lag","spike","ddos"]
                         warnings=["Skipped","Session cookie request failed!","No session cookie returned!"]
                         with open(latest_file,'r',encoding='utf-16-le') as file:
                             for line in file:
