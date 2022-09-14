@@ -899,7 +899,7 @@ if is_admin():
                 try:
                     if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
                         if honfigurator.popup_bonus():
-                            os.execl(f"{sys.executable}", f"{os.path.abspath(__file__)}", *sys.argv)
+                            os.execl(sys.executable, "\""+os.path.abspath(__file__)"\"", *sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
