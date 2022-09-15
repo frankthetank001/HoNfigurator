@@ -247,7 +247,6 @@ if is_admin():
                 print(f"Port {int(port)} is not open")
                 tex.insert(END,f"Port {int(port)} is not open\n",'warning')
                 return False
-            sock.close()
 
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
@@ -1433,7 +1432,7 @@ if is_admin():
             applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
             self.forceupdate = tk.BooleanVar(app)
             tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-            tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w",pady=2)
+            tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w")
             #   console windows, for launching servers locally (not as windows services)
             applet.Label(tab1, text="Launch as Console (BETA):",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
             self.console = tk.BooleanVar(app)
