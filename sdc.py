@@ -160,7 +160,7 @@ if is_admin():
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
-                elif result == False:
+                elif result == "ram":
                     if len(embed_log) == 0:
                         temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
                         try:
@@ -175,6 +175,18 @@ if is_admin():
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
+                elif result == "proxy":
+                    if len(embed_log) == 0:
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
+                        try:
+                            if owner_reachable:
+                                embedObj = await discord_admin.send(embed=temp_log)
+                            else:
+                                embedObj = await ctx.author.send(embed=temp_log)
+                        except: print(traceback.format_exc())
+                        embed_log.append(embedObj)
+                        #hsl.LastEmbedLog(embed_log)
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Game trying to start on PROXY port which isn't online."))
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)

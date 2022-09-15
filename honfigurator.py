@@ -299,8 +299,6 @@ if is_admin():
             time.sleep(1)
             if service_name == "HoN Server Manager":
                 sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_root_dir']}\""])
-            elif service_name == "HoN Proxy Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"APPDATA={self.dataDict['hon_root_dir']}\""])
             return True
         def configure_service_api(self,service_name):
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
@@ -1109,79 +1107,80 @@ if is_admin():
                 if use_proxy:
                     application="proxymanager.exe"
                     proxy_running=False
-                    if service_proxy:
-                        print("proxy exists")
-                        proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
-                        proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
-                        if not exists(proxy_config_location):
-                            os.makedirs(proxy_config_location)
-                        proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
-                        with open(proxy_config_location,"w") as f:
-                            for items in proxy_config:
-                                f.write(f"{items}\n")
-                        for proc in psutil.process_iter():
-                            # check whether the process name matches
-                            if proc.name() == application:
-                                proxy_running=True
-                        if restart_proxy or proxy_running==False:
-                            initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
-                            if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                                #uncomment below for proxy manager console
-                                initialise.stop_service(self,service_proxy_name)
-                                if use_console:
-                                    for proc in psutil.process_iter():
-                                        # check whether the process name matches
-                                        if proc.name() == application:
-                                            proc.kill()
-                                    os.chdir(self.dataDict['hon_directory'])
-                                    os.system(f"start cmd /k proxymanager.exe")
-                                    os.chdir(application_path)
-                                else:
-                                    initialise.restart_service(self,service_proxy_name)
-                            else:
-                                # uncomment below for proxy manager console
-                                if use_console:
-                                    for proc in psutil.process_iter():
-                                        # check whether the process name matches
-                                        if proc.name() == application:
-                                            proc.kill()
-                                    os.chdir(self.dataDict['hon_directory'])
-                                    os.system(f"start cmd /k proxymanager.exe")
-                                    os.chdir(application_path)
-                                else:
-                                    initialise.start_service(self,service_proxy_name)
-                        #service_manager = initialise.get_service(service_proxy)
-                        time.sleep(5)
-                    else:
-                        proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
-                        proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
-                        if not exists(proxy_config_location):
-                            os.makedirs(proxy_config_location)
-                        proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
-                        with open(proxy_config_location,"w") as f:
-                            for items in proxy_config:
-                                f.write(f"{items}\n")
-                        for proc in psutil.process_iter():
-                            # check whether the process name matches
-                            if proc.name() == application:
-                                proxy_running=True
-                        if restart_proxy or proxy_running==False:
+                    # if service_proxy:
+                    print("proxy exists")
+                    proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
+                    proxy_config_location=f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager"
+                    if not exists(proxy_config_location):
+                        os.makedirs(proxy_config_location)
+                    proxy_config_location=f"{proxy_config_location}\\config.cfg"
+                    with open(proxy_config_location,"w") as f:
+                        for items in proxy_config:
+                            f.write(f"{items}\n")
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == application:
+                            proxy_running=True
+                    if restart_proxy or proxy_running==False:
+                        initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                        if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
+                            #uncomment below for proxy manager console
+                            initialise.stop_service(self,service_proxy_name)
+                            # if use_console:
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
-                                if proc.name() == manger_application:
+                                if proc.name() == application:
                                     proc.kill()
-                            if use_console:
+                            os.chdir(self.dataDict['hon_directory'])
+                            os.system(f"start cmd /k proxymanager.exe")
+                            os.chdir(application_path)
+                            # else:
+                            #     initialise.start_service(self,service_proxy_name)
+                        else:
+                            # uncomment below for proxy manager console
+                            # if use_console:
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == application:
+                                        proc.kill()
                                 os.chdir(self.dataDict['hon_directory'])
                                 os.system(f"start cmd /k proxymanager.exe")
                                 os.chdir(application_path)
-                            else:
-                                initialise.create_service_generic(self,service_proxy_name,application)
-                                time.sleep(1)
-                                initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
-                                time.sleep(1)
-                                initialise.start_service(self,service_proxy_name)
-                                #service_manager = initialise.get_service(service_manager_name)
-                            time.sleep(5)
+                            # else:
+                            #     initialise.start_service(self,service_proxy_name)
+                        #service_manager = initialise.get_service(service_proxy)
+                        print("waiting 30 seconds for proxy to finish setting up ports...")
+                        time.sleep(30)
+                    # else:
+                    #     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
+                    #     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
+                    #     if not exists(proxy_config_location):
+                    #         os.makedirs(proxy_config_location)
+                    #     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
+                    #     with open(proxy_config_location,"w") as f:
+                    #         for items in proxy_config:
+                    #             f.write(f"{items}\n")
+                    #     for proc in psutil.process_iter():
+                    #         # check whether the process name matches
+                    #         if proc.name() == application:
+                    #             proxy_running=True
+                    #     if restart_proxy or proxy_running==False:
+                    #         for proc in psutil.process_iter():
+                    #             # check whether the process name matches
+                    #             if proc.name() == manger_application:
+                    #                 proc.kill()
+                    #         if use_console:
+                    #             os.chdir(self.dataDict['hon_directory'])
+                    #             os.system(f"start cmd /k proxymanager.exe")
+                    #             os.chdir(application_path)
+                    #         else:
+                    #             initialise.create_service_generic(self,service_proxy_name,application)
+                    #             time.sleep(1)
+                    #             initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                    #             time.sleep(1)
+                    #             initialise.start_service(self,service_proxy_name)
+                    #             #service_manager = initialise.get_service(service_manager_name)
+                    #         time.sleep(5)
                 if identifier == "single":
                     print()
                     print(f"Selected option to configure adminbot-server{serverid}\n")
@@ -1685,7 +1684,7 @@ if is_admin():
                             log_File = f"Slave*{deployed_status['svr_id']}*.clog"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["New session cookie"," Connected","[ALL]","lag","spike","ddos"]
+                        info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
                         warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
                         with open(latest_file,'r',encoding='utf-16-le') as file:
                             for line in file:
@@ -1726,10 +1725,13 @@ if is_admin():
                                 tem=line.lower()
                                 tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 3:
-                        logs_dir = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
+                        logs_dir1 = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
+                        #logs_dir2 = f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager\\"
                         log_File = f"proxy_{20000 + int(deployed_status['svr_id']) - 1}*.log"
-                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                        latest_file = max(list_of_files, key=os.path.getctime)
+                        list_of_files1 = glob.glob(logs_dir1 + log_File) # * means all if need specific format then *.csv
+                        #list_of_files2 = glob.glob(logs_dir2 + log_File)
+                        #list_of_files = list_of_files1 + list_of_files2
+                        latest_file = max(list_of_files1, key=os.path.getctime)
                         warnings=["BANNED","BLOCKED","CLOSED","UNDER ATTACK"]
                         with open(latest_file,'r') as file:
                             for line in file:
@@ -1885,8 +1887,6 @@ if is_admin():
                             log = max(list_of_files, key=os.path.getctime)
                         except Exception as e:
                             print(e)
-                        if log != False:
-                            cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                         schd_restart = False
                         schd_shutdown = False
                         schd_restart=initialise.check_schd_restart(deployed_status)
@@ -1898,9 +1898,10 @@ if is_admin():
                         if i%mod==0:
                             c+=c_len
                             i=3
-                        else:
-                            LablString[0]=f"hon_server_{x}"
+                        LablString[0]=f"hon_server_{x}"
                         for index1, labl_name in enumerate(LablString):
+                            if log != False:
+                                cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                             if cookie:
                                 if pcount < 0:
                                     colour = 'OrangeRed4'
