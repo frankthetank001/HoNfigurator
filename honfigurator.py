@@ -1114,6 +1114,7 @@ if is_admin():
                                         proc.kill()
                                 os.chdir(self.dataDict['hon_directory'])
                                 os.system(f"start cmd /k \"proxymanager.exe\"")
+                                os.chdir(application_path)
                             else:
                                 initialise.restart_service(self,service_proxy_name)
                         else:
@@ -1125,6 +1126,7 @@ if is_admin():
                                         proc.kill()
                                 os.chdir(self.dataDict['hon_directory'])
                                 os.system(f"start cmd /k \"proxymanager.exe\"")
+                                os.chdir(application_path)
                             else:
                                 initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
@@ -1145,6 +1147,7 @@ if is_admin():
                         if use_console:
                             os.chdir(self.dataDict['hon_directory'])
                             os.system(f"start cmd /k \"proxymanager.exe\"")
+                            os.chdir(application_path)
                         else:
                             initialise.create_service_generic(self,service_proxy_name,application)
                             time.sleep(1)
