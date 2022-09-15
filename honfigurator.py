@@ -1957,16 +1957,10 @@ if is_admin():
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
                     proxy_running=False
-                    if proxy_service['status'] == 'running':
-                        proxy_running=True
-                    else:
-                        if self.dataDict['use_console']=='False':
-                            proxy_running=False
-                        else:
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == "proxymanager.exe":
-                                    proxy_running=True
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == "proxymanager.exe":
+                            proxy_running=True
                     if proxy_running==True:
                         labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                     else:
