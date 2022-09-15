@@ -241,7 +241,7 @@ if is_admin():
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
                 print(f"Port {int(port)} is open")
-                tex.insert(END,f"Port {int(port)} is not open\n",'warning')
+                tex.insert(END,f"Port {int(port)} is open\n")
                 return True
             else:
                 print(f"Port {int(port)} is not open")
