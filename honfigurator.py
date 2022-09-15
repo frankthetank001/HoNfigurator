@@ -1637,6 +1637,7 @@ if is_admin():
                     global deployed_status
                     global service_name
 
+                    self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
                     service_name = f"adminbot{i}"
                     id = i
                     pcount = p
@@ -1745,9 +1746,17 @@ if is_admin():
 
                 def Start(self):
                     pcount = initialise.playerCountX(self,id)
+                    incr_port = 0
+                    for i in range(0,id):
+                        incr_val = int(self.dataDict['incr_port_by'])
+                        incr_port = incr_val * i
                     if pcount == -3:
                         if self.dataDict['use_proxy']=='True':
-                            if initialise.check_port(self.startup['svr_proxyPort']):
+                            svr_proxyPort=self.base['svr_proxyPort']
+                            svr_proxyPort=svr_proxyPort.replace('"',"")
+                            svr_proxyPort=int(svr_proxyPort)+int(incr_port)
+                            svr_proxyPort=f"\"{svr_proxyPort}\""
+                            if initialise.check_port(svr_proxyPort):
                                 if self.dataDict['use_console'] == 'False':
                                     initialise.start_service(self,service_name)
                                 else:
@@ -1758,13 +1767,26 @@ if is_admin():
                         else:
                             initialise.start_service(self,service_name)
                 def StartProxy(self):
-                    if self.dataDict['use_proxy']=='True':
-                        if initialise.start_service(self,"HoN Proxy Manager"):
-                            tex.insert(END,"Proxy started.")
+                    proxy_running=False
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == "proxymanager.exe":
+                            proxy_running=True
+                    if proxy_running==False:
+                        if self.dataDict['use_proxy']=='True':
+                            if self.dataDict['use_console']=='False':
+                                if initialise.start_service(self,"HoN Proxy Manager"):
+                                    tex.insert(END,"Proxy started.")
+                                    tex.see(tk.END)
+                                    app.after(5000,viewButton.load_server_mgr(self))
+                            else:
+                                os.chdir(self.dataDict['hon_directory'])
+                                os.system(f"start cmd /k proxymanager.exe")
+                                os.chdir(application_path)
+                                app.after(5000,viewButton.load_server_mgr(self))
+                        else:
+                            tex.insert(END,"Proxy not enabled. Please configure some servers using the proxy.")
                             tex.see(tk.END)
-                    else:
-                        tex.insert(END,"Proxy not configured. Please configure some servers using the proxy.")
-                        tex.see(tk.END)
                 def Stop(self):
                     pcount = initialise.playerCountX(self,id)
                     if pcount <= 0:
@@ -1933,24 +1955,28 @@ if is_admin():
                     #Proxy and Manager
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
+                    proxy_running=False
                     if proxy_service['status'] == 'running':
-                        labl = applet.Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                        proxy_running=True
                     else:
                         if self.dataDict['use_console']=='False':
-                            labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
-                            # btn = applet.Button(tab2, text="Start",command=lambda: viewButton.StartProxy())
-                            # btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[250,0])
+                            proxy_running=False
                         else:
-                            labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
                                 if proc.name() == "proxymanager.exe":
-                                    labl = applet.Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')                                
+                                    proxy_running=True
+                    if proxy_running==True:
+                        labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                    else:
+                        labl = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
+                        btn = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
+                        btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                     if manager_service['status'] == 'running':
-                        labl = applet.Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
+                        labl = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                     else:
-                        labl = applet.Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
+                        labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
                     #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
