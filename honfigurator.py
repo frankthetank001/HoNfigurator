@@ -720,6 +720,7 @@ if is_admin():
                             time.sleep(1)
                         print(f"HONSERVER STATUS: {self.service_name_bot}")
                         if self.dataDict['use_proxy']=='True':
+                            proxy_service = initialise.get_service("HoN Proxy Manager")
                             if proxy_service['status'] != 'running':
                                 tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                                 tex.see(tk.END)
@@ -742,6 +743,7 @@ if is_admin():
                     time.sleep(1)
                     initialise.configure_service_bot(self,self.service_name_bot)
                     if self.dataDict['use_proxy']=='True':
+                        proxy_service = initialise.get_service("HoN Proxy Manager")
                         if proxy_service['status'] != 'running':
                             tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.",'warning')
                             tex.see(tk.END)
