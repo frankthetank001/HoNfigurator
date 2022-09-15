@@ -77,6 +77,45 @@ class honCMD():
                     if "Session cookie request failed!" in line or "No session cookie returned!" in line:
                         return False
         return True
+    def check_cookie(server_status,log,name):
+        def write_mtime(log,name):
+            last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
+            #
+            #   This reads the data if it exists
+            if (exists(last_modified_time_file)):
+                with open(last_modified_time_file, 'r') as last_modified:
+                    lastmodData = last_modified.readline()
+                last_modified.close()
+                lastmodData = int(lastmodData)
+                #
+                #   Gets the current byte size of the log
+                fileSize = os.stat(log).st_size
+                #
+                #   After reading data set temporary file to current byte size
+                with open(last_modified_time_file, 'w') as last_modifiedw:
+                    last_modifiedw.write(f"{fileSize}")
+                last_modifiedw.close()
+                return lastmodData
+            #
+            #   If there was no temporary file to load data from, create it.
+            else:
+                try:
+                    fileSize = os.stat(log).st_size
+                    with open(last_modified_time_file, 'w') as last_modified:
+                        last_modified.write(f"{fileSize}")
+                    last_modified.close()
+                except Exception as e:
+                    print(e)
+                    pass
+                return fileSize
+        hard_data = write_mtime(log,name)
+        soft_data = os.stat(log).st_size # initial file size
+        if soft_data > hard_data:
+            with open (log, "r", encoding='utf-16-le') as f:
+                for line in reversed(list(f)):
+                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
+                        return False
+            return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):
@@ -201,6 +240,9 @@ class honCMD():
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
                 server_status_dict.update({'server_starting':True})
+                server_status_dict.update({'cookie':True})
+                if processed_data_dict['use_proxy']=='True':
+                    server_status_dict.update({'proxy_online':True})
                 server_status_dict.update({'scheduled_shutdown':False})
                 server_status_dict.update({'update_embeds':True})
                 server_status_dict.update({"hard_reset":False})

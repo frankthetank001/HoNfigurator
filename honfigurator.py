@@ -1148,9 +1148,9 @@ if is_admin():
                                 os.chdir(application_path)
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
-                    #service_manager = initialise.get_service(service_proxy)
-                    print("waiting 30 seconds for proxy to finish setting up ports...")
-                    time.sleep(30)
+                        #service_manager = initialise.get_service(service_proxy)
+                        print("waiting 30 seconds for proxy to finish setting up ports...")
+                        time.sleep(30)
                     # else:
                     #     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     #     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
@@ -1684,7 +1684,7 @@ if is_admin():
                             log_File = f"Slave*{deployed_status['svr_id']}*.clog"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["New session cookie"," Connected","[ALL]","lag","spike","ddos"]
+                        info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
                         warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
                         with open(latest_file,'r',encoding='utf-16-le') as file:
                             for line in file:
