@@ -721,11 +721,25 @@ if is_admin():
                         print(f"HONSERVER STATUS: {self.service_name_bot}")
                         if self.dataDict['use_proxy']=='True':
                             proxy_service = initialise.get_service("HoN Proxy Manager")
-                            if proxy_service['status'] != 'running':
-                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                tex.see(tk.END)
+                            if self.dataDict['use_console'] == 'False':
+                                proxy_service = initialise.get_service("HoN Proxy Manager")
+                                if proxy_service['status'] != 'running':
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                    tex.see(tk.END)
+                                else:
+                                    initialise.start_service(self,self.service_name_bot)
                             else:
-                                initialise.start_service(self,self.service_name_bot)
+                                proxy_running=False
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == "proxymanager.exe":
+                                        proxy_proc = proc
+                                        proxy_running = True
+                                if proxy_running:
+                                    initialise.start_service(self,self.service_name_bot)
+                                else:
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                    tex.see(tk.END)
                         else:
                             initialise.start_service(self,self.service_name_bot)
                         service_bot = initialise.get_service(self.service_name_bot)
@@ -743,12 +757,25 @@ if is_admin():
                     time.sleep(1)
                     initialise.configure_service_bot(self,self.service_name_bot)
                     if self.dataDict['use_proxy']=='True':
-                        proxy_service = initialise.get_service("HoN Proxy Manager")
-                        if proxy_service['status'] != 'running':
-                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                            tex.see(tk.END)
+                        if self.dataDict['use_console'] == 'False':
+                            proxy_service = initialise.get_service("HoN Proxy Manager")
+                            if proxy_service['status'] != 'running':
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
+                            else:
+                                initialise.start_service(self,self.service_name_bot)
                         else:
-                            initialise.start_service(self,self.service_name_bot)
+                            proxy_running=False
+                            for proc in psutil.process_iter():
+                                # check whether the process name matches
+                                if proc.name() == "proxymanager.exe":
+                                    proxy_proc = proc
+                                    proxy_running = True
+                            if proxy_running:
+                                initialise.start_service(self,self.service_name_bot)
+                            else:
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
                     else:
                         initialise.start_service(self,self.service_name_bot)
                     print("==========================================")
@@ -780,11 +807,25 @@ if is_admin():
                 playercount = initialise.playerCount(self)
                 if playercount == -3:
                     if self.dataDict['use_proxy']=='True':
-                        if proxy_service['status'] != 'running':
-                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                            tex.see(tk.END)
+                        if self.dataDict['use_console'] == 'False':
+                            proxy_service = initialise.get_service("HoN Proxy Manager")
+                            if proxy_service['status'] != 'running':
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
+                            else:
+                                initialise.start_bot(self,False)
                         else:
-                            initialise.start_bot(self,False)
+                            proxy_running=False
+                            for proc in psutil.process_iter():
+                                # check whether the process name matches
+                                if proc.name() == "proxymanager.exe":
+                                    proxy_proc = proc
+                                    proxy_running = True
+                            if proxy_running:
+                                initialise.start_bot(self,False)
+                            else:
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
                     else:
                         initialise.start_bot(self,True)
     class honfigurator():
@@ -1051,11 +1092,6 @@ if is_admin():
             if use_proxy:
                 application="proxymanager.exe"
                 proxy_running=False
-                for proc in psutil.process_iter():
-                    # check whether the process name matches
-                    if proc.name() == application:
-                        proxy_proc = proc
-                        proxy_running = True
                 if service_proxy:
                     print("proxy exists")
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
@@ -1066,23 +1102,29 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if restart_proxy or proxy_running==False:
+                    if restart_proxy:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                             #uncomment below for proxy manager console
+                            initialise.stop_service(self,service_proxy_name)
                             if use_console:
-                                initialise.stop_service(self,service_proxy_name)
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == application:
+                                        proc.kill()
                                 os.chdir(self.dataDict['hon_directory'])
-                                subprocess.Popen([hondirectory+"proxymanager.exe"])
+                                os.system(f"start cmd /k \"proxymanager.exe\"")
                             else:
                                 initialise.restart_service(self,service_proxy_name)
                         else:
                             # uncomment below for proxy manager console
                             if use_console:
-                                if proxy_running==True:
-                                    proxy_proc.kill()
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == application:
+                                        proc.kill()
                                 os.chdir(self.dataDict['hon_directory'])
-                                subprocess.Popen([hondirectory+"proxymanager.exe"])
+                                os.system(f"start cmd /k \"proxymanager.exe\"")
                             else:
                                 initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
@@ -1095,18 +1137,14 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if restart_proxy or proxy_running == False:
-                        # uncomment below for proxy manager console
-                        if proxy_running==True:
-                            proxy_proc.kill()
+                    if restart_proxy:
+                        for proc in psutil.process_iter():
+                            # check whether the process name matches
+                            if proc.name() == manger_application:
+                                proc.kill()
                         if use_console:
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == manger_application:
-                                    proc.kill()
                             os.chdir(self.dataDict['hon_directory'])
-                            subprocess.Popen([hondirectory+"proxymanager.exe"])
-
+                            os.system(f"start cmd /k \"proxymanager.exe\"")
                         else:
                             initialise.create_service_generic(self,service_proxy_name,application)
                             time.sleep(1)
@@ -1662,24 +1700,31 @@ if is_admin():
                         pcount = initialise.playerCountX(self,id)
                         if pcount == -3:
                             if self.dataDict['use_proxy']=='True':
+                                proxy_service = initialise.get_service("HoN Proxy Manager")
                                 if proxy_service['status'] != 'running':
                                     tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                     tex.see(tk.END)
                                 else:
                                     initialise.start_bot(self,False)
                             else:
-                                initialise.start_bot(self,True)
+                                proxy_running=False
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == "proxymanager.exe":
+                                        proxy_proc = proc
+                                        proxy_running = True
+                                if proxy_running:
+                                    initialise.start_bot(self,False)
+                                else:
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                    tex.see(tk.END)
                     else:
-                        self.service = initialise.get_service(service_name)
-                        if self.service['status'] == 'stopped':
-                            if self.dataDict['use_proxy']=='True':
-                                if proxy_service['status'] != 'running':
-                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                    tex.see(tk.END)
-                                else:
-                                    initialise.start_bot(self,False)
-                            else:
-                                initialise.start_bot(self,True)
+                        proxy_service = initialise.get_service("HoN Proxy Manager")
+                        if proxy_service['status'] != 'running':
+                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                            tex.see(tk.END)
+                        else:
+                            initialise.start_service(self,"HoN Proxy Manager")
                 def StartProxy(self):
                     if self.dataDict['use_proxy']==True:
                         if initialise.start_service(self,"HoN Proxy Manager"):
@@ -1766,7 +1811,7 @@ if is_admin():
                     i=2
                     c=0
                     c_len = len(ButtonString)+len(LablString)
-                    mod=11
+                    mod=13
                     svc_or_con="svc"
                     # create a grid of 2x6
                     for t in range(20):
@@ -1859,9 +1904,16 @@ if is_admin():
                     if proxy_service['status'] == 'running':
                         labl = applet.Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                     else:
-                        labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
-                        # btn = applet.Button(tab2, text="Start",command=lambda: viewButton.StartProxy())
-                        # btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[250,0])
+                        if self.dataDict['use_console']=='False':
+                            labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
+                            # btn = applet.Button(tab2, text="Start",command=lambda: viewButton.StartProxy())
+                            # btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[250,0])
+                        else:
+                            labl = applet.Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
+                            for proc in psutil.process_iter():
+                                # check whether the process name matches
+                                if proc.name() == "proxymanager.exe":
+                                    labl = applet.Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')                                
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n')
                     if manager_service['status'] == 'running':
                         labl = applet.Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
