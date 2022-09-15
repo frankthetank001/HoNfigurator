@@ -1092,7 +1092,7 @@ if is_admin():
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager\\config.cfg"
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
-                            f.writelines([items])
+                            f.write(f"{items}\n")
                     if restart_proxy or proxy_running == False:
                         # uncomment below for proxy manager console
                         # if proxy_running==True:
