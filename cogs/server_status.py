@@ -110,12 +110,16 @@ class honCMD():
                 return fileSize
         hard_data = write_mtime(log,name)
         soft_data = os.stat(log).st_size # initial file size
+        cookie_error=False
         if soft_data > hard_data:
             with open (log, "r", encoding='utf-16-le') as f:
                 for line in reversed(list(f)):
                     if "Session cookie request failed!" in line or "No session cookie returned!" in line:
-                        return False
-            return True
+                        cookie_error=True
+                if cookie_error:
+                    return False
+                else:
+                    return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):

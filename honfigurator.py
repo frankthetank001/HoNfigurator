@@ -1887,8 +1887,6 @@ if is_admin():
                             log = max(list_of_files, key=os.path.getctime)
                         except Exception as e:
                             print(e)
-                        if log != False:
-                            cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                         schd_restart = False
                         schd_shutdown = False
                         schd_restart=initialise.check_schd_restart(deployed_status)
@@ -1902,6 +1900,8 @@ if is_admin():
                             i=3
                         LablString[0]=f"hon_server_{x}"
                         for index1, labl_name in enumerate(LablString):
+                            if log != False:
+                                cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                             if cookie:
                                 if pcount < 0:
                                     colour = 'OrangeRed4'
