@@ -1095,14 +1095,15 @@ if is_admin():
                             f.write(f"{items}\n")
                     if restart_proxy or proxy_running == False:
                         # uncomment below for proxy manager console
-                        # if proxy_running==True:
-                        #     proxy_proc.kill()
-                        # if use_console:
-                        #     for proc in psutil.process_iter():
-                        #         # check whether the process name matches
-                        #         if proc.name() == manger_application:
-                        #             proc.kill()
-                        # else:
+                        if proxy_running==True:
+                            proxy_proc.kill()
+                        if use_console:
+                            for proc in psutil.process_iter():
+                                # check whether the process name matches
+                                if proc.name() == manger_application:
+                                    proc.kill()
+                        else:
+                            os.chdir(self.dataDict['hon_directory'])
                             initialise.create_service_generic(self,service_proxy_name,application)
                             time.sleep(1)
                             initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
