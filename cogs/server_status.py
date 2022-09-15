@@ -25,7 +25,14 @@ class honCMD():
         self.server_status = server_status_dict
         #server_status_dict.update({"last_restart":honCMD.getData(self,"lastRestart")})
         return
-
+    def check_port(port):
+            result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
+            if result == 0:
+                print(f"Port {int(port)} is open")
+                return True
+            else:
+                print(f"Port {int(port)} is not open")
+                return False
     def playerCount(self):
         check = subprocess.Popen([processed_data_dict['player_count_exe_loc'],processed_data_dict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
@@ -133,11 +140,13 @@ class honCMD():
                 tempData.update({'svr_proxyport':svr_proxyport})
                 tempData.update({'svr_proxyRemoteVoicePort':svr_proxyRemoteVoicePort})
                 honCMD.updateStatus(self,tempData)
-
-                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                if processed_data_dict['use_proxy']=='True':
+                    if honCMD.check_port(svr_proxyport):
+                        self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                    else:
+                        return "proxy"
                 # else:
                 #     self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
-
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 server_status_dict.update({'hon_exe':self.honEXE})
                 self.honP = self.honEXE.pid
@@ -205,7 +214,7 @@ class honCMD():
                 match_status.update({'match_time':'Preparation phase..'})
                 return True
             else:
-                return False
+                return "ram"
     #
     #   Stop server
     def stopSERVER(self):

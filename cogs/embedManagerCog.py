@@ -215,6 +215,7 @@ class embedManager(commands.Cog):
             
     @bot.command()
     async def offlineEmbed(self,rec_embed):
+        print("server offline")
         self.server_status = svr_state.getStatus()
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
@@ -227,6 +228,7 @@ class embedManager(commands.Cog):
 
     @bot.command()
     async def startingEmbed(self,rec_embed):
+        print("server starting")
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Starting Server..",description=default_description, color=stripColor_starting)
@@ -241,6 +243,7 @@ class embedManager(commands.Cog):
     async def onlineEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
+        print("server online")
 
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  OPEN",description=default_description, color=stripColor_online)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
@@ -259,6 +262,7 @@ class embedManager(commands.Cog):
     
     @bot.command()
     async def restartEmbed(self,rec_embed):
+        print("server restarting")
         #self.server_status.update({'restarting_server':True})
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                           RESTARTING SERVER...", color=stripColor_restart)
@@ -283,6 +287,7 @@ class embedManager(commands.Cog):
         #
         #   First run
         if self.just_collected is False and self.first_run == True:
+            print("server selected by player")
             #
             #   BASE EMBED: embed when server has been selected by a player
             #   server selected not hosted
@@ -301,6 +306,7 @@ class embedManager(commands.Cog):
         #   BASE EMBED: embed when a lobby has been created
         #   server selected lobby created
         elif self.just_collected == True or self.lobby_created == True:
+            print("lobby starting")
             self.server_status.update({'just_collected':False})
             print("----updating with map data----")
             #   

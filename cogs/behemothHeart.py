@@ -55,12 +55,14 @@ class heartbeat(commands.Cog):
         counter_hosted = 0
         counter_gamecheck = 0
         counter_lobbycheck = 0
+        counter_port_check = 0
         #  Debug setting
         #  playercount = 0
         threshold_heartbeat = 30    # how long to wait before break from heartbeat to update embeds
         threshold_hosted = 60   # how long we wait for someone to host a game without starting
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
+        threshold_port_check = 30
         x = 0
         #   this is the start of the heartbeat
         #   anything below is looping
@@ -68,6 +70,13 @@ class heartbeat(commands.Cog):
             counter_heartbeat+=1
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
+            if playercount >=0 and self.processed_data_dict['use_proxy'] == 'True':
+                if counter_port_check==threshold_port_check:
+                    if 'svr_proxyPort' in self.server_status:
+                        if svrcmd.honCMD.check_port(int(self.server_status['svr_proxyPort'])):
+                            print("port healthy")
+                        else:
+                            print(f"proxy port: {self.server_status['svr_proxyPort']} not online")
             # print(str(playercount))
             #
             #   Check if the server is ready yet
@@ -285,7 +294,7 @@ class heartbeat(commands.Cog):
             #   update embeds.
             else:
                 counter_heartbeat=0
-                print(f"moving to updatee discord message.. playercount ({str(playercount)})")
+                print(f"moving to update discord message.. playercount ({str(playercount)})")
                 self.server_status.update({'tempcount':playercount})
                 self.server_status.update({'update_embeds':False})
                 self.server_status.update({'time_waited':counter_hosted})

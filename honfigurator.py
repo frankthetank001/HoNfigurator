@@ -1149,8 +1149,8 @@ if is_admin():
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
-                    print("waiting 15 seconds for proxy to finish setting up ports...")
-                    time.sleep(15)
+                    print("waiting 30 seconds for proxy to finish setting up ports...")
+                    time.sleep(30)
                     # else:
                     #     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     #     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
@@ -1731,7 +1731,7 @@ if is_admin():
                         list_of_files1 = glob.glob(logs_dir1 + log_File) # * means all if need specific format then *.csv
                         #list_of_files2 = glob.glob(logs_dir2 + log_File)
                         #list_of_files = list_of_files1 + list_of_files2
-                        latest_file = max(list_of_files, key=os.path.getctime)
+                        latest_file = max(list_of_files1, key=os.path.getctime)
                         warnings=["BANNED","BLOCKED","CLOSED","UNDER ATTACK"]
                         with open(latest_file,'r') as file:
                             for line in file:
