@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import getboolean, ttk
 import configparser
 import psutil
+import socket
 import os
 import subprocess as sp
 from asyncio.windows_events import NULL
@@ -235,6 +236,19 @@ if is_admin():
                 except: pass
             check.terminate()
             return i
+        def check_port(port):
+            port = port.replace('"',"")
+            result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
+            if result == 0:
+                print(f"Port {int(port)} is open")
+                tex.insert(END,f"Port {int(port)} is not open\n",'warning')
+                return True
+            else:
+                print(f"Port {int(port)} is not open")
+                tex.insert(END,f"Port {int(port)} is not open\n",'warning')
+                return False
+            sock.close()
+
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
@@ -675,159 +689,132 @@ if is_admin():
                     else:
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
-            if use_console == False:
-                service_bot = initialise.get_service(self.service_name_bot)
-                proxy_service = initialise.get_service("HoN Proxy Manager")
-                if service_bot:
-                    print(f"HONSERVER STATUS: {self.service_name_bot}")
-                    if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
-                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
-                        if force_update == True or bot_needs_update == True:
-                            #reconfigure service + restart
-                            initialise.configure_service_bot(self,self.service_name_bot)
-                            time.sleep(1)
-                            svr_state = svrcmd.honCMD()
-                            svr_state.getDataDict()
-                            playercount = initialise.playerCount(self)
-                            if playercount <= 0:
-                                print("No players connected, safe to restart...")
-                                initialise.stop_service(self,self.service_name_bot)
-                                if self.dataDict['master_server'] == "honmasterserver.com":
-                                    try:
-                                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                                        print("copying server exe...")
-                                    except Exception as e: print(e + "can't replace exe.")
-                                if self.dataDict['master_server'] == "kongor.online:666":
-                                    try:
-                                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                                        print("copying server exe...")
-                                    except Exception as e: print(e + "can't replace exe.")
+            service_bot = initialise.get_service(self.service_name_bot)
+            proxy_service = initialise.get_service("HoN Proxy Manager")
+            if service_bot:
+                print(f"HONSERVER STATUS: {self.service_name_bot}")
+                if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
+                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
+                    if force_update == True or bot_needs_update == True:
+                        #reconfigure service + restart
+                        initialise.configure_service_bot(self,self.service_name_bot)
+                        time.sleep(1)
+                        svr_state = svrcmd.honCMD()
+                        svr_state.getDataDict()
+                        playercount = initialise.playerCount(self)
+                        if playercount <= 0:
+                            print("No players connected, safe to restart...")
+                            initialise.stop_service(self,self.service_name_bot)
+                            if self.dataDict['master_server'] == "honmasterserver.com":
+                                try:
+                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
+                                    print("copying server exe...")
+                                except Exception as e: print(e + "can't replace exe.")
+                            if self.dataDict['master_server'] == "kongor.online:666":
+                                try:
+                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
+                                    print("copying server exe...")
+                                except Exception as e: print(e + "can't replace exe.")
+                            if use_console==False:
                                 if self.dataDict['use_proxy']=='True':
-                                    if proxy_service['status'] != 'running':
+                                    if initialise.check_port(self.startup['svr_proxyPort']):
+                                        initialise.start_service(self,self.service_name_bot)
+                                    else:
                                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                         tex.see(tk.END)
+                                else:
+                                    initialise.start_service(self,self.service_name_bot)
+                            else:
+                                if self.dataDict['use_proxy']=='True':
+                                    if initialise.check_port(self.startup['svr_proxyPort']):
+                                        initialise.start_bot(self,False)
                                     else:
-                                        initialise.start_service(self,self.service_name_bot)
+                                        tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                        tex.see(tk.END)
                                 else:
-                                    initialise.start_service(self,self.service_name_bot)
-                            else:
-                                players_connected = True
-                                initialise.schedule_restart(self)
-                    else:
-                        if force_update == True or bot_needs_update == True:
-                            #reconfigure service + restart
-                            initialise.configure_service_bot(self,self.service_name_bot)
-                            time.sleep(1)
-                        print(f"HONSERVER STATUS: {self.service_name_bot}")
-                        if self.dataDict['use_proxy']=='True':
-                            proxy_service = initialise.get_service("HoN Proxy Manager")
-                            if self.dataDict['use_console'] == 'False':
-                                proxy_service = initialise.get_service("HoN Proxy Manager")
-                                if proxy_service['status'] != 'running':
-                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                    tex.see(tk.END)
-                                else:
-                                    initialise.start_service(self,self.service_name_bot)
-                            else:
-                                proxy_running=False
-                                for proc in psutil.process_iter():
-                                    # check whether the process name matches
-                                    if proc.name() == "proxymanager.exe":
-                                        proxy_proc = proc
-                                        proxy_running = True
-                                if proxy_running:
-                                    initialise.start_service(self,self.service_name_bot)
-                                else:
-                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                    tex.see(tk.END)
+                                    initialise.start_bot(self,False)
                         else:
-                            initialise.start_service(self,self.service_name_bot)
-                        service_bot = initialise.get_service(self.service_name_bot)
-                        if service_bot['status'] == 'running':
-                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
-                        else:
-                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                        print("==========================================")
+                            players_connected = True
+                            initialise.schedule_restart(self)
                 else:
-                    bot_needs_update = True
-                    print("==========================================")
-                    print(f"Creating adminbot: {self.service_name_bot}..")
-                    print("==========================================")
-                    initialise.create_service_bot(self,self.service_name_bot)
-                    time.sleep(1)
-                    initialise.configure_service_bot(self,self.service_name_bot)
-                    if self.dataDict['use_proxy']=='True':
-                        if self.dataDict['use_console'] == 'False':
-                            proxy_service = initialise.get_service("HoN Proxy Manager")
-                            if proxy_service['status'] != 'running':
-                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                tex.see(tk.END)
-                            else:
-                                initialise.start_service(self,self.service_name_bot)
-                        else:
-                            proxy_running=False
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == "proxymanager.exe":
-                                    proxy_proc = proc
-                                    proxy_running = True
-                            if proxy_running:
-                                initialise.start_service(self,self.service_name_bot)
-                            else:
-                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                tex.see(tk.END)
-                    else:
-                        initialise.start_service(self,self.service_name_bot)
-                    print("==========================================")
+                    if force_update == True or bot_needs_update == True:
+                        #reconfigure service + restart
+                        initialise.configure_service_bot(self,self.service_name_bot)
+                        time.sleep(1)
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
-                if force_update == True or bot_first_launch == True or bot_needs_update == True:
-                    if players_connected == True:
-                        tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
-                        print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
-                    if self.dataDict['use_proxy'] == 'False':
-                        tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
-                        ports_to_forward_game.append(self.startup['svr_port'])
-                        ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
-                        tex.see(tk.END)
-                    elif self.dataDict['use_proxy'] == 'True':
-                        tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
-                        ports_to_forward_game.append(self.startup['svr_proxyPort'])
-                        ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])
-                        tex.see(tk.END)           
-                    print("==========================================")
-                else:
-                    print("==========================================")
-                    tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
-                    tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
-                    tex.see(tk.END)
-                    #tex.insert(END,"==============================================\n")
-                bot_needs_update = False
-                players_connected = False
-            else:
-                playercount = initialise.playerCount(self)
-                if playercount == -3:
                     if self.dataDict['use_proxy']=='True':
-                        if self.dataDict['use_console'] == 'False':
-                            proxy_service = initialise.get_service("HoN Proxy Manager")
-                            if proxy_service['status'] != 'running':
-                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                tex.see(tk.END)
+                        if initialise.check_port(self.startup['svr_proxyPort']):
+                            if use_console == False:
+                                initialise.start_service(self,self.service_name_bot)
+                                service_bot = initialise.get_service(self.service_name_bot)
+                                if service_bot['status'] == 'running':
+                                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                                else:
+                                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                                print("==========================================")
                             else:
                                 initialise.start_bot(self,False)
                         else:
-                            proxy_running=False
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == "proxymanager.exe":
-                                    proxy_proc = proc
-                                    proxy_running = True
-                            if proxy_running:
-                                initialise.start_bot(self,False)
-                            else:
-                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                tex.see(tk.END)
+                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                            tex.see(tk.END)
                     else:
-                        initialise.start_bot(self,True)
+                        if use_console==False:
+                            initialise.start_service(self,self.service_name_bot)
+                            service_bot = initialise.get_service(self.service_name_bot)
+                            if service_bot['status'] == 'running':
+                                tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                            else:
+                                tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                            print("==========================================")
+                        else:
+                            initialise.start_bot(self,False)
+            else:
+                bot_needs_update = True
+                print("==========================================")
+                print(f"Creating adminbot: {self.service_name_bot}..")
+                print("==========================================")
+                initialise.create_service_bot(self,self.service_name_bot)
+                time.sleep(1)
+                initialise.configure_service_bot(self,self.service_name_bot)
+                if self.dataDict['use_proxy']=='True':
+                    if initialise.check_port(self.startup['svr_proxyPort']):
+                        if use_console == False:
+                            initialise.start_service(self,self.service_name_bot)
+                        else:
+                            initialise.start_bot(self,False)
+                    else:
+                        tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                        tex.see(tk.END)
+                else:
+                    if use_console == False:
+                            initialise.start_service(self,self.service_name_bot)
+                    else:
+                        initialise.start_bot(self,False)
+                print("==========================================")
+                print(f"HONSERVER STATUS: {self.service_name_bot}")
+            if force_update == True or bot_first_launch == True or bot_needs_update == True:
+                if players_connected == True:
+                    tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
+                    print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+                if self.dataDict['use_proxy'] == 'False':
+                    tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+                    ports_to_forward_game.append(self.startup['svr_port'])
+                    ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
+                    tex.see(tk.END)
+                elif self.dataDict['use_proxy'] == 'True':
+                    tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
+                    ports_to_forward_game.append(self.startup['svr_proxyPort'])
+                    ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])
+                    tex.see(tk.END)           
+                print("==========================================")
+            else:
+                print("==========================================")
+                tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
+                tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
+                tex.see(tk.END)
+                #tex.insert(END,"==============================================\n")
+            bot_needs_update = False
+            players_connected = False
     class honfigurator():
         global tex
         def __init__(self):
@@ -1102,7 +1089,11 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if restart_proxy:
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == application:
+                            proxy_running=True
+                    if restart_proxy or proxy_running==False:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                             #uncomment below for proxy manager console
@@ -1130,6 +1121,7 @@ if is_admin():
                             else:
                                 initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
+                    time.sleep(5)
                 else:
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
@@ -1139,7 +1131,11 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    if restart_proxy:
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == application:
+                            proxy_running=True
+                    if restart_proxy or proxy_running==False:
                         for proc in psutil.process_iter():
                             # check whether the process name matches
                             if proc.name() == manger_application:
@@ -1155,6 +1151,7 @@ if is_admin():
                             time.sleep(1)
                             initialise.start_service(self,service_proxy_name)
                             #service_manager = initialise.get_service(service_manager_name)
+                        time.sleep(5)
             if identifier == "single":
                 print()
                 print(f"Selected option to configure adminbot-server{serverid}\n")
@@ -1698,38 +1695,21 @@ if is_admin():
                     tex.see(tk.END)
 
                 def Start(self):
-                    if deployed_status['use_console'] == 'True':
-                        proxy_service = initialise.get_service("HoN Proxy Manager")
-                        pcount = initialise.playerCountX(self,id)
-                        if pcount == -3:
-                            if self.dataDict['use_proxy']=='True':
-                                proxy_service = initialise.get_service("HoN Proxy Manager")
-                                if proxy_service['status'] != 'running':
-                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                    tex.see(tk.END)
+                    pcount = initialise.playerCountX(self,id)
+                    if pcount == -3:
+                        if self.dataDict['use_proxy']=='True':
+                            if initialise.check_port(self.startup['svr_proxyPort']):
+                                if self.dataDict['use_console'] == 'False':
+                                    initialise.start_service(self,service_name)
                                 else:
-                                    initialise.start_bot(self,False)
+                                    initialise.start_bot(self,True)
                             else:
-                                proxy_running=False
-                                for proc in psutil.process_iter():
-                                    # check whether the process name matches
-                                    if proc.name() == "proxymanager.exe":
-                                        proxy_proc = proc
-                                        proxy_running = True
-                                if proxy_running:
-                                    initialise.start_bot(self,False)
-                                else:
-                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                    tex.see(tk.END)
-                    else:
-                        proxy_service = initialise.get_service("HoN Proxy Manager")
-                        if proxy_service['status'] != 'running':
-                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                            tex.see(tk.END)
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
                         else:
-                            initialise.start_service(self,"HoN Proxy Manager")
+                            initialise.start_service(self,service_name)
                 def StartProxy(self):
-                    if self.dataDict['use_proxy']==True:
+                    if self.dataDict['use_proxy']=='True':
                         if initialise.start_service(self,"HoN Proxy Manager"):
                             tex.insert(END,"Proxy started.")
                             tex.see(tk.END)
