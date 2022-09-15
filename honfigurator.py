@@ -1069,19 +1069,21 @@ if is_admin():
                     if restart_proxy or proxy_running==False:
                         initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                            # uncomment below for proxy manager console
-                            # if use_console:
-                            #     initialise.stop_service(self,service_proxy_name)
-                            #     subprocess.Popen([hondirectory+"proxymanager.exe"])
-                            # else:
+                            #uncomment below for proxy manager console
+                            if use_console:
+                                initialise.stop_service(self,service_proxy_name)
+                                os.chdir(self.dataDict['hon_directory'])
+                                subprocess.Popen([hondirectory+"proxymanager.exe"])
+                            else:
                                 initialise.restart_service(self,service_proxy_name)
                         else:
                             # uncomment below for proxy manager console
-                            # if use_console:
-                            #     if proxy_running==True:
-                            #         proxy_proc.kill()
-                            #     subprocess.Popen([hondirectory+"proxymanager.exe"])
-                            # else:
+                            if use_console:
+                                if proxy_running==True:
+                                    proxy_proc.kill()
+                                os.chdir(self.dataDict['hon_directory'])
+                                subprocess.Popen([hondirectory+"proxymanager.exe"])
+                            else:
                                 initialise.start_service(self,service_proxy_name)
                     #service_manager = initialise.get_service(service_proxy)
                 else:
@@ -1102,8 +1104,10 @@ if is_admin():
                                 # check whether the process name matches
                                 if proc.name() == manger_application:
                                     proc.kill()
-                        else:
                             os.chdir(self.dataDict['hon_directory'])
+                            subprocess.Popen([hondirectory+"proxymanager.exe"])
+
+                        else:
                             initialise.create_service_generic(self,service_proxy_name,application)
                             time.sleep(1)
                             initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
