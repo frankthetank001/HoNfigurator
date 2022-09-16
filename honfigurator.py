@@ -1110,7 +1110,7 @@ if is_admin():
                     # if service_proxy:
                     print("proxy exists")
                     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
-                    proxy_config_location=f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager"
+                    proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
                     proxy_config_location=f"{proxy_config_location}\\config.cfg"
