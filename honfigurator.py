@@ -997,7 +997,7 @@ if is_admin():
                 self.git_branch.set(current_branch)
                 return False
             
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honroot,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1204,6 +1204,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_total",servertotal)
                     conf_local.set("OPTIONS","token",bottoken)
                     conf_local.set("OPTIONS","hon_directory",hondirectory)
+                    conf_local.set("OPTIONS","hon_root_dir",honroot)
                     conf_local.set("OPTIONS","discord_admin",discordadmin)
                     conf_local.set("OPTIONS","master_server",master_server)
                     conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1251,6 +1252,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_total",servertotal)
                         conf_local.set("OPTIONS","token",bottoken)
                         conf_local.set("OPTIONS","hon_directory",hondirectory)
+                        conf_local.set("OPTIONS","hon_root_dir",honroot)
                         conf_local.set("OPTIONS","discord_admin",discordadmin)
                         conf_local.set("OPTIONS","master_server",master_server)
                         conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1415,15 +1417,15 @@ if is_admin():
             
             #   HoN Directory
             applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
-            tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
+            tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=70)
             tab1_hondird.insert(0,self.dataDict['hon_directory'])
             tab1_hondird.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
-            # #   HoN Home
-            # applet.Label(tab1, text="HoN Home Folder (replays, logs):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
-            # tab1_honroot = applet.Entry(tab1,foreground=textcolor,width=45)
-            # tab1_honroot.insert(0,"<default>")
-            # tab1_honroot.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
-            #  HoN master server
+            #   HoN Home
+            applet.Label(tab1, text="HoN Home Folder (replays, logs, etc):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
+            tab1_honroot = applet.Entry(tab1,foreground=textcolor,width=70)
+            tab1_honroot.insert(0,self.dataDict['hon_root_dir'])
+            tab1_honroot.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
+            # HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
             tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server,width=16)
@@ -1526,9 +1528,9 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honroot.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,300],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honroot.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[30,30],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[300,0],pady=[20,10])
@@ -1562,13 +1564,13 @@ if is_admin():
                 #     self.grid_columnconfigure(0, weight=1)
 
                 # create a Text widget
-                    tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
-                    tex.grid(row=15, column=0, sticky="nsew", padx=2, pady=2)
+                    tex = tk.Text(app,foreground=textcolor,background=textbox,height=10)
+                    tex.grid(row=16, column=0, sticky="nsew", padx=2, pady=2)
                     tex.tag_config('warning', background="yellow", foreground="red")
                     tex.tag_config('interest', background="green")
                 # create a Scrollbar and associate it with txt
                     scrollb = ttk.Scrollbar(app, command=tex.yview)
-                    scrollb.grid(row=15, column=1, sticky='nsew')
+                    scrollb.grid(row=16, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
             ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
@@ -1584,14 +1586,17 @@ if is_admin():
                     deployed_status = dmgr.mData.returnDict_basic(self,i)
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
-                    for path in paths:
-                        for f in os.listdir(path):
-                            f = os.path.join(path, f)
-                            if os.stat(f).st_mtime < now - 7 * 86400:
-                                if os.path.isfile(f):
-                                    os.remove(os.path.join(path, f))
-                                    count+=1
-                                    print("removed "+f)
+                    try:
+                        for path in paths:
+                            for f in os.listdir(path):
+                                f = os.path.join(path, f)
+                                if os.stat(f).st_mtime < now - 7 * 86400:
+                                    if os.path.isfile(f):
+                                        os.remove(os.path.join(path, f))
+                                        count+=1
+                                        print("removed "+f)
+                    except Exception as e:
+                        print(e)
                     replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
