@@ -71,55 +71,17 @@ class honCMD():
                 return fileSize
         hard_data = write_mtime(log,name)
         soft_data = os.stat(log).st_size # initial file size
-        if soft_data > hard_data:
-            with open (log, "r", encoding='utf-16-le') as f:
-                for line in reversed(list(f)):
-                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
-                        return False
+        status={}
+        # if (soft_data > hard_data) or 'first_check' not in status:
+        with open (log, "r", encoding='utf-16-le') as f:
+            for line in reversed(list(f)):
+                if "session cookie request failed!" in line.lower() or "no session cookie returned!" in line.lower():
+                    return False
+                elif "new session cookie " in line.lower():
+                    return True
         return True
-    def check_cookie(server_status,log,name):
-        def write_mtime(log,name):
-            last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
-            #
-            #   This reads the data if it exists
-            if (exists(last_modified_time_file)):
-                with open(last_modified_time_file, 'r') as last_modified:
-                    lastmodData = last_modified.readline()
-                last_modified.close()
-                lastmodData = int(lastmodData)
-                #
-                #   Gets the current byte size of the log
-                fileSize = os.stat(log).st_size
-                #
-                #   After reading data set temporary file to current byte size
-                with open(last_modified_time_file, 'w') as last_modifiedw:
-                    last_modifiedw.write(f"{fileSize}")
-                last_modifiedw.close()
-                return lastmodData
-            #
-            #   If there was no temporary file to load data from, create it.
-            else:
-                try:
-                    fileSize = os.stat(log).st_size
-                    with open(last_modified_time_file, 'w') as last_modified:
-                        last_modified.write(f"{fileSize}")
-                    last_modified.close()
-                except Exception as e:
-                    print(e)
-                    pass
-                return fileSize
-        hard_data = write_mtime(log,name)
-        soft_data = os.stat(log).st_size # initial file size
-        cookie_error=False
-        if soft_data > hard_data:
-            with open (log, "r", encoding='utf-16-le') as f:
-                for line in reversed(list(f)):
-                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
-                        cookie_error=True
-        if cookie_error:
-            return False
-        else:
-            return True
+        # status.update({'first_check':'Done'})
+        #return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):
@@ -296,7 +258,7 @@ class honCMD():
 
     def restartSERVER(self):
         if self.playerCount() == 0 or self.server_status['restart_required']==True:
-            hard_reset = honCMD().getData("CheckForUpdates")
+            hard_reset = honCMD().check_for_updates("pending_restart")
             if hard_reset:
                 self.server_status.update({'hard_reset':True})
                 honCMD().restartSELF()
@@ -321,20 +283,11 @@ class honCMD():
     def restartSELF(self):
         #service_name = "adminbot"+processed_data_dict['svr_id']
         #os.system(f'net stop {service_name} & net start {service_name}')
-        if processed_data_dict['use_proxy'] == 'True':             
-            try:
-                p = psutil.Process(self.server_status['proxy_pid'])
-                p.terminate()
-            except Exception as e:
-                print(e)
-        sys.exit(1)
+        if processed_data_dict['use_console'] == 'True':
+            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+        else:
+            sys.exit(1)
     def stopSELF(self):
-        if processed_data_dict['use_proxy'] == 'True':             
-            try:
-                p = psutil.Process(self.server_status['proxy_pid'])
-                p.terminate()
-            except Exception as e:
-                print(e)
         sys.exit(0)
     def reportPlayer(self,reason):
         #
@@ -378,20 +331,20 @@ class honCMD():
                 print(e)
                 pass
             return fileSize
+    def check_for_updates(self,type):
+        temFile = processed_data_dict['sdc_home_dir']+"\\"+type
+        if exists(temFile):
+            try:
+                os.remove(temFile)
+                return True
+            except Exception as e: print(e)
+        else:
+            return False
 #
 #   reads and parses hon server log data
     def getData(self, dtype):
         #
         #   We look if a file called "restart_required" exists. If it does we determine whether an update is pending for the bot, therefore needing to restart
-        if dtype == "CheckForUpdates":
-            temFile = processed_data_dict['sdc_home_dir']+"\\pending_restart"
-            if exists(temFile):
-                try:
-                    os.remove(temFile)
-                    return True
-                except Exception as e: print(e)
-            else:
-                return False
         if dtype == "CheckSchdShutdown":
             temFile = processed_data_dict['sdc_home_dir']+"\\pending_shutdown"
             if exists(temFile):

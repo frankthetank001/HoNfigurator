@@ -111,9 +111,9 @@ if is_admin():
         def start_bot(self,deployed):
             #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
-                os.system(f"start cmd /k \"{deployed_status['sdc_home_dir']}\\sdc.py\"")
+                os.system(f"start cmd /k \"{deployed_status['sdc_home_dir']}\\{self.service_name_bot}.exe\"")
             else:
-                os.system(f"start cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
+                os.system(f"start cmd /k \"{self.dataDict['sdc_home_dir']}\\{self.service_name_bot}.exe\"")
             #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
         def stop_bot(self,proc_name):
             for proc in psutil.process_iter():
@@ -280,7 +280,7 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"{self.service_name_bot}.exe"])
             return True
         def create_service_generic(self,service_name,application):
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
@@ -308,13 +308,13 @@ if is_admin():
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
             time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters","sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"{self.service_name_bot}.exe"])
             return True
 
         def restart_service(self,service_name):
@@ -455,6 +455,11 @@ if is_admin():
             except: 
                 print(traceback.format_exc())
                 return False
+        def build(self,name):
+            os.environ["PYTHONHASHSEED"] = "1"
+            os.system(f'pyi-makespec.exe --console --uac-admin --specpath build\ --name {name} adminbot.py')
+            os.system(f'pyinstaller.exe build\\{name}.spec -y')
+            return True
         def configureEnvironment(self,configLoc,force_update,use_console):
             global hon_api_updated
             global players_connected
@@ -463,9 +468,11 @@ if is_admin():
             self.bot_version = float(self.bot_version)
             bot_needs_update = False
             bot_first_launch = False
-
+            deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
+            
             os.environ["USERPROFILE"] = self.dataDict['hon_root_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
+
 
             #self.ver_existing = float(self.ver_existing)
             if self.bot_version > self.ver_existing: # or checkbox force is on:
@@ -491,18 +498,17 @@ if is_admin():
                 os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
 
             try:
-                deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
                 if deployed_status['hon_directory'] != self.dataDict['hon_directory']:
                     # think about migrating here, like
                     #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                         shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
                     except Exception as e:
                         print(e)
                 if deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                     except Exception as e:
                         print(e)
             except Exception as e:
@@ -519,6 +525,14 @@ if is_admin():
             if not exists(self.sdc_home_dir):
                 print(f"creating: {self.sdc_home_dir} ...")
                 os.makedirs(self.sdc_home_dir)
+            if (deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']) or self.bot_version == 9.94:
+                # copy older metadata files
+                try:
+                    shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}",f"{self.sdc_home_dir}\\messages\message{self.dataDict['svr_identifier']}.txt")
+                    shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.sdc_home_dir}\\cogs\\total_games_played")
+                except Exception as e:
+                    print(e)
+
 
             if not exists(f"{self.sdc_home_dir}\\messages"):
                 print(f"creating: {self.sdc_home_dir}\\messages ...")
@@ -595,17 +609,20 @@ if is_admin():
                 # for i in config:
                 #     if exists(os.path.abspath(application_path)+"\\"+i):
                 #         shutil.copy(os.path.abspath(application_path)+"\\"+i,self.sdc_home_dir+"\\"+i)
-                shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-                shutil.copy(os.path.abspath(application_path)+"\\sdc.bat", f'{self.sdc_home_dir}\\sdc.bat')
+                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\build\\",f'{self.sdc_home_dir}')
+                os.rename(f'{self.sdc_home_dir}\\adminbot.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
                 #shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-                src_folder = os.path.abspath(application_path)+"\\cogs\\"
-                dst_folder = f'{self.sdc_home_dir}\\cogs\\'
-                for file_name in os.listdir(src_folder):
-                    src_file = src_folder+file_name
-                    dst_file = dst_folder+file_name
-                    if os.path.isfile(src_file):
-                        shutil.copy(src_file, dst_file)
-                        print('copied', file_name)
+                #shutil.copy(os.path.abspath(application_path)+"\\sdc.bat", f'{self.sdc_home_dir}\\sdc.bat')
+
+                # src_folder = os.path.abspath(application_path)+"\\cogs\\"
+                # dst_folder = f'{self.sdc_home_dir}\\cogs\\'
+                # for file_name in os.listdir(src_folder):
+                #     src_file = src_folder+file_name
+                #     dst_file = dst_folder+file_name
+                #     if os.path.isfile(src_file):
+                #         shutil.copy(src_file, dst_file)
+                #         print('copied', file_name)
+
                 #shutil.copy(os.path.abspath(application_path)+"\\cogs\\*", f'{self.sdc_home_dir}\\cogs\\')
                 distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config\\", f'{self.sdc_home_dir}\\config\\')
                 #
@@ -985,7 +1002,7 @@ if is_admin():
                             #test
                             path=os.path.abspath(__file__)
                             path=f"\"{path}\""
-                            os.execl(sys.executable, path, *sys.argv)
+                            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
@@ -1026,17 +1043,25 @@ if is_admin():
                 hondirectory = os.path.join(hondirectory, '')
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
+                
 
-                # if 'github_branch' not in self.dataDict:
-                #     self.dataDict.update({'github_branch':selected_branch})
-                # if identifier == "update":
-                #     update = initialise.update_repository(self,selected_branch)
-                #     tex.insert(END,"==========================================\n")
-                #     # if update:
-                #     #     gui.popup_bonus()
-                #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-                # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
-                #initialise.add_hosts_entry(self)
+                # Compile bot code into exe
+                app_name=f"adminbot"
+                compiled_path=f"{application_path}\\dist"
+                compiled_file=f"{application_path}\\dist\\{app_name}\\{app_name}.exe"
+                if not exists('.\\build'):
+                    os.mkdir('.\\build')
+                if exists(f"{compiled_file}"):
+                    compiled_hash=dmgr.mData.get_hash(compiled_file)
+                    if compiled_hash != self.dataDict['compiled_hash']:
+                        if initialise.build(self,app_name):
+                            compiled_hash=dmgr.mData.get_hash(compiled_file)
+                            self.dataDict.update({'compiled_hash':compiled_hash})
+                else:
+                    if initialise.build(self,app_name):
+                        compiled_hash=dmgr.mData.get_hash(compiled_file)
+                        self.dataDict.update({'compiled_hash':compiled_hash})
+               
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
                         tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
@@ -1219,6 +1244,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_login",svr_login)
                     conf_local.set("OPTIONS","svr_password",svr_password)
                     conf_local.set("OPTIONS","use_console",str(use_console))
+                    conf_local.set("OPTIONS",self.dataDict['sdc_home_dir'])
                     with open(config_local, "w") as a:
                         conf_local.write(a)
                     a.close()
@@ -1267,6 +1293,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_login",svr_login)
                         conf_local.set("OPTIONS","svr_password",svr_password)
                         conf_local.set("OPTIONS","use_console",str(use_console))
+                        conf_local.set("OPTIONS",self.dataDict['sdc_home_dir'])
                         with open(config_local, "w") as c:
                             conf_local.write(c)
                         c.close()
@@ -1691,7 +1718,7 @@ if is_admin():
                     # Server Log
                     if (tabgui2.index("current")) == 0:
                         if pcount <=0:
-                            log_File = f"Slave*{deployed_status['svr_id']}*.log"
+                            log_File = f"Slave*.log"
                         else:
                             log_File = f"Slave*{deployed_status['svr_id']}*.clog"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv

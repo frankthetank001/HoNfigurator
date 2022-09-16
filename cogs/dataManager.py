@@ -75,6 +75,8 @@ class mData():
             self.confDict.update({'svr_login':'<username>'})
         if 'svr_password' not in self.confDict:
             self.confDict.update({'svr_password':'<password>'})
+        if 'compiled_hash' not in self.confDict:
+            self.confDict.update({'compiled_hash':'requires build'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -121,34 +123,42 @@ class mData():
         
         self.confDict_root = {}
         self.confDict_deployed = {}
-        for option in conf_parse_local.options("OPTIONS"):
-            self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
+            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+            for option in conf_parse_deployed.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+        # for option in conf_parse_local.options("OPTIONS"):
+        #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
             self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
-        
         if 'hon_root_dir' not in self.confDict:
             self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
         #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Documents\\Heroes of Newerth x64"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\game\\logs"})
+        if 'sdc_home_dir' not in self.confDict_deployed:
+            self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\adminbot{svr_id}"})
         self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\adminbot{svr_id}"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
-        if exists("{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
-            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
-            for option in conf_parse_deployed.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
+    # def setData(self,key):
+    #     temp={}
+    #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+    #     for option in conf_parse_local.options("OPTIONS"):
+    #         temp.update({option:conf_parse_local['OPTIONS'][option]})
+            
+        
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('https://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
@@ -217,6 +227,21 @@ class mData():
                 hash = hash.upper()
                 gameDllHash = hash
                 return gameDllHash
+    def get_hash(file):
+        sha1 = hashlib.sha1()
+        try:
+            with open(file,'rb') as f:
+            #   loop till the end of the file
+                chunk = 0
+                while chunk != b'':
+                    #   read only 1024 bytes at a time
+                    chunk = f.read(1024)
+                    sha1.update(chunk)
+            hash = sha1.hexdigest()
+            hash = hash.upper()
+            return hash
+        except Exception as e:
+            print(e)
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'
