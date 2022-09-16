@@ -116,10 +116,10 @@ class honCMD():
                 for line in reversed(list(f)):
                     if "Session cookie request failed!" in line or "No session cookie returned!" in line:
                         cookie_error=True
-                if cookie_error:
-                    return False
-                else:
-                    return True
+        if cookie_error:
+            return False
+        else:
+            return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):
