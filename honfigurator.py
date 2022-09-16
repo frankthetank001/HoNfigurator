@@ -1038,8 +1038,11 @@ if is_admin():
                 # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
                 #initialise.add_hosts_entry(self)
                 if use_proxy:
-                    if not exists(hondirectory+'proxy.exe') or not exists(hondirectory+'proxymanager.exe'):
+                    if not exists(hondirectory+'proxy.exe'):
                         tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
+                        use_proxy=False
+                    if not exists(hondirectory+'proxymanager.exe'):
+                        tex.insert(END,f"FIXME: NO PROXYMANAGER.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
                         use_proxy=False
                     else:
                         firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
@@ -1130,6 +1133,10 @@ if is_admin():
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
                                 if proc.name() == application:
+                                    proc.kill()
+                            for proc in psutil.process_iter():
+                                # check whether the process name matches
+                                if proc.name() == "proxy.exe":
                                     proc.kill()
                             os.chdir(self.dataDict['hon_directory'])
                             os.system(f"start cmd /k proxymanager.exe")
