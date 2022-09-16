@@ -1046,9 +1046,9 @@ if is_admin():
                 #if use_console == False:
                 if hondirectory != self.dataDict['hon_directory']:
                     self.dataDict.update({'hon_directory':hondirectory})
-                service_proxy_name="HoN Proxy Manager"
+                #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
-                service_proxy = initialise.get_service(service_proxy_name)
+                #service_proxy = initialise.get_service(service_proxy_name)
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
                 manger_application=f"KONGOR ARENA MANAGER.exe"
@@ -1122,10 +1122,10 @@ if is_admin():
                         if proc.name() == application:
                             proxy_running=True
                     if restart_proxy or proxy_running==False:
-                        initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
-                        if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
+                        #initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                        #if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                             #uncomment below for proxy manager console
-                            initialise.stop_service(self,service_proxy_name)
+                            #initialise.stop_service(self,service_proxy_name)
                             # if use_console:
                             for proc in psutil.process_iter():
                                 # check whether the process name matches
@@ -1136,21 +1136,21 @@ if is_admin():
                             os.chdir(application_path)
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
-                        else:
-                            # uncomment below for proxy manager console
-                            # if use_console:
-                                for proc in psutil.process_iter():
-                                    # check whether the process name matches
-                                    if proc.name() == application:
-                                        proc.kill()
-                                os.chdir(self.dataDict['hon_directory'])
-                                os.system(f"start cmd /k proxymanager.exe")
-                                os.chdir(application_path)
+                        # else:
+                        #     # uncomment below for proxy manager console
+                        #     # if use_console:
+                        #         for proc in psutil.process_iter():
+                        #             # check whether the process name matches
+                        #             if proc.name() == application:
+                        #                 proc.kill()
+                        #         os.chdir(self.dataDict['hon_directory'])
+                        #         os.system(f"start cmd /k proxymanager.exe")
+                        #         os.chdir(application_path)
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
                         #service_manager = initialise.get_service(service_proxy)
-                        print("waiting 30 seconds for proxy to finish setting up ports...")
-                        time.sleep(30)
+                            print("waiting 30 seconds for proxy to finish setting up ports...")
+                            time.sleep(30)
                     # else:
                     #     proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     #     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HoNProxyManager"
