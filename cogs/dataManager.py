@@ -142,7 +142,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('http://myip.dnsomatic.com').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
