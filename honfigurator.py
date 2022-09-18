@@ -292,7 +292,7 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"{self.service_name_bot}.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
