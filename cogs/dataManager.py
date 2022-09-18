@@ -77,7 +77,7 @@ class mData():
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
             self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
-        elif self.confDict['master_server'] == "kongor.online:666":
+        elif 'kongor.online' in self.confDict['master_server']:
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
@@ -142,7 +142,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('http://ifconfig.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)

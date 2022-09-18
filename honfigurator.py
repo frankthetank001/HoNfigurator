@@ -229,7 +229,7 @@ if is_admin():
                     check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
-            elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
+            elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
                     check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                     i = int(check.stdout.read())
@@ -251,7 +251,7 @@ if is_admin():
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
-            elif self.dataDict['master_server'] == "kongor.online:666":
+            elif 'kongor.online' in self.dataDict['master_server']:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
             i = int(check.stdout.read())
             if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
@@ -259,7 +259,7 @@ if is_admin():
                     check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
-            elif i == -3 and self.dataDict['master_server'] == "kongor.online:666":
+            elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
                     check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
                     i = int(check.stdout.read())
@@ -574,7 +574,7 @@ if is_admin():
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.dataDict['hon_directory']}hon_x64.exe")
                             print("copying server exe...")
                         except: print("server in use, can't replace exe, will try again when server is stopped.")
-                if self.dataDict['master_server'] == "kongor.online:666":
+                if 'kongor.online' in self.dataDict['master_server']:
                     if not exists(f"{self.dataDict['hon_directory']}\\KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                         try:
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
@@ -707,7 +707,7 @@ if is_admin():
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
                                     print("copying server exe...")
                                 except Exception as e: print(e + "can't replace exe.")
-                            if self.dataDict['master_server'] == "kongor.online:666":
+                            if 'kongor.online' in self.dataDict['master_server']:
                                 try:
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                                     print("copying server exe...")
@@ -940,7 +940,7 @@ if is_admin():
         def regions(self):
             return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil","NEWERTH"],["USW","USE","SEA","AU","SEA","RU","EU","BR","NEWERTH"]]
         def masterserver(self):
-            return ["kongor.online:666","honmasterserver.com"]
+            return ["kongor.online:666","api.kongor.online","honmasterserver.com"]
         def reg_def_link(self,var,index,mode):
             reglist = self.regions()
             svrloc = str(self.svr_loc.get()).lower()
