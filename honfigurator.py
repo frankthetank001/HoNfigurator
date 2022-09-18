@@ -129,6 +129,11 @@ if is_admin():
                 os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}-launch.exe\"")
                 #os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}.exe\" \"{self.dataDict['sdc_home_dir']}\\adminbot.py\"")
             #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
+        def check_proc(proc_name):
+            for proc in psutil.process_iter():
+                if proc.name() == proc_name:
+                    return True
+            return False
         def stop_bot(self,proc_name):
             for proc in psutil.process_iter():
                 if proc.name() == proc_name:
@@ -605,7 +610,7 @@ if is_admin():
                             print("copying server exe...")
                         except: print("server in use, can't replace exe, will try again when server is stopped.")
                 if 'kongor.online' in self.dataDict['master_server']:
-                    if not exists(f"{self.dataDict['hon_directory']}\\KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
+                    if not exists(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                         try:
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.dataDict['hon_directory']}hon_x64.exe")
@@ -723,9 +728,6 @@ if is_admin():
                 if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
                     tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
                     if force_update == True or bot_needs_update == True:
-                        #reconfigure service + restart
-                        initialise.configure_service_bot(self,self.service_name_bot)
-                        time.sleep(1)
                         svr_state = svrcmd.honCMD()
                         svr_state.getDataDict()
                         playercount = initialise.playerCount(self)
@@ -745,11 +747,17 @@ if is_admin():
                             if use_console==False:
                                 if self.dataDict['use_proxy']=='True':
                                     if initialise.check_port(self.game_port_proxy):
+                                        #reconfigure service + restart
+                                        initialise.configure_service_bot(self,self.service_name_bot)
+                                        time.sleep(1)
                                         initialise.start_service(self,self.service_name_bot)
                                     else:
                                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                         tex.see(tk.END)
                                 else:
+                                    #reconfigure service + restart
+                                    initialise.configure_service_bot(self,self.service_name_bot)
+                                    time.sleep(1)
                                     initialise.start_service(self,self.service_name_bot)
                             else:
                                 if self.dataDict['use_proxy']=='True':
@@ -762,22 +770,48 @@ if is_admin():
                                     initialise.start_bot(self,False)
                         else:
                             players_connected = True
+                            if use_console == False:
+                                #reconfigure service + restart
+                                initialise.configure_service_bot(self,self.service_name_bot)
+                                time.sleep(1)
                             initialise.schedule_restart(self)
                 else:
+                    bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
                     if force_update == True or bot_needs_update == True:
                         #reconfigure service + restart
-                        initialise.configure_service_bot(self,self.service_name_bot)
-                        time.sleep(1)
-                    playercount = initialise.playerCount(self)
-                    if deployed_status['use_console'] == 'True':
-                        if playercount <=0:
-                            initialise.stop_bot(self,f"{self.service_name_bot}.exe")
-                            initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
-                            initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
-                    print(f"HONSERVER STATUS: {self.service_name_bot}")
-                    if self.dataDict['use_proxy']=='True':
-                        if initialise.check_port(self.game_port_proxy):
-                            if use_console == False:
+                        if bot_running:
+                            playercount = initialise.playerCount(self)
+                            if deployed_status['use_console'] == 'True':
+                                if playercount <=0:
+                                    initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                                    initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
+                                    initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
+                                else:
+                                    initialise.schedule_restart(self)
+                        if use_console == False:
+                            initialise.configure_service_bot(self,self.service_name_bot)
+                            time.sleep(1)
+
+                    bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
+                    if bot_running == False:
+                        if self.dataDict['use_proxy']=='True':
+                            if initialise.check_port(self.game_port_proxy):
+                                if use_console == False:
+                                    initialise.start_service(self,self.service_name_bot)
+                                    service_bot = initialise.get_service(self.service_name_bot)
+                                    if service_bot['status'] == 'running':
+                                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
+                                    else:
+                                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                                    print("==========================================")
+                                else:
+                                    initialise.start_bot(self,False)
+                                    time.sleep(2)
+                            else:
+                                tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                tex.see(tk.END)
+                        else:
+                            if use_console==False:
                                 initialise.start_service(self,self.service_name_bot)
                                 service_bot = initialise.get_service(self.service_name_bot)
                                 if service_bot['status'] == 'running':
@@ -787,20 +821,8 @@ if is_admin():
                                 print("==========================================")
                             else:
                                 initialise.start_bot(self,False)
-                        else:
-                            tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                            tex.see(tk.END)
-                    else:
-                        if use_console==False:
-                            initialise.start_service(self,self.service_name_bot)
-                            service_bot = initialise.get_service(self.service_name_bot)
-                            if service_bot['status'] == 'running':
-                                tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
-                            else:
-                                tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                            print("==========================================")
-                        else:
-                            initialise.start_bot(self,False)
+                                time.sleep(2)
+                    print(self.service_name_bot)
             else:
                 bot_needs_update = True
                 print("==========================================")
@@ -813,6 +835,7 @@ if is_admin():
                             initialise.start_service(self,self.service_name_bot)
                         else:
                             initialise.start_bot(self,False)
+                            time.sleep(2)
                     else:
                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                         tex.see(tk.END)
@@ -823,6 +846,7 @@ if is_admin():
                             initialise.start_service(self,self.service_name_bot)
                     else:
                         initialise.start_bot(self,False)
+                        time.sleep(2)
                 print("==========================================")
                 print(f"HONSERVER STATUS: {self.service_name_bot}")
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
@@ -1111,27 +1135,21 @@ if is_admin():
                         #if force_update or bot_needs_update or bot_first_launch:
                         if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
-                        initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
-                        # if manager_running == True:
-                        #     for proc in psutil.process_iter():
-                        #         # check whether the process name matches
-                        #         if proc.name() == manger_application:
-                        #             proc.kill()
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             #   uncomment the below for server manager console visibility
                             if use_console:
                                 initialise.stop_service(self,service_manager_name)
                                 subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                             else:
+                                initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
                                 initialise.restart_service(self,service_manager_name)
                         else:
                             # uncomment the below for server manager console visibility
-                            if use_console:
-                                # stop existing console app
-                                for proc in psutil.process_iter():
+                            for proc in psutil.process_iter():
                                     # check whether the process name matches
                                     if proc.name() == manger_application:
                                         proc.kill()
+                            if use_console:
                                 # start new one
                                 subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                             else:
