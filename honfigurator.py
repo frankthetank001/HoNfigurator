@@ -316,7 +316,7 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application","python.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
             time.sleep(1)
@@ -326,7 +326,7 @@ if is_admin():
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"{self.service_name_bot}.exe"])
+            #sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"{self.service_name_bot}.exe"])
             return True
 
         def restart_service(self,service_name):
@@ -738,7 +738,7 @@ if is_admin():
                                 try:
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                                     print("copying server exe...")
-                                except Exception as e: print(e + "can't replace exe.")
+                                except Exception as e: print(str(e) + "can't replace exe.")
                             if use_console==False:
                                 if self.dataDict['use_proxy']=='True':
                                     if initialise.check_port(self.game_port_proxy):
