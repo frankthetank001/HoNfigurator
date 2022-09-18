@@ -2013,10 +2013,15 @@ if is_admin():
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
                     proxy_running=False
+                    manager_running=False
                     for proc in psutil.process_iter():
                         # check whether the process name matches
                         if proc.name() == "proxymanager.exe":
                             proxy_running=True
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == "KONGOR ARENA MANAGER.exe":
+                            manager_running=True
                     if proxy_running==True:
                         labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                     else:
@@ -2024,7 +2029,7 @@ if is_admin():
                         btn = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
                         btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
-                    if manager_service['status'] == 'running':
+                    if manager_running:
                         labl = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                     else:
                         labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
