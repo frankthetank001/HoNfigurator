@@ -5,3 +5,4 @@ getmac
 pygit2
 gitpython
 python-hosts
+pyinstaller

@@ -17,6 +17,7 @@ from os.path import exists
 from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
+import sys
 import multiprocessing
 
 #import cogs.server_status as svrcmd
@@ -25,14 +26,26 @@ conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
 conf_parse_deployed = configparser.ConfigParser(interpolation=None)
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+        #print("running from tempdir "+base_path)
+    except Exception:
+        base_path = os.path.abspath(".")
+        #print("running from base "+base_path)
+
+    return os.path.join(base_path, relative_path)
+
 class mData():
     def __init__(self):
         return
     
     #def returnDict(self,configFile):      
     def returnDict(self):
-        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
-        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
+        conf_parse_local.read(resource_path("config\\local_config.ini"))
+        conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
         for option in conf_parse_local.options("OPTIONS"):
             self.confDict.update({option:conf_parse_local['OPTIONS'][option]})
@@ -42,15 +55,19 @@ class mData():
         self.svr_id = self.confDict['svr_id']
         #
         #   Update the dictionary with some processed data
-        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
-        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
-        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
-        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\\sdc"})
+        #if 'hon_root_dir' not in self.confDict:
+            #self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
+        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances"})
+        self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
+        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Hon_Server_{self.confDict['svr_id']}"})
+        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
+        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\adminbot{self.confDict['svr_id']}"})
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
+        self.confDict.update({"app_name":f"adminbot{self.confDict['svr_id']}"})
         if 'core_assignment' not in self.confDict:
             self.confDict.update({'core_assignment':'one'})
         if 'process_priority' not in self.confDict:
@@ -73,6 +90,8 @@ class mData():
             self.confDict.update({'svr_login':'<username>'})
         if 'svr_password' not in self.confDict:
             self.confDict.update({'svr_password':'<password>'})
+        if 'compiled_hash' not in self.confDict:
+            self.confDict.update({'compiled_hash':'requires build'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -114,30 +133,50 @@ class mData():
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
     def returnDict_basic(self,svr_id):
-        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
-        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
-        
+        conf_parse_local.read(resource_path("config\\local_config.ini"))
+        conf_parse_global.read(resource_path("config\\global_config.ini"))
+
         self.confDict_root = {}
         self.confDict_deployed = {}
+
         for option in conf_parse_local.options("OPTIONS"):
             self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+        # for option in conf_parse_local.options("OPTIONS"):
+        #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
             self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
-        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
-        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
-        self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\Heroes of Newerth x64\\game\\logs"})
-        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\sdc"})
+        #if 'hon_root_dir' not in self.confDict_root:
+            #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
+        #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+            #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+        # else:
+        #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
+        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
+        self.confDict_deployed.update({"hon_manager_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon"})
+        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
+        self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
+        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\adminbot{svr_id}"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
-        conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
-        for option in conf_parse_deployed.options("OPTIONS"):
-            self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
+            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+            for option in conf_parse_deployed.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
+
+        
+    # def setData(self,key):
+    #     temp={}
+    #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+    #     for option in conf_parse_local.options("OPTIONS"):
+    #         temp.update({option:conf_parse_local['OPTIONS'][option]})
+            
+        
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
@@ -211,6 +250,21 @@ class mData():
                 hash = hash.upper()
                 gameDllHash = hash
                 return gameDllHash
+    def get_hash(file):
+        sha1 = hashlib.sha1()
+        try:
+            with open(file,'rb') as f:
+            #   loop till the end of the file
+                chunk = 0
+                while chunk != b'':
+                    #   read only 1024 bytes at a time
+                    chunk = f.read(1024)
+                    sha1.update(chunk)
+            hash = sha1.hexdigest()
+            hash = hash.upper()
+            return hash
+        except Exception as e:
+            print(e)
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'

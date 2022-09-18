@@ -81,7 +81,7 @@ class heartbeat(commands.Cog):
                                 print("port healthy")
                             else:
                                 proxy_online=False
-                                print(f"proxy port: {self.server_status['svr_proxyPort']} not online")
+                                print(f"proxy port: {self.server_status['svr_proxyport']} not online")
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] Proxy port {self.server_status['svr_proxyport']} offline.")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
@@ -126,7 +126,7 @@ class heartbeat(commands.Cog):
                 if self.server_status['priority_realtime'] == True:
                     svr_state.changePriority(False)
                 if self.server_status['hard_reset'] == False:
-                    self.server_status.update({'hard_reset':svr_state.getData("CheckForUpdates")})
+                    self.server_status.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
                 if self.server_status['scheduled_shutdown']==False:
                     self.server_status.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
                     if self.server_status['scheduled_shutdown']:
