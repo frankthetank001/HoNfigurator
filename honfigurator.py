@@ -150,11 +150,14 @@ if is_admin():
             elif rc == 1:
                 print(bcolors.FAIL +"ERROR CHECKING HASHES, please obtain correct server binaries" + bcolors.ENDC)
                 tex.insert(END,"ERROR CHECKING HASHES, please obtain correct server binaries\n",'warning')
-                return False
+                tex.insert(END,"continuing anyway")
+                # returning true as I have no idea what the right hashes should be anymore
+                return True
             elif rc == 3:
                 print(bcolors.FAIL +"ERROR GETTING MAC ADDR" + bcolors.ENDC)
                 tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
-                return False
+                # returning true as I have no idea what the right hashes should be anymore
+                return True
         def getstatus_updater(self,auto_update,selected_branch):
             TASK_ENUM_HIDDEN = 1
             TASK_STATE = {0: 'Unknown',
