@@ -1,3 +1,15 @@
+import pkg_resources
+import sys
+import subprocess as sp
+required = {'mutagen', 'gTTS','discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pyinstaller','pillow'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+if missing:
+    python = sys.executable
+    sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
+# determine if application is a script file or frozen exe
+
 from asyncio.subprocess import DEVNULL
 import re
 import tkinter as tk
@@ -7,7 +19,6 @@ import configparser
 import psutil
 import socket
 import os
-import subprocess as sp
 from asyncio.windows_events import NULL
 import time
 from os.path import exists
@@ -19,14 +30,12 @@ import distutils
 from distutils import dir_util
 import subprocess
 import traceback
-import sys
 import win32com.client
 import datetime
 from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
-# determine if application is a script file or frozen exe
 
 def is_admin():
     try:
@@ -72,6 +81,7 @@ if is_admin():
         global config_global
         global config_local
         def __init__(self):
+            global app_name
             self.data = dmgr.mData()
             self.dataDict = self.data.returnDict()
             self.startup = initialise.get_startupcfg(self)
@@ -104,6 +114,8 @@ if is_admin():
                 except: pass
             else:
                 self.ver_existing = 0
+            #app_name=f"adminbot{self.dataDict['svr_id']}"
+            app_name=f"adminbot"
             # if exists(f"{self.sdc_home_dir}\\config\\local_config.ini"):
             #     config = configparser.ConfigParser()
             #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
@@ -111,13 +123,14 @@ if is_admin():
         def start_bot(self,deployed):
             #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
-                os.system(f"start cmd /k \"{deployed_status['sdc_home_dir']}\\sdc.py\"")
+                os.startfile(f"\"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe\"")
+                #os.system(f"\"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}.exe\" \"{deployed_status['sdc_home_dir']}\\adminbot.py\"")
             else:
-                os.system(f"start cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
+                os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}-launch.exe\"")
+                #os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}.exe\" \"{self.dataDict['sdc_home_dir']}\\adminbot.py\"")
             #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
         def stop_bot(self,proc_name):
             for proc in psutil.process_iter():
-                # check whether the process name matches
                 if proc.name() == proc_name:
                     proc.kill()
         def add_hosts_entry(self):
@@ -237,7 +250,6 @@ if is_admin():
             check.terminate()
             return i
         def check_port(port):
-            port = port.replace('"',"")
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
                 print(f"Port {int(port)} is open")
@@ -280,7 +292,7 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,"python.exe",f"{self.service_name_bot}.exe"])
             return True
         def create_service_generic(self,service_name,application):
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
@@ -298,23 +310,23 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_root_dir']}\""])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_manager_dir']}\""])
             return True
         def configure_service_api(self,service_name):
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application","python.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
             time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\sdc.log"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters","sdc.py"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
             return True
 
         def restart_service(self,service_name):
@@ -348,26 +360,12 @@ if is_admin():
             else:
                 return False
 
-        def create_config(self,filename,type,game_port,voice_port,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+        def create_config(self,filename,type,svr_port,voicelocal,svr_proxyport,voiceremote,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
             self.proxy = {}
             self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
             iter = self.dataDict['incr_port']
             svr_identifier = self.dataDict['svrid_total']
-
-            tem_game_port = int(game_port)
-            tem_voice_port = int(voice_port)
-            tem_game_port = tem_game_port + iter
-            tem_voice_port = tem_voice_port + iter
-
-            tem_game_port_proxy = self.base['svr_proxyPort']
-            tem_game_port_proxy = tem_game_port_proxy.replace('"','')
-            tem_game_port_proxy = int(tem_game_port_proxy) + (int(serverID) - 1)
-            tem_voice_port_proxy = self.base['svr_proxyRemoteVoicePort']
-            tem_voice_port_proxy = tem_voice_port_proxy.replace('"','')
-            tem_voice_port_proxy = int(tem_voice_port_proxy) + (int(serverID) - 1)
-
             svr_ip = dmgr.mData.getData(self,"svr_ip")
-
             # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
             # for i in networking:
             #     temp_port = self.base[i]
@@ -395,19 +393,19 @@ if is_admin():
                 #     tem_game_port_proxy = tem_game_port_proxy + iter
                 #     tem_voice_port_proxy = tem_voice_port_proxy + iter
                 #     self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
-                self.startup.update({'svr_port':f'"{tem_game_port}"'})
-                self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
-                self.startup.update({'svr_proxyLocalVoicePort':f'"{tem_voice_port}"'})
-                self.startup.update({'svr_proxyRemoteVoicePort':f'"{tem_voice_port_proxy}"'})
-                self.startup.update({'svr_voicePortEnd':f'"{tem_voice_port}"'})
-                self.startup.update({'svr_voicePortStart':f'"{tem_voice_port}"'})
-                print("svr_port: " + str(tem_game_port))
-                print("voice_port: " + str(tem_voice_port))
+                self.startup.update({'svr_port':f'"{svr_port}"'})
+                self.startup.update({'svr_proxyPort':f'"{svr_proxyport}"'})
+                self.startup.update({'svr_proxyLocalVoicePort':f'"{voicelocal}"'})
+                self.startup.update({'svr_proxyRemoteVoicePort':f'"{voiceremote}"'})
+                self.startup.update({'svr_voicePortEnd':f'"{voicelocal}"'})
+                self.startup.update({'svr_voicePortStart':f'"{voicelocal}"'})
+                print("svr_port: " + str(svr_port))
+                print("voice_port: " + str(voicelocal))
                 if self.dataDict['use_proxy']=='True':
                     self.startup.update({"man_enableProxy":f'"true"'})
                     print("===============PROXY ACTIVE===================")
-                    print("svr_proxyPort: " + str(tem_game_port_proxy))
-                    print("svr_voiceProxyPort: " + str(tem_voice_port_proxy))
+                    print("svr_proxyPort: " + str(svr_proxyport))
+                    print("svr_voiceProxyPort: " + str(voiceremote))
                     print("Because of use of HoN Proxy, the above values are the ones which must be port forwarded.")
                     # tem_game_port +=10000
                     # tem_voice_port +=10000
@@ -424,10 +422,10 @@ if is_admin():
             elif type == "proxy":
                 self.proxy.update({'redirectIP':'127.0.0.1'})
                 self.proxy.update({'publicip':svr_ip})
-                self.proxy.update({'publicPort':tem_game_port_proxy})
-                self.proxy.update({'redirectPort':tem_game_port})
-                self.proxy.update({'voiceRedirectPort':tem_voice_port})
-                self.proxy.update({'voicePublicPort':tem_voice_port_proxy})
+                self.proxy.update({'publicPort':svr_proxyport})
+                self.proxy.update({'redirectPort':svr_port})
+                self.proxy.update({'voiceRedirectPort':voicelocal})
+                self.proxy.update({'voicePublicPort':voiceremote})
                 self.proxy.update({'region':'naeu'})
             dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
             return True
@@ -455,6 +453,10 @@ if is_admin():
             except: 
                 print(traceback.format_exc())
                 return False
+        def build(self,name):
+            os.environ["PYTHONHASHSEED"] = "1"
+            os.system(f'pyinstaller --noconfirm --onefile --console --icon .\\icons\\botico.png --uac-admin --add-data "cogs;cogs/" --add-data "config;config/"  "adminbot.py" --name {name} -y')
+            return True
         def configureEnvironment(self,configLoc,force_update,use_console):
             global hon_api_updated
             global players_connected
@@ -463,9 +465,11 @@ if is_admin():
             self.bot_version = float(self.bot_version)
             bot_needs_update = False
             bot_first_launch = False
-
-            os.environ["USERPROFILE"] = self.dataDict['hon_root_dir']
+            deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
+            
+            os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
+
 
             #self.ver_existing = float(self.ver_existing)
             if self.bot_version > self.ver_existing: # or checkbox force is on:
@@ -491,18 +495,17 @@ if is_admin():
                 os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
 
             try:
-                deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
                 if deployed_status['hon_directory'] != self.dataDict['hon_directory']:
                     # think about migrating here, like
                     #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                         shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
                     except Exception as e:
                         print(e)
                 if deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\cogs\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                     except Exception as e:
                         print(e)
             except Exception as e:
@@ -519,6 +522,15 @@ if is_admin():
             if not exists(self.sdc_home_dir):
                 print(f"creating: {self.sdc_home_dir} ...")
                 os.makedirs(self.sdc_home_dir)
+            # fix this - need a way to know wwhether to copy the old bot directory files
+            # if (deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']):
+            #     # copy older metadata files
+            #     try:
+            #         shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}",f"{self.sdc_home_dir}\\messages\message{self.dataDict['svr_identifier']}.txt")
+            #         shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.sdc_home_dir}\\cogs\\total_games_played")
+            #     except Exception as e:
+            #         print(e)
+
 
             if not exists(f"{self.sdc_home_dir}\\messages"):
                 print(f"creating: {self.sdc_home_dir}\\messages ...")
@@ -537,6 +549,21 @@ if is_admin():
             if not exists(f"{self.sdc_home_dir}\\cogs"):
                 print(f"creating: {self.sdc_home_dir}\\cogs ...")
                 os.makedirs(f"{self.sdc_home_dir}\\cogs")
+            if not exists(f"{self.hon_directory}game_shared_x64.dll"):
+                shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
+            if dmgr.mData.get_hash(f"{self.hon_directory}\\game\\game_shared_x64.dll") != dmgr.mData.get_hash(f"{self.hon_directory}game_shared_x64.dll"):
+                try:
+                    shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
+                except PermissionError:
+                    print(f"{self.hon_directory}game\\game_shared_x64.dll needs to be copied into {self.hon_directory}")
+            
+
+            ## global networking settings ##
+            iter = int(self.dataDict['incr_port'])
+            self.game_port = int(self.dataDict['game_starting_port']) + iter
+            self.voice_port = int(self.dataDict['voice_starting_port']) + iter
+            self.game_port_proxy = self.game_port + 10000
+            self.voice_port_proxy = 21435 + int(self.dataDict['svr_id']) - 1
             self.secrets = initialise.KOTF(self)
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
@@ -582,22 +609,23 @@ if is_admin():
                             print("copying server exe...")
                         except: print("server in use, can't replace exe, will try again when server is stopped.")
                 if not exists(f"{self.hon_game_dir}\\startup.cfg"):
-                #   below commented as we are no longer using game_settings_local.cfg
-                # if not exists(f"{self.hon_logs_dir}\\..\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg"):
                     print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
-                #   below commented as we are no longer using game_settings_local.cfg
-                # COMMENTED OUT DUE TO TESTING LAUNCHING WITH COMMANDLINE ARGUMENTS
-                #initialise.create_config(self,f"{self.hon_logs_dir}\\..\\startup.cfg",f"{self.hon_logs_dir}\\..\\game_settings_local.cfg",self.svr_id,self.svr_hoster,self.svr_region,self.svr_total,self.svr_ip)
-                initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
-                initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.dataDict['game_starting_port'],self.dataDict['voice_starting_port'],self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+                initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+                initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
                 print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
-                #config = ["sdc.py","multiguild.py"]
-                # for i in config:
-                #     if exists(os.path.abspath(application_path)+"\\"+i):
-                #         shutil.copy(os.path.abspath(application_path)+"\\"+i,self.sdc_home_dir+"\\"+i)
-                shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
-                shutil.copy(os.path.abspath(application_path)+"\\sdc.bat", f'{self.sdc_home_dir}\\sdc.bat')
-                #shutil.copy(os.path.abspath(application_path)+"\\sdc.py", f'{self.sdc_home_dir}\\sdc.py')
+                try:
+                    shutil.copy(os.path.abspath(application_path)+"\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
+                except PermissionError:
+                    os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
+                    shutil.copy(os.path.abspath(application_path)+"\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe'):
+                    try:
+                        shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                    except PermissionError:
+                        os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
+                        shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+
+                shutil.copy(os.path.abspath(application_path)+"\\adminbot.py", f'{self.sdc_home_dir}\\adminbot.py')
                 src_folder = os.path.abspath(application_path)+"\\cogs\\"
                 dst_folder = f'{self.sdc_home_dir}\\cogs\\'
                 for file_name in os.listdir(src_folder):
@@ -606,14 +634,9 @@ if is_admin():
                     if os.path.isfile(src_file):
                         shutil.copy(src_file, dst_file)
                         print('copied', file_name)
-                #shutil.copy(os.path.abspath(application_path)+"\\cogs\\*", f'{self.sdc_home_dir}\\cogs\\')
-                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config\\", f'{self.sdc_home_dir}\\config\\')
-                #
-                #   FIX BELOW
-                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\icons\\", f'{self.sdc_home_dir}\\icons\\')
-                #shutil.copy(os.path.abspath(application_path)+"\\multiguild.py", f'{self.sdc_home_dir}\\multiguild.py')
-                #shutil.copy(configLoc,f"{self.sdc_home_dir}\\config\\sdc.ini")
-                #shutil.copy(os.path.abspath(application_path)+"\\config\\honfig.py",f"{self.sdc_home_dir}\\config\\honfig.py")
+
+                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config", f'{self.sdc_home_dir}\\config',update=1)
+                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\icons", f'{self.sdc_home_dir}\\icons',update=1)
                 print("Done!")
                 print("Checking and creating required dependencies...")
                 #
@@ -626,6 +649,7 @@ if is_admin():
                 if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
                 print("Done!")
+            
             if self.dataDict['master_server'] == "honmasterserver.com":
                 service_api = initialise.get_service(self.service_name_api)
                 if service_api:
@@ -686,6 +710,9 @@ if is_admin():
                     else:
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
+            # if force_update or bot_needs_update or bot_first_launch:
+            #     #Compile bot code into exe
+            #     initialise.build(self,app_name)
             service_bot = initialise.get_service(self.service_name_bot)
             proxy_service = initialise.get_service("HoN Proxy Manager")
             if service_bot:
@@ -711,10 +738,10 @@ if is_admin():
                                 try:
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                                     print("copying server exe...")
-                                except Exception as e: print(e + "can't replace exe.")
+                                except Exception as e: print(str(e) + "can't replace exe.")
                             if use_console==False:
                                 if self.dataDict['use_proxy']=='True':
-                                    if initialise.check_port(self.startup['svr_proxyPort']):
+                                    if initialise.check_port(self.game_port_proxy):
                                         initialise.start_service(self,self.service_name_bot)
                                     else:
                                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
@@ -723,7 +750,7 @@ if is_admin():
                                     initialise.start_service(self,self.service_name_bot)
                             else:
                                 if self.dataDict['use_proxy']=='True':
-                                    if initialise.check_port(self.startup['svr_proxyPort']):
+                                    if initialise.check_port(self.game_port_proxy):
                                         initialise.start_bot(self,False)
                                     else:
                                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
@@ -738,9 +765,15 @@ if is_admin():
                         #reconfigure service + restart
                         initialise.configure_service_bot(self,self.service_name_bot)
                         time.sleep(1)
+                    playercount = initialise.playerCount(self)
+                    if deployed_status['use_console'] == 'True':
+                        if playercount <=0:
+                            initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
                     print(f"HONSERVER STATUS: {self.service_name_bot}")
                     if self.dataDict['use_proxy']=='True':
-                        if initialise.check_port(self.startup['svr_proxyPort']):
+                        if initialise.check_port(self.game_port_proxy):
                             if use_console == False:
                                 initialise.start_service(self,self.service_name_bot)
                                 service_bot = initialise.get_service(self.service_name_bot)
@@ -771,10 +804,8 @@ if is_admin():
                 print(f"Creating adminbot: {self.service_name_bot}..")
                 print("==========================================")
                 initialise.create_service_bot(self,self.service_name_bot)
-                time.sleep(1)
-                initialise.configure_service_bot(self,self.service_name_bot)
                 if self.dataDict['use_proxy']=='True':
-                    if initialise.check_port(self.startup['svr_proxyPort']):
+                    if initialise.check_port(self.game_port_proxy):
                         if use_console == False:
                             initialise.start_service(self,self.service_name_bot)
                         else:
@@ -784,6 +815,8 @@ if is_admin():
                         tex.see(tk.END)
                 else:
                     if use_console == False:
+                            initialise.configure_service_bot(self,self.service_name_bot)
+                            time.sleep(1)
                             initialise.start_service(self,self.service_name_bot)
                     else:
                         initialise.start_bot(self,False)
@@ -839,6 +872,7 @@ if is_admin():
             else:
                 raise
         def git_current_branch(self):
+            os.chdir(application_path)
             current_branch = Repository('.').head.shorthand  # 'master'
             return current_branch
         def git_all_branches(self):
@@ -985,7 +1019,7 @@ if is_admin():
                             #test
                             path=os.path.abspath(__file__)
                             path=f"\"{path}\""
-                            os.execl(sys.executable, path, *sys.argv)
+                            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
@@ -1003,6 +1037,7 @@ if is_admin():
             global ports_to_forward_game
             global ports_to_forward_voice
             checks=True
+            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
             if " " in hoster:
                 checks=False
                 tex.insert(END,"FIXME: Please ensure there are no spaces in the server name field.\n",'warning')
@@ -1026,17 +1061,24 @@ if is_admin():
                 hondirectory = os.path.join(hondirectory, '')
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
-
-                # if 'github_branch' not in self.dataDict:
-                #     self.dataDict.update({'github_branch':selected_branch})
-                # if identifier == "update":
-                #     update = initialise.update_repository(self,selected_branch)
-                #     tex.insert(END,"==========================================\n")
-                #     # if update:
-                #     #     gui.popup_bonus()
-                #     #     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-                # # update hosts file to fix an issue where hon requires resolving to name client.sea.heroesofnewerth.com
-                #initialise.add_hosts_entry(self)
+                #if use_console == False:
+                if hondirectory != self.dataDict['hon_directory']:
+                    self.dataDict.update({'hon_directory':hondirectory})
+                    # compiled_path=f"{application_path}\\dist"
+                    # compiled_file=f"{application_path}\\dist\\{app_name}.exe"
+                    # if not exists('.\\build'):
+                    #     os.mkdir('.\\build')
+                    # if exists(f"{compiled_file}"):
+                    #     compiled_hash=dmgr.mData.get_hash(compiled_file)
+                    #     if compiled_hash != self.dataDict['compiled_hash']:
+                    #         if initialise.build(self,app_name):
+                    #             compiled_hash=dmgr.mData.get_hash(compiled_file)
+                    #             self.dataDict.update({'compiled_hash':compiled_hash})
+                    # else:
+                    #     if initialise.build(self,app_name):
+                    #         compiled_hash=dmgr.mData.get_hash(compiled_file)
+                    #         self.dataDict.update({'compiled_hash':compiled_hash})
+                
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
                         tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
@@ -1046,17 +1088,15 @@ if is_admin():
                         use_proxy=False
                     else:
                         firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
-                #if use_console == False:
-                if hondirectory != self.dataDict['hon_directory']:
-                    self.dataDict.update({'hon_directory':hondirectory})
                 #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
                 #service_proxy = initialise.get_service(service_proxy_name)
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
                 manger_application=f"KONGOR ARENA MANAGER.exe"
-                manager_arguments=f"-manager -noconfig -execute \"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {self.dataDict['master_server']}"
-                manager_arguments_console=f"\"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {self.dataDict['master_server']}"
+                manager_arguments=f"-manager -noconfig -execute \"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {master_server}"
+                manager_arguments_console=f"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+                os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
                 manager_running=False
                 if service_manager:
                     print("Manager exists")
@@ -1069,45 +1109,51 @@ if is_admin():
                         if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
                         initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
+                        # if manager_running == True:
+                        #     for proc in psutil.process_iter():
+                        #         # check whether the process name matches
+                        #         if proc.name() == manger_application:
+                        #             proc.kill()
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             #   uncomment the below for server manager console visibility
-                            # if use_console:
-                            #     initialise.stop_service(self,service_manager_name)
-                            #     subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
-                            # else:
+                            if use_console:
+                                initialise.stop_service(self,service_manager_name)
+                                subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            else:
                                 initialise.restart_service(self,service_manager_name)
                         else:
                             # uncomment the below for server manager console visibility
-                            # if use_console:
-                            #     # stop existing console app
-                            #     for proc in psutil.process_iter():
-                            #         # check whether the process name matches
-                            #         if proc.name() == manger_application:
-                            #             proc.kill()
-                            #     # start new one
-                            #    subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
-                            #else:
+                            if use_console:
+                                # stop existing console app
+                                for proc in psutil.process_iter():
+                                    # check whether the process name matches
+                                    if proc.name() == manger_application:
+                                        proc.kill()
+                                # start new one
+                                subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            else:
                                 initialise.start_service(self,service_manager_name)
                 else:
                     if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
                     # uncomment the below for server manager console visibility
-                    # if use_console:
-                    #     for proc in psutil.process_iter():
-                    #         # check whether the process name matches
-                    #         if proc.name() == manger_application:
-                    #             proc.kill()
-                    #    subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console])
-                    #else:
-                    initialise.create_service_generic(self,service_manager_name,manger_application)
-                    time.sleep(1)
-                    initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
-                    time.sleep(1)
-                    initialise.start_service(self,service_manager_name)
-                    service_manager = initialise.get_service(service_manager_name)
+                    if use_console:
+                        for proc in psutil.process_iter():
+                            # check whether the process name matches
+                            if proc.name() == manger_application:
+                                proc.kill()
+                        subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                    else:
+                        initialise.create_service_generic(self,service_manager_name,manger_application)
+                        time.sleep(1)
+                        initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
+                        time.sleep(1)
+                        initialise.start_service(self,service_manager_name)
+                        service_manager = initialise.get_service(service_manager_name)
                     if service_manager:
                         print("Manager started")
                 if use_proxy:
+                    os.environ["APPDATA"] = self.dataDict['hon_root_dir']
                     application="proxymanager.exe"
                     proxy_running=False
                     # if service_proxy:
@@ -1204,6 +1250,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_total",servertotal)
                     conf_local.set("OPTIONS","token",bottoken)
                     conf_local.set("OPTIONS","hon_directory",hondirectory)
+                    #conf_local.set("OPTIONS","hon_root_dir",honroot)
                     conf_local.set("OPTIONS","discord_admin",discordadmin)
                     conf_local.set("OPTIONS","master_server",master_server)
                     conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1218,6 +1265,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_login",svr_login)
                     conf_local.set("OPTIONS","svr_password",svr_password)
                     conf_local.set("OPTIONS","use_console",str(use_console))
+                    conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
                     with open(config_local, "w") as a:
                         conf_local.write(a)
                     a.close()
@@ -1251,6 +1299,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_total",servertotal)
                         conf_local.set("OPTIONS","token",bottoken)
                         conf_local.set("OPTIONS","hon_directory",hondirectory)
+                        #conf_local.set("OPTIONS","hon_root_dir",honroot)
                         conf_local.set("OPTIONS","discord_admin",discordadmin)
                         conf_local.set("OPTIONS","master_server",master_server)
                         conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1265,6 +1314,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_login",svr_login)
                         conf_local.set("OPTIONS","svr_password",svr_password)
                         conf_local.set("OPTIONS","use_console",str(use_console))
+                        conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
                         with open(config_local, "w") as c:
                             conf_local.write(c)
                         c.close()
@@ -1415,15 +1465,15 @@ if is_admin():
             
             #   HoN Directory
             applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
-            tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=45)
+            tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=70)
             tab1_hondird.insert(0,self.dataDict['hon_directory'])
             tab1_hondird.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
             # #   HoN Home
-            # applet.Label(tab1, text="HoN Home Folder (replays, logs):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
-            # tab1_honroot = applet.Entry(tab1,foreground=textcolor,width=45)
-            # tab1_honroot.insert(0,"<default>")
+            # applet.Label(tab1, text="HoN Home Folder (replays, logs, etc):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
+            # tab1_honroot = applet.Entry(tab1,foreground=textcolor,width=70)
+            # tab1_honroot.insert(0,self.dataDict['hon_root_dir'])
             # tab1_honroot.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
-            #  HoN master server
+            # HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
             tab1_masterserver = applet.Combobox(tab1,foreground=textcolor,value=self.masterserver(),textvariable=self.master_server,width=16)
@@ -1475,6 +1525,8 @@ if is_admin():
             self.console = tk.BooleanVar(app)
             if self.dataDict['use_console'] == 'True':
                 self.console.set(True)
+            else:
+                self.console.set(False)
             tab1_console_btn = applet.Checkbutton(tab1,variable=self.console)
             tab1_console_btn.grid(column= 1, row = 11,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
@@ -1562,13 +1614,13 @@ if is_admin():
                 #     self.grid_columnconfigure(0, weight=1)
 
                 # create a Text widget
-                    tex = tk.Text(app,foreground=textcolor,background=textbox,height=15)
-                    tex.grid(row=15, column=0, sticky="nsew", padx=2, pady=2)
+                    tex = tk.Text(app,foreground=textcolor,background=textbox,height=10)
+                    tex.grid(row=16, column=0, sticky="nsew", padx=2, pady=2)
                     tex.tag_config('warning', background="yellow", foreground="red")
                     tex.tag_config('interest', background="green")
                 # create a Scrollbar and associate it with txt
                     scrollb = ttk.Scrollbar(app, command=tex.yview)
-                    scrollb.grid(row=15, column=1, sticky='nsew')
+                    scrollb.grid(row=16, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
             ButtonString = ['View Log', 'Start', 'Stop', 'Clean', 'Uninstall']
@@ -1584,14 +1636,17 @@ if is_admin():
                     deployed_status = dmgr.mData.returnDict_basic(self,i)
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
-                    for path in paths:
-                        for f in os.listdir(path):
-                            f = os.path.join(path, f)
-                            if os.stat(f).st_mtime < now - 7 * 86400:
-                                if os.path.isfile(f):
-                                    os.remove(os.path.join(path, f))
-                                    count+=1
-                                    print("removed "+f)
+                    try:
+                        for path in paths:
+                            for f in os.listdir(path):
+                                f = os.path.join(path, f)
+                                if os.stat(f).st_mtime < now - 7 * 86400:
+                                    if os.path.isfile(f):
+                                        os.remove(os.path.join(path, f))
+                                        count+=1
+                                        print("removed "+f)
+                    except Exception as e:
+                        print(e)
                     replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
@@ -1619,10 +1674,14 @@ if is_admin():
                             else:
                                 tex.insert(END,f"{service_name} failed to stop.\n")
                         else:
-                            tex.insert(END,f"Can't stop console application. Please close it manually.")
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                        viewButton.refresh()
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
+                viewButton.refresh()
 
             def get_size(start_path):
                     total_size = 0
@@ -1686,9 +1745,9 @@ if is_admin():
                     # Server Log
                     if (tabgui2.index("current")) == 0:
                         if pcount <=0:
-                            log_File = f"Slave*{deployed_status['svr_id']}*.log"
+                            log_File = f"Slave*.log"
                         else:
-                            log_File = f"Slave*{deployed_status['svr_id']}*.clog"
+                            log_File = f"Slave*{id}*.clog"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
                         info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
@@ -1724,7 +1783,7 @@ if is_admin():
                                     tex.insert(tk.END,line)
                     if (tabgui2.index("current")) == 2:
                         logs_dir = f"{deployed_status['sdc_home_dir']}\\"
-                        log_File = "sdc.log"
+                        log_File = f"adminbot{id}.log"
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
                         with open(latest_file,'r') as file:
@@ -1734,7 +1793,7 @@ if is_admin():
                     if (tabgui2.index("current")) == 3:
                         logs_dir1 = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
                         #logs_dir2 = f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager\\"
-                        log_File = f"proxy_{20000 + int(deployed_status['svr_id']) - 1}*.log"
+                        log_File = f"proxy_{20000 + int(id) - 1}*.log"
                         list_of_files1 = glob.glob(logs_dir1 + log_File) # * means all if need specific format then *.csv
                         #list_of_files2 = glob.glob(logs_dir2 + log_File)
                         #list_of_files = list_of_files1 + list_of_files2
@@ -1748,13 +1807,14 @@ if is_admin():
                                 else:
                                     tex.insert(tk.END,line)
                     status = Entry(app,background=maincolor,foreground='white',width="200")
-                    status.insert(0,f"Viewing hon_server_{deployed_status['svr_id']}: {latest_file}")
+                    status.insert(0,f"Viewing hon_server_{id}: {latest_file}")
                     status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
                     print(latest_file)                   
                     tex.see(tk.END)
 
                 def Start(self):
                     pcount = initialise.playerCountX(self,id)
+                    deployed_status = dmgr.mData.returnDict_basic(self,id)
                     incr_port = 0
                     for i in range(0,id):
                         incr_val = int(self.dataDict['incr_port_by'])
@@ -1764,7 +1824,6 @@ if is_admin():
                             svr_proxyPort=self.base['svr_proxyPort']
                             svr_proxyPort=svr_proxyPort.replace('"',"")
                             svr_proxyPort=int(svr_proxyPort)+int(incr_port)
-                            svr_proxyPort=f"\"{svr_proxyPort}\""
                             if initialise.check_port(svr_proxyPort):
                                 if self.dataDict['use_console'] == 'False':
                                     initialise.start_service(self,service_name)
@@ -1806,12 +1865,10 @@ if is_admin():
                             else:
                                 tex.insert(END,f"{service_name} failed to stop.\n")
                         else:
-                            self.service = initialise.get_service(service_name)
-                            if self.service['status'] == 'running' or 'paused':
-                                if initialise.stop_service(self,service_name):
-                                    tex.insert(END,f"{service_name} stopped successfully.\n")
-                                    viewButton.load_server_mgr(self)
-                            initialise.stop_bot(self,NULL)
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                        viewButton.refresh()
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
@@ -1941,8 +1998,8 @@ if is_admin():
                                     colour = 'OrangeRed4'
                                     svc_or_con="svc"
                                     #LablString[1]=f"svc-Stopped"
-                            elif deployed_status['use_console'] == 'True' and pcount <0:
-                                colour = 'OrangeRed4'
+                            elif deployed_status['use_console'] == 'True':
+                                #colour = 'OrangeRed4'
                                 svc_or_con="con"
                                 #LablString[1]=f"con-Stopped"
                             c_pos1 = index1 + c
@@ -1965,10 +2022,15 @@ if is_admin():
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
                     proxy_running=False
+                    manager_running=False
                     for proc in psutil.process_iter():
                         # check whether the process name matches
                         if proc.name() == "proxymanager.exe":
                             proxy_running=True
+                    for proc in psutil.process_iter():
+                        # check whether the process name matches
+                        if proc.name() == "KONGOR ARENA MANAGER.exe":
+                            manager_running=True
                     if proxy_running==True:
                         labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                     else:
@@ -1976,7 +2038,7 @@ if is_admin():
                         btn = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
                         btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
-                    if manager_service['status'] == 'running':
+                    if manager_running:
                         labl = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                     else:
                         labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
