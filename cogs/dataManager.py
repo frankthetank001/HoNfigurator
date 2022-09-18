@@ -17,6 +17,7 @@ from os.path import exists
 from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
+import sys
 import multiprocessing
 
 #import cogs.server_status as svrcmd
@@ -25,14 +26,26 @@ conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
 conf_parse_deployed = configparser.ConfigParser(interpolation=None)
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+        #print("running from tempdir "+base_path)
+    except Exception:
+        base_path = os.path.abspath(".")
+        #print("running from base "+base_path)
+
+    return os.path.join(base_path, relative_path)
+
 class mData():
     def __init__(self):
         return
     
     #def returnDict(self,configFile):      
     def returnDict(self):
-        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
-        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
+        conf_parse_local.read(resource_path("config\\local_config.ini"))
+        conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
         for option in conf_parse_local.options("OPTIONS"):
             self.confDict.update({option:conf_parse_local['OPTIONS'][option]})
@@ -42,9 +55,10 @@ class mData():
         self.svr_id = self.confDict['svr_id']
         #
         #   Update the dictionary with some processed data
-        if 'hon_root_dir' not in self.confDict:
-            self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
-        #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+        #if 'hon_root_dir' not in self.confDict:
+            #self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
+        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
+        #self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
         self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Documents\\Heroes of Newerth x64"})
         self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\game"})
         self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\game\\logs"})
@@ -53,6 +67,7 @@ class mData():
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
+        self.confDict.update({"app_name":f"adminbot{self.confDict['svr_id']}"})
         if 'core_assignment' not in self.confDict:
             self.confDict.update({'core_assignment':'one'})
         if 'process_priority' not in self.confDict:
@@ -81,7 +96,7 @@ class mData():
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
             self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
-        elif self.confDict['master_server'] == "kongor.online:666":
+        elif 'kongor.online' in self.confDict['master_server']:
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
@@ -118,35 +133,41 @@ class mData():
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
     def returnDict_basic(self,svr_id):
-        conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
-        conf_parse_global.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\global_config.ini")
-        
+        conf_parse_local.read(resource_path("config\\local_config.ini"))
+        conf_parse_global.read(resource_path("config\\global_config.ini"))
+
         self.confDict_root = {}
         self.confDict_deployed = {}
-        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
-            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
-            for option in conf_parse_deployed.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+
+        for option in conf_parse_local.options("OPTIONS"):
+            self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         # for option in conf_parse_local.options("OPTIONS"):
         #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
             self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
-        if 'hon_root_dir' not in self.confDict:
-            self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
-        #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+        #if 'hon_root_dir' not in self.confDict_root:
+            #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
+        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+            #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+        # else:
+        #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Documents\\Heroes of Newerth x64"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\game\\logs"})
-        if 'sdc_home_dir' not in self.confDict_deployed:
-            self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\adminbot{svr_id}"})
         self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\adminbot{svr_id}"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
+        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
+            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+            for option in conf_parse_deployed.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
+
+        
     # def setData(self,key):
     #     temp={}
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
@@ -158,7 +179,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('http://ifconfig.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)

@@ -15,9 +15,7 @@ processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
 match_status = {}
 size_changed = True
-os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
-os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
-#os.chdir(processed_data_dict['hon_logs_dir'])
+os.chdir(processed_data_dict['hon_logs_dir'])
 #
 #   hooks onto hon.exe and manages hon
 class honCMD():
@@ -132,6 +130,8 @@ class honCMD():
                 #server_status_dict.update[{'total_games_played_prev':honCMD.getData(self,"TotalGamesPlayed")}]
                 #
                 #   Start the HoN Server!
+                os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
+                os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
                 print("starting service")
                 print("collecting port info...")
                 tempData = {}
@@ -148,6 +148,7 @@ class honCMD():
                 if processed_data_dict['use_proxy']=='True':
                     if honCMD.check_port(svr_proxyport):
                         self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                        #os.system(f"\"{processed_data_dict['hon_exe']}\" -dedicated -noconfig -execute \"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000\" -masterserver {processed_data_dict['master_server']}")
                     else:
                         return "proxy"
                 # else:
@@ -232,12 +233,12 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
-            if processed_data_dict['use_proxy'] == 'True':
-                try:
-                    p = psutil.Process(self.server_status['proxy_pid'])
-                    p.terminate()
-                except Exception as e:
-                    print(e)
+            # if processed_data_dict['use_proxy'] == 'True':
+            #     try:
+            #         p = psutil.Process(self.server_status['proxy_pid'])
+            #         p.terminate()
+            #     except Exception as e:
+            #         print(e)
             self.server_status.update({'update_embeds':True})
             return True
         return
@@ -247,12 +248,12 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
-        if processed_data_dict['use_proxy'] == 'True':        
-            try:
-                p = psutil.Process(self.server_status['proxy_pid'])
-                p.terminate()
-            except Exception as e:
-                print(e)
+        # if processed_data_dict['use_proxy'] == 'True':        
+        #     try:
+        #         p = psutil.Process(self.server_status['proxy_pid'])
+        #         p.terminate()
+        #     except Exception as e:
+        #         print(e)
         self.server_status.update({'update_embeds':True})
         return True
 
@@ -283,11 +284,13 @@ class honCMD():
     def restartSELF(self):
         #service_name = "adminbot"+processed_data_dict['svr_id']
         #os.system(f'net stop {service_name} & net start {service_name}')
+        honCMD().stopSERVER()
         if processed_data_dict['use_console'] == 'True':
             os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
         else:
             sys.exit(1)
     def stopSELF(self):
+        honCMD().stopSERVER()
         sys.exit(0)
     def reportPlayer(self,reason):
         #
@@ -542,9 +545,12 @@ class honCMD():
         elif dtype == "getLogList_Game":
             print("checking game logs")
             tempList = []
+            gameLoc = None
             try:
                 # get list of files that matches pattern
-                pattern=f"Slave-1_M*console.clog"
+                #pattern=f"Slave-1_M*console.clog"
+                # new world order - with slaves
+                pattern=f"Slave{self.server_status['svr_id']}*M*console.clog"
                 #pattern="M*log"
 
                 files = list(filter(os.path.isfile,glob.glob(pattern)))
@@ -561,23 +567,22 @@ class honCMD():
                 #     if "game" in item or (item.startswith("M") and item.endswith(".log")):
                 #         tempList.append(item)
                 # gameLoc = tempList[len(tempList)-1]
+                return gameLoc
             except Exception as e:
                 print(e)
                 pass
-            
-            return gameLoc
         #
         #   Get latest server slave log
         elif dtype == "getLogList_Slave":
             print("checking slave logs")
             tempList = []
-            for item in os.listdir():
+            for item in os.listdir(processed_data_dict['hon_logs_dir']):
                 if (item.startswith("Slave") and item.endswith(".log")) and "Slave-1_M_console.clog" not in item and 'Slave-Temp.log' not in item: #or (item.startswith("Slave-1_M") and item.endswith("console.clog")) 
                     tempList.append(item)
             if not tempList:
                 # catch error where there is no slave log, create a temp one.
                 print("NO SLAVE LOG. FIRST TIME BOT IS BEING LAUNCHED")
-                with open("Slave-Temp.log", 'w'): pass
+                with open(f"{processed_data_dict['hon_logs_dir']}\\Slave-Temp.log", 'w'): pass
                 tempList.append("Slave-Temp.log")
             slaveLog = tempList[len(tempList)-1]
             self.server_status.update({"slave_log_location":slaveLog})

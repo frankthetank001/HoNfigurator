@@ -13,6 +13,16 @@ import traceback
 from discord.ext import tasks
 import ctypes, sys
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
 elif __file__:
@@ -40,17 +50,23 @@ if is_admin():
     dmgr = mData()
     #processed_data_dict = dmgr.returnDict(f"{os.path.dirname(os.path.realpath(__file__))}\\config\\sdc.ini")
     processed_data_dict = dmgr.returnDict()
-
+    os.chdir(processed_data_dict['hon_logs_dir'])
     svr_id = processed_data_dict['svr_id']
     svr_id = int(svr_id)
     svr_id_delay = svr_id * 20
+    print(svr_id)
     #svr_id_delay = 0
     svr_identifier = processed_data_dict['svr_identifier']
     svr_hoster = processed_data_dict['svr_hoster']
+    ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
+    #os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
 
-    os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
-    os.chdir(processed_data_dict['hon_logs_dir'])
-
+    old_exe = f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe"
+    if exists(old_exe):
+        try:
+            os.remove(old_exe)
+        except Exception as e:
+            print(e)
     # class logging:
     class hsl(commands.Cog):
         def __init__(self,bot):
@@ -803,4 +819,4 @@ if is_admin():
 else:
     # Re-run the program with admin rights
     # os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", f"{application_path}\\sdc.bat", " ".join(sys.argv), None, 5)
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", f"{application_path}\\adminbot.bat", " ".join(sys.argv), None, 5)
