@@ -1,3 +1,3 @@
 import os
 import subprocess
-subprocess.Popen(['python.exe','adminbot.py'])
+subprocess.Popen(['python.exe','honfigurator.py'])
