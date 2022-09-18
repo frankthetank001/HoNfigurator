@@ -551,7 +551,7 @@ class honCMD():
                 # get list of files that matches pattern
                 #pattern=f"Slave-1_M*console.clog"
                 # new world order - with slaves
-                pattern=f"Slave{self.server_status['svr_id']}*M*console.clog"
+                pattern=f"Slave{processed_data_dict['svr_id']}*M*console.clog"
                 #pattern="M*log"
 
                 files = list(filter(os.path.isfile,glob.glob(pattern)))
