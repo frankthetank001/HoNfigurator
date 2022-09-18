@@ -1153,6 +1153,7 @@ if is_admin():
                     if service_manager:
                         print("Manager started")
                 if use_proxy:
+                    os.environ["APPDATA"] = self.dataDict['hon_root_dir']
                     application="proxymanager.exe"
                     proxy_running=False
                     # if service_proxy:
