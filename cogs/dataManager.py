@@ -156,7 +156,7 @@ class mData():
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
-        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{self.confDict['svr_id']}"})
+        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{self.confDict_deployed['svr_id']}"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
