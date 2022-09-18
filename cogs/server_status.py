@@ -130,7 +130,7 @@ class honCMD():
                 #server_status_dict.update[{'total_games_played_prev':honCMD.getData(self,"TotalGamesPlayed")}]
                 #
                 #   Start the HoN Server!
-                os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
+                os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
                 os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
                 print("starting service")
                 print("collecting port info...")

@@ -310,7 +310,7 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_root_dir']}\""])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_manager_dir']}\""])
             return True
         def configure_service_api(self,service_name):
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
@@ -326,7 +326,7 @@ if is_admin():
             time.sleep(1)
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
-            #sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"{self.service_name_bot}.exe"])
+            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
             return True
 
         def restart_service(self,service_name):
@@ -467,7 +467,7 @@ if is_admin():
             bot_first_launch = False
             deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
             
-            os.environ["USERPROFILE"] = self.dataDict['hon_root_dir']
+            os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
 
 
@@ -1061,6 +1061,9 @@ if is_admin():
                 hondirectory = os.path.join(hondirectory, '')
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
+                #if use_console == False:
+                if hondirectory != self.dataDict['hon_directory']:
+                    self.dataDict.update({'hon_directory':hondirectory})
                     # compiled_path=f"{application_path}\\dist"
                     # compiled_file=f"{application_path}\\dist\\{app_name}.exe"
                     # if not exists('.\\build'):
@@ -1085,9 +1088,6 @@ if is_admin():
                         use_proxy=False
                     else:
                         firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
-                #if use_console == False:
-                if hondirectory != self.dataDict['hon_directory']:
-                    self.dataDict.update({'hon_directory':hondirectory})
                 #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
                 #service_proxy = initialise.get_service(service_proxy_name)
@@ -1096,6 +1096,7 @@ if is_admin():
                 manger_application=f"KONGOR ARENA MANAGER.exe"
                 manager_arguments=f"-manager -noconfig -execute \"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {master_server}"
                 manager_arguments_console=f"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+                os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
                 manager_running=False
                 if service_manager:
                     print("Manager exists")
@@ -1108,6 +1109,11 @@ if is_admin():
                         if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
                         initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
+                        # if manager_running == True:
+                        #     for proc in psutil.process_iter():
+                        #         # check whether the process name matches
+                        #         if proc.name() == manger_application:
+                        #             proc.kill()
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             #   uncomment the below for server manager console visibility
                             if use_console:
@@ -1518,6 +1524,8 @@ if is_admin():
             self.console = tk.BooleanVar(app)
             if self.dataDict['use_console'] == 'True':
                 self.console.set(True)
+            else:
+                self.console.set(False)
             tab1_console_btn = applet.Checkbutton(tab1,variable=self.console)
             tab1_console_btn.grid(column= 1, row = 11,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
