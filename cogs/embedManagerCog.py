@@ -74,6 +74,7 @@ stripColor_help = discord.Color.gold()
 init = "https://i.ibb.co/s3HSrjd/corepool.png"
 online = "https://i.ibb.co/fd7yFKw/thumbs-up.png"
 offline = "https://i.ibb.co/GMZdkT9/thumbs-down.png"
+disconnected = "https://i.ibb.co/T0CkZfP/Hardcore-Mode.png"
 hosted = "https://i.ibb.co/FwcvZQg/icon-loading.png"
 map_capturetheflag ="https://i.ibb.co/7gQvL8t/Capture-the-Flag.png"
 map_darkwoodvale ="https://i.ibb.co/TtpsHLK/Darkwoodvale.png"
@@ -90,6 +91,7 @@ map_spotlight ="https://i.ibb.co/VSq1tzR/Spotlight.png"
 map_deathmatch ="https://i.ibb.co/VQwJWxr/Team-Deathmatch.png"
 map_tutorial ="https://i.ibb.co/F6vvLBm/tutorial.png"
 map_watchtower ="https://i.ibb.co/C8Wp3gM/watchtower.png"
+
 
 import signal
 
@@ -215,6 +217,7 @@ class embedManager(commands.Cog):
             
     @bot.command()
     async def offlineEmbed(self,rec_embed):
+        print("server offline")
         self.server_status = svr_state.getStatus()
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
@@ -227,6 +230,7 @@ class embedManager(commands.Cog):
 
     @bot.command()
     async def startingEmbed(self,rec_embed):
+        print("server starting")
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Starting Server..",description=default_description, color=stripColor_starting)
@@ -241,17 +245,30 @@ class embedManager(commands.Cog):
     async def onlineEmbed(self,rec_embed):
         self.server_status = svr_state.getStatus()
         #embedManager.__init__(self,bot)
-
-        created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  OPEN",description=default_description, color=stripColor_online)
+        print("server online")
+        if 'cookie' in self.server_status and self.server_status['cookie']==False:
+            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  NO COOKIE")
+        elif 'proxy_online' in self.server_status and self.server_status['proxy_online']==False:
+            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  NETWORK ERROR")
+        else:
+            created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  OPEN",description=default_description, color=stripColor_online)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
         if svr_dns is None:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_ip}:{svr_port}\n```",inline=True)
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
+        elif 'cookie' in self.server_status and self.server_status['cookie']==False:
+            created_embed.add_field(name=f"Cookie error!",value=f"```\nnot currently connected to master server.```",inline=True)
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_thumbnail(url=disconnected)
+        elif 'proxy_online' in self.server_status and self.server_status['proxy_online']==False:
+            created_embed.add_field(name=f"Network error!",value=f"```\nProxy port issue.```",inline=True)
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_thumbnail(url=disconnected)
         else:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_dns}:{svr_port}\n```",inline=True)
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
-        created_embed.set_thumbnail(url=online)
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -259,6 +276,7 @@ class embedManager(commands.Cog):
     
     @bot.command()
     async def restartEmbed(self,rec_embed):
+        print("server restarting")
         #self.server_status.update({'restarting_server':True})
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                           RESTARTING SERVER...", color=stripColor_restart)
@@ -283,6 +301,7 @@ class embedManager(commands.Cog):
         #
         #   First run
         if self.just_collected is False and self.first_run == True:
+            print("server selected by player")
             #
             #   BASE EMBED: embed when server has been selected by a player
             #   server selected not hosted
@@ -301,6 +320,7 @@ class embedManager(commands.Cog):
         #   BASE EMBED: embed when a lobby has been created
         #   server selected lobby created
         elif self.just_collected == True or self.lobby_created == True:
+            print("lobby starting")
             self.server_status.update({'just_collected':False})
             print("----updating with map data----")
             #   
@@ -373,7 +393,7 @@ class embedManager(commands.Cog):
             try:
                 await rec_embed.edit(embed=created_embed)
             except: print(traceback.format_exc())
-        
+
     @bot.command()
     async def helpembed(self, ctx):
         created_embed = discord.Embed(title="Commands for bot",description='', color=stripColor_help)

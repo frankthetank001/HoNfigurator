@@ -16,7 +16,7 @@ server_status_dict = {}
 match_status = {}
 size_changed = True
 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
-os.environ["APPDATA"] = processed_data_dict['hon_home_dir']
+os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
 #   hooks onto hon.exe and manages hon
@@ -25,7 +25,14 @@ class honCMD():
         self.server_status = server_status_dict
         #server_status_dict.update({"last_restart":honCMD.getData(self,"lastRestart")})
         return
-
+    def check_port(port):
+            result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
+            if result == 0:
+                print(f"Port {int(port)} is open")
+                return True
+            else:
+                print(f"Port {int(port)} is not open")
+                return False
     def playerCount(self):
         check = subprocess.Popen([processed_data_dict['player_count_exe_loc'],processed_data_dict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
@@ -70,6 +77,49 @@ class honCMD():
                     if "Session cookie request failed!" in line or "No session cookie returned!" in line:
                         return False
         return True
+    def check_cookie(server_status,log,name):
+        def write_mtime(log,name):
+            last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
+            #
+            #   This reads the data if it exists
+            if (exists(last_modified_time_file)):
+                with open(last_modified_time_file, 'r') as last_modified:
+                    lastmodData = last_modified.readline()
+                last_modified.close()
+                lastmodData = int(lastmodData)
+                #
+                #   Gets the current byte size of the log
+                fileSize = os.stat(log).st_size
+                #
+                #   After reading data set temporary file to current byte size
+                with open(last_modified_time_file, 'w') as last_modifiedw:
+                    last_modifiedw.write(f"{fileSize}")
+                last_modifiedw.close()
+                return lastmodData
+            #
+            #   If there was no temporary file to load data from, create it.
+            else:
+                try:
+                    fileSize = os.stat(log).st_size
+                    with open(last_modified_time_file, 'w') as last_modified:
+                        last_modified.write(f"{fileSize}")
+                    last_modified.close()
+                except Exception as e:
+                    print(e)
+                    pass
+                return fileSize
+        hard_data = write_mtime(log,name)
+        soft_data = os.stat(log).st_size # initial file size
+        cookie_error=False
+        if soft_data > hard_data:
+            with open (log, "r", encoding='utf-16-le') as f:
+                for line in reversed(list(f)):
+                    if "Session cookie request failed!" in line or "No session cookie returned!" in line:
+                        cookie_error=True
+        if cookie_error:
+            return False
+        else:
+            return True
         # else:
         #     return True
     def changePriority(self,priority_realtime):
@@ -121,16 +171,27 @@ class honCMD():
                 #
                 #   Start the HoN Server!
                 print("starting service")
-                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
-                #
-                #  using manager, requires %appdata%\HonProxyManager\config.cfg to exist.
-                #  self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_manager_exe']])
-                #
-                #  using standalone, can be passed the config as an argument
-                if processed_data_dict['use_proxy'] == 'True':
-                    self.proxyEXE = subprocess.Popen([processed_data_dict['proxy_exe'],f"{processed_data_dict['hon_game_dir']}\\proxy_config.cfg"])
-                    self.proxyPID = self.proxyEXE.pid
-                    server_status_dict.update({'proxy_pid':self.proxyPID})
+                print("collecting port info...")
+                tempData = {}
+                svr_port = int(processed_data_dict['game_starting_port']) + processed_data_dict['incr_port']
+                svr_proxyport = 20000 + (int(processed_data_dict['svr_id']) - 1)
+                svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
+                svr_proxyRemoteVoicePort = 21435 + (int(processed_data_dict['svr_id']) - 1)
+                svr_ip = dmgr.mData.getData(self,"svr_ip")
+                tempData.update({'svr_port':svr_port})
+                tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})
+                tempData.update({'svr_proxyport':svr_proxyport})
+                tempData.update({'svr_proxyRemoteVoicePort':svr_proxyRemoteVoicePort})
+                honCMD.updateStatus(self,tempData)
+                if processed_data_dict['use_proxy']=='True':
+                    if honCMD.check_port(svr_proxyport):
+                        print()
+                    else:
+                        print (f"proxy port {svr_proxyport} not online")
+                        return "proxy"
+                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_slave {processed_data_dict['svr_id']};Set svr_password {processed_data_dict['svr_password']}; Set svr_adminPassword ; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                # else:
+                #     self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-masterserver",processed_data_dict['master_server']])
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 server_status_dict.update({'hon_exe':self.honEXE})
                 self.honP = self.honEXE.pid
@@ -185,6 +246,9 @@ class honCMD():
                 server_status_dict.update({'pending_restart':False})
                 server_status_dict.update({'server_ready':False})
                 server_status_dict.update({'server_starting':True})
+                server_status_dict.update({'cookie':True})
+                if processed_data_dict['use_proxy']=='True':
+                    server_status_dict.update({'proxy_online':True})
                 server_status_dict.update({'scheduled_shutdown':False})
                 server_status_dict.update({'update_embeds':True})
                 server_status_dict.update({"hard_reset":False})
@@ -198,7 +262,7 @@ class honCMD():
                 match_status.update({'match_time':'Preparation phase..'})
                 return True
             else:
-                return False
+                return "ram"
     #
     #   Stop server
     def stopSERVER(self):

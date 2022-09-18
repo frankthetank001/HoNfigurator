@@ -1,6 +1,7 @@
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
+import cogs.dataManager as dmgr
 from datetime import datetime
 import traceback
 
@@ -54,12 +55,14 @@ class heartbeat(commands.Cog):
         counter_hosted = 0
         counter_gamecheck = 0
         counter_lobbycheck = 0
+        counter_health_checks = 0
         #  Debug setting
         #  playercount = 0
         threshold_heartbeat = 30    # how long to wait before break from heartbeat to update embeds
         threshold_hosted = 60   # how long we wait for someone to host a game without starting
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
+        threshold_health_checks = 30
         x = 0
         #   this is the start of the heartbeat
         #   anything below is looping
@@ -67,6 +70,36 @@ class heartbeat(commands.Cog):
             counter_heartbeat+=1
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
+            if playercount >=0:
+                counter_health_checks +=1
+                if counter_health_checks>=threshold_health_checks:
+                    counter_health_checks=0
+                    if self.processed_data_dict['use_proxy'] == 'True':
+                        if 'svr_proxyport' in self.server_status:
+                            proxy_online=svrcmd.honCMD.check_port(int(self.server_status['svr_proxyport']))
+                            if proxy_online:
+                                print("port healthy")
+                            else:
+                                proxy_online=False
+                                print(f"proxy port: {self.server_status['svr_proxyPort']} not online")
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] Proxy port {self.server_status['svr_proxyport']} offline.")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                            if proxy_online !=self.server_status['proxy_online']:
+                                self.server_status.update({'proxy_online':proxy_online})
+                                self.server_status.update({'update_embeds':True})
+                                self.server_status.update({'tempcount':-5})
+                    cookie=svrcmd.honCMD.check_cookie(self.processed_data_dict,self.server_status['slave_log_location'],'slave_cookie_check')
+                    if cookie==False:
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except: print(traceback.format_exc())
+                    if cookie != self.server_status['cookie']:
+                        self.server_status.update({'cookie':cookie})
+                        self.server_status.update({'update_embeds':True})
+                        self.server_status.update({'tempcount':-5})
             # print(str(playercount))
             #
             #   Check if the server is ready yet
@@ -130,6 +163,19 @@ class heartbeat(commands.Cog):
                         except: print(traceback.format_exc())
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                if counter_heartbeat_attempts == 4:
+                    counter_heartbeat_attempts = 0
+                    check_ip = dmgr.mData.getData(self,"svr_ip")
+                    if check_ip != self.processed_data_dict['svr_ip']:
+                        self.server_status.update({"server_restarting":True})
+                        await test.createEmbed(ctx,playercount)
+                        if self.processed_data_dict['debug_mode'] == 'True':
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom ``{self.processed_data_dict['svr_ip']}`` to ``{check_ip}``")
+                            try:
+                                await embed_log.edit(embed=logEmbed)
+                            except: print(traceback.format_exc())
+                        svr_state.restartSERVER()
+                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
 
                 """
                 60 second hosted kick
@@ -271,7 +317,7 @@ class heartbeat(commands.Cog):
             #   update embeds.
             else:
                 counter_heartbeat=0
-                print("moving to update")
+                print(f"moving to update discord message.. playercount ({str(playercount)})")
                 self.server_status.update({'tempcount':playercount})
                 self.server_status.update({'update_embeds':False})
                 self.server_status.update({'time_waited':counter_hosted})
