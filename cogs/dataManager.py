@@ -211,7 +211,10 @@ class mData():
             print("CPU Affinity: "+str(affinity))
             return affinity
         if dtype == "pythonLoc":
-            return sp.getoutput('where python')
+            py_loc = sp.getoutput('where python')
+            py_loc = py_loc.split("\n")
+            py_loc = py_loc[0]
+            return py_loc
         if dtype == "port":
             #   Now that we find the port from the startup.cfg file, this data method should check that it is listening.
             return f"1{self.svr_id}000"
