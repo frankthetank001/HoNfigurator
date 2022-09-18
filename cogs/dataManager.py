@@ -57,9 +57,9 @@ class mData():
         #   Update the dictionary with some processed data
         #if 'hon_root_dir' not in self.confDict:
             #self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
-        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
-        #self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\hon_server_instances\\Hon_Server_{self.confDict['svr_id']}"})
-        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Documents\\Heroes of Newerth x64"})
+        self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances"})
+        self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
+        self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Hon_Server_{self.confDict['svr_id']}\\Documents\\Heroes of Newerth x64"})
         self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\game"})
         self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\game\\logs"})
         self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_logs_dir']}\\adminbot{self.confDict['svr_id']}"})
@@ -147,11 +147,13 @@ class mData():
             self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
         #if 'hon_root_dir' not in self.confDict_root:
             #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
-        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+        #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
             #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
         # else:
         #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
-        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Documents\\Heroes of Newerth x64"})
+        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
+        self.confDict_deployed.update({"hon_manager_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon"})
+        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}\\Documents\\Heroes of Newerth x64"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\game\\logs"})
         self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_logs_dir']}\\adminbot{svr_id}"})
