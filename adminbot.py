@@ -204,11 +204,15 @@ if is_admin():
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Game trying to start on PROXY port which isn't online."))
+                    try:
+                        await embed_log[0].edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
             except UnboundLocalError:
                 temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+                print("starting backup heart until discord command is run.")
                 try:
                     await discord_admin.send(temp_log)
                 except discord.errors.Forbidden:
@@ -218,6 +222,7 @@ if is_admin():
                 print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('startheart'))
+                print("starting behemoth heart.")
             except Exception as e:
                 await heart.heartbeat.startheart_bkp()
         #@bot.event
