@@ -1,3 +1,5 @@
+from asyncio.windows_events import NULL
+from os.path import exists
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
@@ -9,6 +11,7 @@ svr_state = svrcmd.honCMD()
 #hard_reset = False
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
 alive = False
+alive_bkp = False
 global embed_log
 
 class heartbeat(commands.Cog):
@@ -38,7 +41,8 @@ class heartbeat(commands.Cog):
     async def startheart(self,ctx):
         global embed_log
         global alive
-        
+        global alive_bkp
+
         alive = True
         test = self.bot.get_cog("embedManager")
         # alive = True
@@ -48,6 +52,10 @@ class heartbeat(commands.Cog):
         self.server_status.update({'server_restarting':False})
         #self.server_status.update({'server_starting':False})
         self.server_status.update({'hard_reset':False})
+        self.server_status.update({'backup_heart':False})
+        bkup_heart_file=f"{self.processed_data_dict['sdc_home_dir']}\\cogs\\bkup_heart"
+        with open(bkup_heart_file, 'w') as f:
+            f.write("False")
 
         restart_timer = 10
         counter_heartbeat = 0
@@ -56,6 +64,7 @@ class heartbeat(commands.Cog):
         counter_gamecheck = 0
         counter_lobbycheck = 0
         counter_health_checks = 0
+        counter_ipcheck = 0
         #  Debug setting
         #  playercount = 0
         threshold_heartbeat = 30    # how long to wait before break from heartbeat to update embeds
@@ -63,13 +72,22 @@ class heartbeat(commands.Cog):
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 30
+        counter_ipcheck_threshold = 30
         x = 0
         #   this is the start of the heartbeat
         #   anything below is looping
         while alive == True:
+            alive=True
+            if alive_bkp==True:
+                alive_bkp=False
             counter_heartbeat+=1
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
+
+            if playercount >=2:
+                if self.server_status['priority_realtime'] == False:
+                    svr_state.changePriority(True)
+            
             if playercount >=0:
                 counter_health_checks +=1
                 if counter_health_checks>=threshold_health_checks:
@@ -123,6 +141,7 @@ class heartbeat(commands.Cog):
             #
             #   playercount has returned to 0 after a game has been completed, or a lobby closed. Server restart required
             if playercount == 0:
+                counter_ipcheck +=1
                 if self.server_status['priority_realtime'] == True:
                     svr_state.changePriority(False)
                 if self.server_status['hard_reset'] == False:
@@ -163,8 +182,8 @@ class heartbeat(commands.Cog):
                         except: print(traceback.format_exc())
                     svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                if counter_heartbeat_attempts == 4:
-                    counter_heartbeat_attempts = 0
+                if counter_ipcheck == counter_ipcheck_threshold:
+                    counter_ipcheck = 0
                     check_ip = dmgr.mData.getData(self,"svr_ip")
                     if check_ip != self.processed_data_dict['svr_ip']:
                         self.server_status.update({"server_restarting":True})
@@ -276,7 +295,6 @@ class heartbeat(commands.Cog):
                 #   Start a timer so we can show the elapsed time of the match
                 if counter_heartbeat == threshold_heartbeat:
                     counter_heartbeat=0
-                    counter_heartbeat_attempts +=1
                     if self.server_status['game_started'] == True:
                         elapsed_duration = self.server_status['elapsed_duration']
                         elapsed_duration = int(elapsed_duration)
@@ -286,31 +304,7 @@ class heartbeat(commands.Cog):
                         svr_state.getData("CheckInGame")
                     if playercount != self.server_status['tempcount']:
                         self.server_status.update({'update_embeds':True})
-
-
-            if playercount >=2:
-                if self.server_status['priority_realtime'] == False:
-                    svr_state.changePriority(True)
-            #
-            #   break out from the heartbeat every threshold_heartbeat if we're in a game
-            # if counter_heartbeat == threshold_heartbeat:
-            #     counter_heartbeat=0
-            #     counter_heartbeat_attempts +=1
-            #     if playercount >= 1:
-            #         if  self.server_status['game_started'] == True:
-            #             self.server_status.update({'tempcount':-5})   # force an update
-            #             svr_state.getData("CheckInGame")
-            #             print(self.match_status)
-            #         # if self.server_status['lobby_created'] == True and self.server_status['game_started'] == False:
-            #         #     break
-            #         self.server_status.update({'update_embeds':True})
-            #     if counter_heartbeat_attempts == 4 and playercount > 0:
-            #         counter_heartbeat_attempts = 0
-            #         #self.server_status.update({'tempcount':-5})   # force an update
-            #         self.server_status.update({'update_embeds':True})
-            #   
-            #   if nothing new has happened, sit here and take a break for a bit. Every 15 seconds we leave the idle mode in case something has changed and we missed it.
-            #if playercount == self.server_status['tempcount'] and self.server_status['just_collected'] != True and (not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
+        
             if self.server_status['update_embeds'] == False or playercount == self.server_status['tempcount'] and (self.server_status['just_collected'] != True and not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
                 alive = True
                 #print("idle")
@@ -326,7 +320,107 @@ class heartbeat(commands.Cog):
                 # if playercount < 0:
                 #     self.alive = False
 
-    
+    async def startheart_bkp():
+        global alive_bkp
+        global alive
+        alive_bkp='True'
+        processed_data_dict_bkp = svr_state.getDataDict()
+        server_status_bkp = svrcmd.honCMD().getStatus()
+        available_maps_bkp = svr_state.getData("availMaps")
+        server_status_bkp.update({'server_restarting':False})
+        server_status_bkp.update({'server_starting':False})
+        server_status_bkp.update({'hard_reset':False})
+        server_status_bkp.update({'backup_heart':True})
+        bkup_heart_file=f"{processed_data_dict_bkp['sdc_home_dir']}\\cogs\\bkup_heart"
+        with open(bkup_heart_file, 'w') as f:
+            f.write("True")
+        restart_timer = 10
+        counter_gamecheck = 0
+        counter_lobbycheck = 0
+        counter_health_checks = 0
+        counter_ipcheck = 0
+        #  Debug setting
+        #  playercount = 0
+        threshold_gamecheck = 5 # how long we wait before checking if the game has started again
+        threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
+        threshold_health_checks = 30
+        counter_ipcheck_threshold = 30
+
+        while alive_bkp == 'True':
+            if exists(bkup_heart_file):
+                with open(bkup_heart_file,'r') as f:
+                    alive_bkp = f.readline()
+
+            await asyncio.sleep(1)
+            playercount = svrcmd.honCMD().playerCount()
+            print(playercount)
+            if playercount == 0:
+                counter_ipcheck +=1
+                if server_status_bkp['priority_realtime'] == True:
+                    svr_state.changePriority(False)
+                if server_status_bkp['hard_reset'] == False:
+                    server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
+                if server_status_bkp['scheduled_shutdown']==False:
+                    server_status_bkp.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
+                    if server_status_bkp['scheduled_shutdown']:
+                        svr_state.stopSELF()
+                if server_status_bkp['hard_reset'] == True:
+                    svr_state.restartSELF()
+                if server_status_bkp['first_run'] == False:
+                    await asyncio.sleep(restart_timer)
+                    svr_state.restartSERVER()
+                if counter_ipcheck == counter_ipcheck_threshold:
+                    counter_ipcheck = 0
+                    check_ip = dmgr.mData.getData(NULL,"svr_ip")
+                    # check if svr id is here
+                    if check_ip != processed_data_dict_bkp['svr_ip']:
+                        svr_state.restartSERVER()
+
+            if playercount >=0:
+                counter_health_checks +=1
+                if counter_health_checks>=threshold_health_checks:
+                    counter_health_checks=0
+                    if processed_data_dict_bkp['use_proxy'] == 'True':
+                        if 'svr_proxyport' in server_status_bkp:
+                            proxy_online=svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyport']))
+                            if proxy_online:
+                                print("port healthy")
+                            else:
+                                proxy_online=False
+                                print(f"proxy port: {server_status_bkp['svr_proxyport']} not online")
+            
+            if playercount >=2:
+                if server_status_bkp['priority_realtime'] == False:
+                    svr_state.changePriority(True)
+
+            if playercount >= 1:
+                #
+                # Check if a lobby is made
+                if server_status_bkp['lobby_created'] == False:
+                    counter_lobbycheck+=1
+                    if counter_lobbycheck == threshold_lobbycheck:
+                        counter_lobbycheck=0
+                        if server_status_bkp['first_run'] == True:
+                            svr_state.getData("GameCheck")
+                if (server_status_bkp['game_started'] == False and server_status_bkp['lobby_created'] == True) or server_status_bkp['match_info_obtained'] == False:
+                    counter_gamecheck+=1
+                    if counter_gamecheck==threshold_gamecheck:
+                        counter_gamecheck=0
+                        if server_status_bkp['game_started'] == False:
+                            try:
+                                svr_state.getData("CheckInGame")
+                            except: print(traceback.format_exc())
+                        if server_status_bkp['match_info_obtained'] == False:
+                            try:
+                                svr_state.getData("MatchInformation")
+                            except: print(traceback.format_exc())
+            if playercount == 1:
+                if (server_status_bkp['game_map'] != "empty" and server_status_bkp['game_map'] not in available_maps_bkp):
+                    svr_state.restartSERVER()
+                elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
+                    svr_state.reportPlayer("botmatch")
+                    svr_state.restartSERVER()
+
     @bot.command()
     async def stopheart(self,ctx):
         global alive

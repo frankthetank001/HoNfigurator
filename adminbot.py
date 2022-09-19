@@ -5,6 +5,7 @@ from os.path import exists
 import os
 from cogs.dataManager import mData
 import cogs.server_status as srvcmd
+import cogs.behemothHeart as heart
 import asyncio
 from datetime import datetime
 from random import randint
@@ -206,7 +207,6 @@ if is_admin():
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
-                await ctx.invoke(bot.get_command('startheart'))
             except UnboundLocalError:
                 temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
                 try:
@@ -216,6 +216,10 @@ if is_admin():
                     owner_reachable = False
                 except: print(traceback.format_exc())
                 print(traceback.format_exc())
+            try:
+                await ctx.invoke(bot.get_command('startheart'))
+            except Exception as e:
+                await heart.heartbeat.startheart_bkp()
         #@bot.event
         # async def on_ready():
             
