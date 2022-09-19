@@ -209,6 +209,7 @@ if is_admin():
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
             except UnboundLocalError:
                 temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+                print("starting backup heart until discord command is run.")
                 try:
                     await discord_admin.send(temp_log)
                 except discord.errors.Forbidden:
