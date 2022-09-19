@@ -605,15 +605,13 @@ if is_admin():
                 if self.dataDict['master_server'] == "honmasterserver.com":
                     if not exists(f"{self.dataDict['hon_directory']}\\HON_SERVER_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                         try:
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.dataDict['hon_directory']}hon_x64.exe")
+                            shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
                             print("copying server exe...")
                         except: print("server in use, can't replace exe, will try again when server is stopped.")
                 if 'kongor.online' in self.dataDict['master_server']:
                     if not exists(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                         try:
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\hon_x64.exe",f"{self.dataDict['hon_directory']}hon_x64.exe")
+                            shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                             print("copying server exe...")
                         except: print("server in use, can't replace exe, will try again when server is stopped.")
                 if not exists(f"{self.hon_game_dir}\\startup.cfg"):
@@ -736,12 +734,12 @@ if is_admin():
                             initialise.stop_service(self,self.service_name_bot)
                             if self.dataDict['master_server'] == "honmasterserver.com":
                                 try:
-                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
+                                    shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
                                     print("copying server exe...")
                                 except Exception as e: print(e + "can't replace exe.")
                             if 'kongor.online' in self.dataDict['master_server']:
                                 try:
-                                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
+                                    shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                                     print("copying server exe...")
                                 except Exception as e: print(str(e) + "can't replace exe.")
                             if use_console==False:
@@ -1057,7 +1055,8 @@ if is_admin():
                 tex.insert(END,"==========================================\n")
                 self.git_branch.set(current_branch)
                 return False
-            
+        def forceupdate_hon(self,hon_dir):
+            subprocess.Popen([hon_dir+"hon_update_x64.exe"])
         def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
@@ -1125,6 +1124,7 @@ if is_admin():
                 manager_arguments_console=f"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
                 os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
                 manager_running=False
+                copy_retry = False
                 if service_manager:
                     print("Manager exists")
                     if force_update:
@@ -1133,36 +1133,71 @@ if is_admin():
                             if proc.name() == manger_application:
                                 manager_running=True
                         #if force_update or bot_needs_update or bot_first_launch:
-                        if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
-                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
+                        if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe") or force_update:
+                            try:
+                                shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
+                            except PermissionError:
+                                copy_retry=True
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             #   uncomment the below for server manager console visibility
                             if use_console:
                                 initialise.stop_service(self,service_manager_name)
+                                if copy_retry:
+                                    copied = shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
                                 subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                             else:
                                 initialise.configure_service_generic(self,service_manager_name,manger_application,manager_arguments)
-                                initialise.restart_service(self,service_manager_name)
+                                if copy_retry:
+                                    initialise.stop_service(self,service_manager_name)
+                                    copied = shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
+                                    initialise.start_service(self,service_manager_name)
+                                else:
+                                    initialise.restart_service(self,service_manager_name)
                         else:
                             # uncomment the below for server manager console visibility
                             for proc in psutil.process_iter():
-                                    # check whether the process name matches
-                                    if proc.name() == manger_application:
-                                        proc.kill()
+                                # check whether the process name matches
+                                if proc.name() == manger_application:
+                                    proc.kill()
+                                    manager_proc=proc
+                            if copy_retry:
+                                give_up=0
+                                while psutil.pid_exists(manager_proc.pid):
+                                    time.sleep(1)
+                                    give_up+=1
+                                    print(f"waiting to update.. retry {give_up}/15")
+                                    if give_up==15:
+                                        tex.insert(END,"please manually kill the process 'KONGOR SERVER MANAGER.exe' then configure servers again.")
+                                        return
+                                copied = shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
                             if use_console:
                                 # start new one
                                 subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                             else:
                                 initialise.start_service(self,service_manager_name)
                 else:
-                    if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe"):
-                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\kongor.exe",f"{hondirectory}{manger_application}")
+                    if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe") or force_update:
+                        try:
+                            shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
+                        except PermissionError:
+                            copy_retry=True
                     # uncomment the below for server manager console visibility
                     if use_console:
                         for proc in psutil.process_iter():
                             # check whether the process name matches
                             if proc.name() == manger_application:
                                 proc.kill()
+                                manager_proc=proc
+                        if copy_retry:
+                            give_up=0
+                            while psutil.pid_exists(manager_proc.pid):
+                                time.sleep(1)
+                                give_up+=1
+                                print(f"waiting to update.. retry {give_up}/15")
+                                if give_up==15:
+                                    tex.insert(END,"please manually kill the process 'KONGOR SERVER MANAGER.exe' then configure servers again.")
+                                    return
+                            copied = shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manger_application}")
                         subprocess.Popen([hondirectory+manger_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                     else:
                         initialise.create_service_generic(self,service_manager_name,manger_application)
@@ -1600,11 +1635,13 @@ if is_admin():
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
             tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,300],pady=[20,10])
+            tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
             tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[30,30],pady=[20,10])
+            tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
-            tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[300,0],pady=[20,10])
+            tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: self.forceupdate_hon(tab1_hondird.get()))
+            tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             app.rowconfigure(14,weight=1)
             app.rowconfigure(15,weight=1)
             app.columnconfigure(0,weight=1)
