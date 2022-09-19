@@ -204,6 +204,9 @@ if is_admin():
                         embed_log.append(embedObj)
                         #hsl.LastEmbedLog(embed_log)
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Game trying to start on PROXY port which isn't online."))
+                    try:
+                        await embed_log[0].edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
@@ -219,6 +222,7 @@ if is_admin():
                 print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('startheart'))
+                print("starting behemoth heart.")
             except Exception as e:
                 await heart.heartbeat.startheart_bkp()
         #@bot.event
