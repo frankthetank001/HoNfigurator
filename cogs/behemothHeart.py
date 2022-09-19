@@ -353,7 +353,7 @@ class heartbeat(commands.Cog):
 
             await asyncio.sleep(1)
             playercount = svrcmd.honCMD().playerCount()
-            print(playercount)
+            print("players: " + str(playercount))
             if playercount == 0:
                 counter_ipcheck +=1
                 if server_status_bkp['priority_realtime'] == True:
