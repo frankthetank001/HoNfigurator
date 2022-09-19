@@ -132,6 +132,20 @@ class honCMD():
                 #   Start the HoN Server!
                 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
                 os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
+
+                old_hon_exe1 = f"{processed_data_dict['hon_directory']}HON_SERVER_{processed_data_dict['svr_id']}_old.exe"
+                old_hon_exe2 = f"{processed_data_dict['hon_directory']}KONGOR_ARENA_{processed_data_dict['svr_id']}_old.exe"
+                if exists(old_hon_exe1):
+                    try:
+                        os.remove(old_hon_exe1)
+                    except Exception as e:
+                        print(e)
+                if exists(old_hon_exe2):
+                    try:
+                        os.remove(old_hon_exe2)
+                    except Exception as e:
+                        print(e)
+
                 print("starting service")
                 print("collecting port info...")
                 tempData = {}
@@ -287,7 +301,7 @@ class honCMD():
         #os.system(f'net stop {service_name} & net start {service_name}')
         honCMD().stopSERVER()
         if processed_data_dict['use_console'] == 'True':
-            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            os.execl(f"adminbot{processed_data_dict['svr_id']}", "adminbot.py", *sys.argv)
         else:
             sys.exit(1)
     def stopSELF(self):
