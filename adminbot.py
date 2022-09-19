@@ -62,10 +62,10 @@ if is_admin():
     ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
     #os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
 
-    old_exe = f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe"
-    if exists(old_exe):
+    old_adminbot_exe = f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe"
+    if exists(old_adminbot_exe):
         try:
-            os.remove(old_exe)
+            os.remove(old_adminbot_exe)
         except Exception as e:
             print(e)
     # class logging:

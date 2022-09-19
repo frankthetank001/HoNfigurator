@@ -473,6 +473,7 @@ if is_admin():
             self.bot_version = float(self.bot_version)
             bot_needs_update = False
             bot_first_launch = False
+            exe_force_copy = False
             deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
             
             os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
@@ -564,7 +565,6 @@ if is_admin():
                     shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
                 except PermissionError:
                     print(f"{self.hon_directory}game\\game_shared_x64.dll needs to be copied into {self.hon_directory}")
-            
 
             ## global networking settings ##
             iter = int(self.dataDict['incr_port'])
@@ -607,13 +607,17 @@ if is_admin():
                         try:
                             shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
                             print("copying server exe...")
-                        except: print("server in use, can't replace exe, will try again when server is stopped.")
+                        except: 
+                            exe_force_copy=True
+                            print("server in use, can't replace exe, will try again when server is stopped.")
                 if 'kongor.online' in self.dataDict['master_server']:
                     if not exists(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
                         try:
                             shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
                             print("copying server exe...")
-                        except: print("server in use, can't replace exe, will try again when server is stopped.")
+                        except:
+                            exe_force_copy=True
+                            print("server in use, can't replace exe, will try again when server is stopped.")
                 if not exists(f"{self.hon_game_dir}\\startup.cfg"):
                     print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
                 initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
@@ -773,6 +777,20 @@ if is_admin():
                                 initialise.configure_service_bot(self,self.service_name_bot)
                                 time.sleep(1)
                             initialise.schedule_restart(self)
+                            # copy files to _old
+                            if exe_force_copy:
+                                if self.dataDict['master_server'] == "honmasterserver.com":
+                                    try:
+                                        os.rename(f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}_old.exe")
+                                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
+                                        print("copying server exe...")
+                                    except Exception as e: print(e + "can't replace exe.")
+                                if 'kongor.online' in self.dataDict['master_server']:
+                                    try:
+                                        os.rename(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}_old.exe")
+                                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
+                                        print("copying server exe...")
+                                    except Exception as e: print(str(e) + "can't replace exe.")
                 else:
                     bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
                     if force_update == True or bot_needs_update == True:
@@ -785,6 +803,20 @@ if is_admin():
                                     initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
                                     initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
                                 else:
+                                    # copy files to _old
+                                    if exe_force_copy:
+                                        if self.dataDict['master_server'] == "honmasterserver.com":
+                                            try:
+                                                os.rename(f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}_old.exe")
+                                                shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
+                                                print("copying server exe...")
+                                            except Exception as e: print(e + "can't replace exe.")
+                                        if 'kongor.online' in self.dataDict['master_server']:
+                                            try:
+                                                os.rename(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}_old.exe")
+                                                shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
+                                                print("copying server exe...")
+                                            except Exception as e: print(str(e) + "can't replace exe.")
                                     initialise.schedule_restart(self)
                         if use_console == False:
                             initialise.configure_service_bot(self,self.service_name_bot)
