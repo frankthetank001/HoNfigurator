@@ -1110,6 +1110,15 @@ if is_admin():
             os.chdir(hon_dir)
             subprocess.Popen(["hon_update_x64.exe"])
             os.chdir(application_path)
+        def return_currentver(self):
+            manifest=f"{self.dataDict['hon_directory']}\\Update\\manifest.xml"
+            if exists(manifest):
+                with open(manifest,'r') as f:
+                    for line in f:
+                        if "manifest version=" in line:
+                            ver=line.split(" ")
+                            return ver
+            return "couldn't find version number."
         def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
@@ -1710,7 +1719,6 @@ if is_admin():
             app.rowconfigure(14,weight=1)
             app.rowconfigure(15,weight=1)
             app.columnconfigure(0,weight=1)
-            
             """
             
             This is the advanced server setup tab
@@ -1724,6 +1732,9 @@ if is_admin():
             This is the bot command center tab
             
             """
+            # status = Entry(app,background=maincolor,foreground='white',width="200")
+            # status.insert(0,ver)
+            # status.grid(row=21,column=0,sticky='w')
             class TextScrollCombo(ttk.Frame):
 
                 def __init__(self, *args, **kwargs):
@@ -1872,8 +1883,10 @@ if is_admin():
                         viewButton.Uninstall(self,id)
                 def refresh(*args):
                     if (tabgui.index("current")) == 0:
+                        ver=honfigurator.return_currentver(self)
+                        ver=ver[1]
                         status = Entry(app,background=maincolor,foreground='white',width="200")
-                        status.insert(0,f"")
+                        status.insert(0,ver)
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
                         viewButton.load_server_mgr(self)
