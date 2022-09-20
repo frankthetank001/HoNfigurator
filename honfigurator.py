@@ -11,7 +11,6 @@ if missing:
 # determine if application is a script file or frozen exe
 
 from asyncio.subprocess import DEVNULL
-import re
 import tkinter as tk
 from tkinter import *
 from tkinter import getboolean, ttk
@@ -145,10 +144,10 @@ if is_admin():
             try:
                 ip_addr = socket.gethostbyname(self.dataDict['master_server'])
             except:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                # connect() for UDP doesn't send packets
-                s.connect((self.dataDict['master_server'], 0)) 
-                ip_addr = (s.getsockname()[0])
+                import wmi
+                c = wmi.WMI()
+                x = c.Win32_PingStatus(Address=self.dataDict['master_server'])
+                ip_addr = (x[0].ProtocolAddress)
             add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
