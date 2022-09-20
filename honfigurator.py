@@ -29,7 +29,8 @@ import distutils
 from distutils import dir_util
 import subprocess
 import traceback
-import win32com.client
+# task scheduler component, didn't quite work as I intended
+#import win32com.client
 import datetime
 from pygit2 import Repository
 import git
@@ -174,44 +175,45 @@ if is_admin():
                 tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
                 # returning true as I have no idea what the right hashes should be anymore
                 return True
-        def getstatus_updater(self,auto_update,selected_branch):
-            TASK_ENUM_HIDDEN = 1
-            TASK_STATE = {0: 'Unknown',
-                        1: 'Disabled',
-                        2: 'Queued',
-                        3: 'Ready',
-                        4: 'Running'}
+        # Task scheduler for updating honfigurator, didn't quite work as I wanted.
+        # def getstatus_updater(self,auto_update,selected_branch):
+        #     TASK_ENUM_HIDDEN = 1
+        #     TASK_STATE = {0: 'Unknown',
+        #                 1: 'Disabled',
+        #                 2: 'Queued',
+        #                 3: 'Ready',
+        #                 4: 'Running'}
 
-            scheduler = win32com.client.Dispatch('Schedule.Service')
-            scheduler.Connect()
+        #     scheduler = win32com.client.Dispatch('Schedule.Service')
+        #     scheduler.Connect()
 
-            n = 0
-            folders = [scheduler.GetFolder('\\')]
-            while folders:
-                folder = folders.pop(0)
-                folders += list(folder.GetFolders(0))
-                tasks = list(folder.GetTasks(TASK_ENUM_HIDDEN))
-                for task in tasks:
-                    if task.name == "HoNfigurator Updater":
-                        # settings = task.Definition.Settings
-                        # print('Path       : %s' % task.Path)
-                        # print('Hidden     : %s' % settings.Hidden)
-                        # print('State      : %s' % TASK_STATE[task.State])
-                        # print('Last Run   : %s' % task.LastRunTime)
-                        # print('Last Result: %s\n' % task.LastTaskResult)
-                        if TASK_STATE[task.State] == "Ready" and auto_update == False:
-                            p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                            return True
-                        elif TASK_STATE[task.State] == "Disabled" and auto_update == True:
-                            p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                            return False
-                        return
-                else: 
-                    if auto_update == True:
-                        initialise.register_updater(self,selected_branch)
-                        return True
-                    else:
-                        return False
+        #     n = 0
+        #     folders = [scheduler.GetFolder('\\')]
+        #     while folders:
+        #         folder = folders.pop(0)
+        #         folders += list(folder.GetFolders(0))
+        #         tasks = list(folder.GetTasks(TASK_ENUM_HIDDEN))
+        #         for task in tasks:
+        #             if task.name == "HoNfigurator Updater":
+        #                 # settings = task.Definition.Settings
+        #                 # print('Path       : %s' % task.Path)
+        #                 # print('Hidden     : %s' % settings.Hidden)
+        #                 # print('State      : %s' % TASK_STATE[task.State])
+        #                 # print('Last Run   : %s' % task.LastRunTime)
+        #                 # print('Last Result: %s\n' % task.LastTaskResult)
+        #                 if TASK_STATE[task.State] == "Ready" and auto_update == False:
+        #                     p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #                     return True
+        #                 elif TASK_STATE[task.State] == "Disabled" and auto_update == True:
+        #                     p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #                     return False
+        #                 return
+        #         else: 
+        #             if auto_update == True:
+        #                 initialise.register_updater(self,selected_branch)
+        #                 return True
+        #             else:
+        #                 return False
         def update_repository(self,selected_branch):
             current_branch = Repository('.').head.shorthand  # 'master'
             if selected_branch != current_branch:
