@@ -6,3 +6,4 @@ pygit2
 gitpython
 python-hosts
 pyinstaller
+pkg-resources
