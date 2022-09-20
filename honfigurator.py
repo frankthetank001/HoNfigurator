@@ -1096,7 +1096,9 @@ if is_admin():
                 self.git_branch.set(current_branch)
                 return False
         def forceupdate_hon(self,hon_dir):
-            subprocess.Popen([hon_dir+"hon_update_x64.exe"])
+            os.chdir(hon_dir)
+            subprocess.Popen(["hon_update_x64.exe"])
+            os.chdir(application_path)
         def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
