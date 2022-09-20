@@ -300,8 +300,11 @@ class honCMD():
         #service_name = "adminbot"+processed_data_dict['svr_id']
         #os.system(f'net stop {service_name} & net start {service_name}')
         honCMD().stopSERVER()
+        basename = os.path.abspath(".")
         if processed_data_dict['use_console'] == 'True':
-            os.execl(f"adminbot{processed_data_dict['svr_id']}", "adminbot.py", *sys.argv)
+            os.chdir(processed_data_dict['sdc_home_dir'])
+            os.startfile(f"\"{processed_data_dict['sdc_home_dir']}\\adminbot{processed_data_dict['svr_id']}-launch.exe\"")
+            sys.exit(0)
         else:
             sys.exit(1)
     def stopSELF(self):
