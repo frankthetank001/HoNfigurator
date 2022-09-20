@@ -148,6 +148,7 @@ if is_admin():
                 c = wmi.WMI()
                 x = c.Win32_PingStatus(Address=self.dataDict['master_server'])
                 ip_addr = (x[0].ProtocolAddress)
+                print(ip_addr)
             add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
