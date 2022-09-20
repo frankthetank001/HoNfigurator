@@ -1804,15 +1804,15 @@ if is_admin():
                     deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     service_name=f"adminbot{i}"
                     service_check = initialise.get_service(service_name)
-                    if service_check:
-                        if service_check['status'] == 'running':
-                            if initialise.stop_service(self,service_name):
-                                tex.insert(END,f"{service_name} stopped successfully.\n")
-                            else:
-                                tex.insert(END,f"{service_name} failed to stop.\n")
-                    bot_running=initialise.check_proc(f"{service_name}.exe")
-                    if bot_running:
-                        if pcount <= 0:
+                    if pcount <= 0:
+                        if service_check:
+                            if service_check['status'] == 'running':
+                                if initialise.stop_service(self,service_name):
+                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                else:
+                                    tex.insert(END,f"{service_name} failed to stop.\n")
+                        bot_running=initialise.check_proc(f"{service_name}.exe")
+                        if bot_running:
                             # if deployed_status['use_console'] == 'False':
                                 # if initialise.stop_service(self,service_name):
                                 #     tex.insert(END,f"{service_name} stopped successfully.\n")
@@ -1823,9 +1823,9 @@ if is_admin():
                                 initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                                 initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
                             #viewButton.refresh()
-                        else:
-                            print("[ABORT] players are connected. Scheduling shutdown instead..")
-                            initialise.schedule_shutdown(deployed_status)
+                    else:
+                        print("[ABORT] players are connected. Scheduling shutdown instead..")
+                        initialise.schedule_shutdown(deployed_status)
                 viewButton.refresh()
 
             def get_size(start_path):
