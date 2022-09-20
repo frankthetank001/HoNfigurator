@@ -1274,7 +1274,7 @@ if is_admin():
                     proxy_running=False
                     # if service_proxy:
                     print("proxy exists")
-                    proxy_config=[f"count={self.dataDict['svr_total']}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
+                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
@@ -1803,15 +1803,22 @@ if is_admin():
                     pcount=initialise.playerCountX(self,i)
                     deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     service_name=f"adminbot{i}"
+                    service_check = initialise.get_service(service_name)
+                    if service_check:
+                        if service_check['status'] == 'running':
+                            if initialise.stop_service(self,service_name):
+                                tex.insert(END,f"{service_name} stopped successfully.\n")
+                            else:
+                                tex.insert(END,f"{service_name} failed to stop.\n")
                     bot_running=initialise.check_proc(f"{service_name}.exe")
                     if bot_running:
                         if pcount <= 0:
-                            if deployed_status['use_console'] == 'False':
-                                if initialise.stop_service(self,service_name):
-                                    tex.insert(END,f"{service_name} stopped successfully.\n")
-                                else:
-                                    tex.insert(END,f"{service_name} failed to stop.\n")
-                            else:
+                            # if deployed_status['use_console'] == 'False':
+                                # if initialise.stop_service(self,service_name):
+                                #     tex.insert(END,f"{service_name} stopped successfully.\n")
+                                # else:
+                                #     tex.insert(END,f"{service_name} failed to stop.\n")
+                            #else:
                                 initialise.stop_bot(self,f"{service_name}.exe")
                                 initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                                 initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
@@ -1996,21 +2003,31 @@ if is_admin():
                             tex.see(tk.END)
                 def Stop(self):
                     pcount = initialise.playerCountX(self,id)
-                    if pcount <= 0:
-                        if deployed_status['use_console'] == 'False':
+                    service_name=f"adminbot{id}"
+                    service_check = initialise.get_service(service_name)
+                    if service_check:
+                        if service_check['status'] == 'running':
                             if initialise.stop_service(self,service_name):
                                 tex.insert(END,f"{service_name} stopped successfully.\n")
-                                viewButton.load_server_mgr(self)
                             else:
                                 tex.insert(END,f"{service_name} failed to stop.\n")
+                    bot_running=initialise.check_proc(f"{service_name}.exe")
+                    if bot_running:
+                        if pcount <= 0:
+                            # if deployed_status['use_console'] == 'False':
+                                # if initialise.stop_service(self,service_name):
+                                #     tex.insert(END,f"{service_name} stopped successfully.\n")
+                                # else:
+                                #     tex.insert(END,f"{service_name} failed to stop.\n")
+                            #else:
+                                initialise.stop_bot(self,f"{service_name}.exe")
+                                initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                                initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                            #viewButton.refresh()
                         else:
-                            initialise.stop_bot(self,f"{service_name}.exe")
-                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
-                        viewButton.refresh()
-                    else:
-                        print("[ABORT] players are connected. Scheduling shutdown instead..")
-                        initialise.schedule_shutdown(deployed_status)
+                            print("[ABORT] players are connected. Scheduling shutdown instead..")
+                            initialise.schedule_shutdown(deployed_status)
+                    viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
