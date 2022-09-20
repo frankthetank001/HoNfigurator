@@ -826,6 +826,7 @@ if is_admin():
         @bot.command()
         async def pruneall(ctx, hoster, amount: int = 1):
             if svr_id == 1 and hoster == svr_hoster:
+                await ctx.message.delete()
                 def _check(message):
                     if message.author != bot.user:
                         return False
