@@ -132,7 +132,7 @@ class mData():
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-DC.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         return self.confDict
-    def returnDict_basic(self,svr_id):
+    def returnDict_deployed(self,svr_id):
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
 
@@ -176,7 +176,45 @@ class mData():
     #     for option in conf_parse_local.options("OPTIONS"):
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})
             
+    def returnDict_basic(self,svr_id):
+        conf_parse_local.read(resource_path("config\\local_config.ini"))
+        conf_parse_global.read(resource_path("config\\global_config.ini"))
+
+        self.confDict_root = {}
+        self.confDict_basic = {}
+
+        for option in conf_parse_local.options("OPTIONS"):
+            self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+        # for option in conf_parse_local.options("OPTIONS"):
+        #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+        for option in conf_parse_global.options("OPTIONS"):
+            self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+        #if 'hon_root_dir' not in self.confDict_root:
+            #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
+        #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+            #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+        # else:
+        #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
+        self.confDict_basic.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
+        self.confDict_basic.update({"hon_manager_dir":f"{self.confDict_basic['hon_root_dir']}\\hon"})
+        self.confDict_basic.update({"hon_home_dir":f"{self.confDict_basic['hon_root_dir']}\\Hon_Server_{svr_id}"})
+        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
+        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
+        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
+        self.confDict_basic.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
+        self.confDict_basic.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
+        self.confDict_basic.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
+        self.confDict_basic.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
+        if 'use_console' not in self.confDict_basic:
+            self.confDict_basic.update({'use_console':'False'})
+        return self.confDict_basic
+
         
+    # def setData(self,key):
+    #     temp={}
+    #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
+    #     for option in conf_parse_local.options("OPTIONS"):
+    #         temp.update({option:conf_parse_local['OPTIONS'][option]})    
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
