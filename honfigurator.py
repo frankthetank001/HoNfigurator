@@ -11,7 +11,6 @@ if missing:
 # determine if application is a script file or frozen exe
 
 from asyncio.subprocess import DEVNULL
-import re
 import tkinter as tk
 from tkinter import *
 from tkinter import getboolean, ttk
@@ -142,7 +141,18 @@ if is_admin():
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
             hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
             hosts.write()
-            ip_addr = socket.gethostbyname(self.dataDict['master_server'])
+            mserver = self.dataDict['master_server']
+            if ":" in mserver:
+                mserver = mserver.split(":")
+                mserver = mserver[0]
+            try:
+                ip_addr = socket.gethostbyname(mserver)
+            except:
+                import wmi
+                c = wmi.WMI()
+                x = c.Win32_PingStatus(Address=mserver)
+                ip_addr = (x[0].ProtocolAddress)
+                print(ip_addr)
             add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
@@ -1106,7 +1116,6 @@ if is_admin():
             global ports_to_forward_game
             global ports_to_forward_voice
 
-            initialise.add_hosts_entry(self)
             self.dataDict = self.initdict.returnDict()
             checks=True
             if " " in hoster:
@@ -1135,20 +1144,10 @@ if is_admin():
                 #if use_console == False:
                 if hondirectory != self.dataDict['hon_directory']:
                     self.dataDict.update({'hon_directory':hondirectory})
-                    # compiled_path=f"{application_path}\\dist"
-                    # compiled_file=f"{application_path}\\dist\\{app_name}.exe"
-                    # if not exists('.\\build'):
-                    #     os.mkdir('.\\build')
-                    # if exists(f"{compiled_file}"):
-                    #     compiled_hash=dmgr.mData.get_hash(compiled_file)
-                    #     if compiled_hash != self.dataDict['compiled_hash']:
-                    #         if initialise.build(self,app_name):
-                    #             compiled_hash=dmgr.mData.get_hash(compiled_file)
-                    #             self.dataDict.update({'compiled_hash':compiled_hash})
-                    # else:
-                    #     if initialise.build(self,app_name):
-                    #         compiled_hash=dmgr.mData.get_hash(compiled_file)
-                    #         self.dataDict.update({'compiled_hash':compiled_hash})
+                
+                if master_server != self.dataDict['master_server']:
+                    self.dataDict.update({'master_server':master_server})
+                initialise.add_hosts_entry(self)
 
                 # stop services that sit outside the total server range
                 if int(servertotal) < int(self.dataDict['svr_total']):
