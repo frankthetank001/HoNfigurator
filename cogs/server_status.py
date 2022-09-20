@@ -150,9 +150,9 @@ class honCMD():
                 print("collecting port info...")
                 tempData = {}
                 svr_port = int(processed_data_dict['game_starting_port']) + processed_data_dict['incr_port']
-                svr_proxyport = 20000 + (int(processed_data_dict['svr_id']) - 1)
+                svr_proxyport = svr_port + 10000
                 svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
-                svr_proxyRemoteVoicePort = 21435 + (int(processed_data_dict['svr_id']) - 1)
+                svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
                 svr_ip = dmgr.mData.getData(self,"svr_ip")
                 tempData.update({'svr_port':svr_port})
                 tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})

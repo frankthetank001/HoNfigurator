@@ -207,6 +207,8 @@ if is_admin():
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                     except: print(traceback.format_exc())
+                    print("Proxy port is not online.")
+                    return
             except: print(traceback.format_exc())
             try:
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
@@ -223,6 +225,7 @@ if is_admin():
                 print("starting behemoth heart.")
                 await ctx.invoke(bot.get_command('startheart'))
             except Exception as e:
+                print (e)
                 print("starting backup heart until discord command is run.")
                 await heart.heartbeat.startheart_bkp()
         #@bot.event
