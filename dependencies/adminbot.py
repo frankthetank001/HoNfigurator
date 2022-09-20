@@ -13,6 +13,7 @@ from time import sleep
 import traceback
 from discord.ext import tasks
 import ctypes, sys
+from typing import Optional 
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -822,6 +823,17 @@ if is_admin():
                             try:
                                 await embed_log[0].edit(embed=logEmbed)
                             except: print(traceback.format_exc())
+        @bot.command()
+        async def pruneall(ctx, hoster, amount: int = 1):
+            if svr_id == 1 and hoster == svr_hoster:
+                def _check(message):
+                    if message.author != bot.user:
+                        return False
+                    _check.count += 1
+                    return _check.count <= amount
+                _check.count = 0
+                await ctx.channel.purge(limit=amount + 1000, check=_check)
+
     def run_bot():
         hsl(bot)
         hsl.wait_until_ready.start()
