@@ -142,7 +142,13 @@ if is_admin():
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
             hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
             hosts.write()
-            ip_addr = socket.gethostbyname(self.dataDict['master_server'])
+            try:
+                ip_addr = socket.gethostbyname(self.dataDict['master_server'])
+            except:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                # connect() for UDP doesn't send packets
+                s.connect((self.dataDict['master_server'], 0)) 
+                ip_addr = (s.getsockname()[0])
             add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
