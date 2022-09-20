@@ -408,7 +408,7 @@ class embedManager(commands.Cog):
         created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **ALL** {processed_data_dict['svr_hoster']} servers",inline=False)
         created_embed.add_field(name=f"``!giveCPR {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Starts the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
         created_embed.add_field(name=f"``!pullplug {processed_data_dict['svr_identifier']}``: ", value=f"        EMERGENCY! Stops the heartbeat of **SINGLE** {processed_data_dict['svr_identifier']} server",inline=False)
-        created_embed.add_field(name=f"``!pruneall {processed_data_dict['svr_hoster']}`` 100: ", value=f"           delete last 100 messages for this bot in the discord that the command is sent from.", inline=False)
+        created_embed.add_field(name=f"``!pruneall {processed_data_dict['svr_hoster']}``: ", value=f"           Deletes all messages for this bot in the discord that the command is sent from.", inline=False)
         return created_embed
 
     @bot.command()

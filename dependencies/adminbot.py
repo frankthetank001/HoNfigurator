@@ -757,13 +757,15 @@ if is_admin():
         async def portalhelp(ctx):
             global waited
             if svr_id == 1:
-                embed = await ctx.invoke(bot.get_command('helpembed'))
-                try:
-                    await ctx.message.delete()
-                except: print(traceback.format_exc())
-                try:
-                    await discord_admin.send(embed=embed)
-                except: print(traceback.format_exc())
+                msg = ctx.message
+                if msg.author.id == discord_admin.id:
+                    embed = await ctx.invoke(bot.get_command('helpembed'))
+                    try:
+                        await ctx.message.delete()
+                    except: print(traceback.format_exc())
+                    try:
+                        await discord_admin.send(embed=embed)
+                    except: print(traceback.format_exc())
         """
 
             Button commands
@@ -824,16 +826,27 @@ if is_admin():
                                 await embed_log[0].edit(embed=logEmbed)
                             except: print(traceback.format_exc())
         @bot.command()
-        async def pruneall(ctx, hoster, amount: int = 1):
-            if svr_id == 1 and hoster == svr_hoster:
-                await ctx.message.delete()
-                def _check(message):
-                    if message.author != bot.user:
-                        return False
-                    _check.count += 1
-                    return _check.count <= amount
-                _check.count = 0
-                await ctx.channel.purge(limit=amount + 1000, check=_check)
+        async def pruneall(ctx, hoster):
+            msg = ctx.message
+            if msg.author.id == discord_admin.id:
+                if svr_id == 1 and hoster == svr_hoster:
+                    await ctx.message.delete()
+                    def _check(message):
+                        if message.author != bot.user:
+                            return False
+                        _check.count += 1
+                        return _check.count
+                    _check.count = 0
+                    await ctx.channel.purge(limit=1000, check=_check)
+        @bot.event
+        async def on_command_error(ctx, error):
+            if svr_id == 20:
+                await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
+                msg = ctx.message
+                # if msg.author.id == discord_admin.id:
+                #     if isinstance(error, commands.CommandNotFound):
+                #         await ctx.send("words i guess")
+                await ctx.invoke(bot.get_command('portalhelp'))
 
     def run_bot():
         hsl(bot)
