@@ -142,7 +142,8 @@ if is_admin():
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
             hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
             hosts.write()
-            add_entry = HostsEntry(entry_type='ipv4', address='73.185.77.188', names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
+            ip_addr = socket.gethostbyname(self.dataDict['master_server'])
+            add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
         def KOTF(self):
@@ -1105,6 +1106,7 @@ if is_admin():
             global ports_to_forward_game
             global ports_to_forward_voice
 
+            initialise.add_hosts_entry(self)
             self.dataDict = self.initdict.returnDict()
             checks=True
             if " " in hoster:
@@ -1276,7 +1278,7 @@ if is_admin():
                     proxy_running=False
                     # if service_proxy:
                     print("proxy exists")
-                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={default_voice_port}","region=naeu"]
+                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={self.dataDict['voice_starting_port']}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
@@ -1303,7 +1305,7 @@ if is_admin():
                                 if proc.name() == "proxy.exe":
                                     proc.kill()
                             os.chdir(self.dataDict['hon_directory'])
-                            os.system(f"start cmd /k proxymanager.exe")
+                            os.startfile(f"proxymanager.exe")
                             os.chdir(application_path)
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
@@ -1315,7 +1317,7 @@ if is_admin():
                         #             if proc.name() == application:
                         #                 proc.kill()
                         #         os.chdir(self.dataDict['hon_directory'])
-                        #         os.system(f"start cmd /k proxymanager.exe")
+                        #         os.startfile(f"proxymanager.exe")
                         #         os.chdir(application_path)
                             # else:
                             #     initialise.start_service(self,service_proxy_name)
@@ -1799,6 +1801,7 @@ if is_admin():
                             else:
                                 initialise.start_bot(self,True)
                             #viewButton.refresh()
+                viewButton.load_server_mgr(self)
                 #app.after(15000,viewButton.refresh())
             def stop_all():
                 for i in range (1,(int(self.dataDict['svr_total']) +1)):
@@ -1981,7 +1984,9 @@ if is_admin():
                                 tex.see(tk.END)
                         else:
                             initialise.start_service(self,service_name)
-                        app.after(15000,viewButton.load_server_mgr(self))
+                    else:
+                        viewButton.load_server_mgr(self)
+                        #tabgui2.after(15000,viewButton.load_server_mgr(self))
                 def StartProxy(self):
                     proxy_running=False
                     for proc in psutil.process_iter():
@@ -1997,7 +2002,7 @@ if is_admin():
                                     app.after(5000,viewButton.load_server_mgr(self))
                             else:
                                 os.chdir(self.dataDict['hon_directory'])
-                                os.system(f"start cmd /k proxymanager.exe")
+                                os.startfile(f"proxymanager.exe")
                                 os.chdir(application_path)
                                 app.after(5000,viewButton.load_server_mgr(self))
                         else:
