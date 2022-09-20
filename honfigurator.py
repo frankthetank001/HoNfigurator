@@ -242,6 +242,9 @@ if is_admin():
                 return False
                 #print(str(ex))
             return service
+        def disable_service(service_name):
+            #doesnt work
+            os.system(f'net disable "{service_name}"')
         def playerCount(self):
             check = subprocess.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
             i = int(check.stdout.read())
@@ -474,7 +477,7 @@ if is_admin():
             bot_needs_update = False
             bot_first_launch = False
             exe_force_copy = False
-            deployed_status=dmgr.mData.returnDict_basic(self,self.dataDict['svr_id'])
+            deployed_status=dmgr.mData.returnDict_deployed(self,self.dataDict['svr_id'])
             
             os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
@@ -544,11 +547,9 @@ if is_admin():
             if not exists(f"{self.sdc_home_dir}\\messages"):
                 print(f"creating: {self.sdc_home_dir}\\messages ...")
                 os.makedirs(f"{self.sdc_home_dir}\\messages")
-
             if not exists(f"{self.sdc_home_dir}\\suspicious"):
                 print(f"creating: {self.sdc_home_dir}\\suspicious ...")
                 os.makedirs(f"{self.sdc_home_dir}\\suspicious")
-            
             if not exists(f"{self.sdc_home_dir}\\config"):
                 print(f"creating: {self.sdc_home_dir}\\config ...")
                 os.makedirs(f"{self.sdc_home_dir}\\config")
@@ -560,6 +561,13 @@ if is_admin():
                 os.makedirs(f"{self.sdc_home_dir}\\cogs")
             if not exists(f"{self.hon_directory}game_shared_x64.dll"):
                 shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
+            if exists(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt"):
+                if not exists(f"{self.dataDict['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}.txt"):
+                    shutil.copy(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt",f"{self.dataDict['sdc_home_dir']}\\messages\\")
+                os.remove(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt")
+            if exists(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played"):
+                shutil.copy(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
+                os.remove(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played")
             if dmgr.mData.get_hash(f"{self.hon_directory}\\game\\game_shared_x64.dll") != dmgr.mData.get_hash(f"{self.hon_directory}game_shared_x64.dll"):
                 try:
                     shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
@@ -624,10 +632,10 @@ if is_admin():
                 initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
                 print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
                 try:
-                    shutil.copy(os.path.abspath(application_path)+"\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
+                    shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
                 except PermissionError:
                     os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
-                    shutil.copy(os.path.abspath(application_path)+"\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                    shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
                 if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe'):
                     try:
                         shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
@@ -635,7 +643,7 @@ if is_admin():
                         os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
                         shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
 
-                shutil.copy(os.path.abspath(application_path)+"\\adminbot.py", f'{self.sdc_home_dir}\\adminbot.py')
+                shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot.py", f'{self.sdc_home_dir}\\adminbot.py')
                 src_folder = os.path.abspath(application_path)+"\\cogs\\"
                 dst_folder = f'{self.sdc_home_dir}\\cogs\\'
                 for file_name in os.listdir(src_folder):
@@ -1094,8 +1102,9 @@ if is_admin():
             global config_global
             global ports_to_forward_game
             global ports_to_forward_voice
+
+            self.dataDict = self.initdict.returnDict()
             checks=True
-            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
             if " " in hoster:
                 checks=False
                 tex.insert(END,"FIXME: Please ensure there are no spaces in the server name field.\n",'warning')
@@ -1136,7 +1145,26 @@ if is_admin():
                     #     if initialise.build(self,app_name):
                     #         compiled_hash=dmgr.mData.get_hash(compiled_file)
                     #         self.dataDict.update({'compiled_hash':compiled_hash})
-                
+
+                # stop services that sit outside the total server range
+                if int(servertotal) < int(self.dataDict['svr_total']):
+                    x=int(self.dataDict['svr_total']) - int(servertotal)
+                    for i in range (1,x+1):
+                        o=int(servertotal)+i
+                        temp_dict = dmgr.mData.returnDict_basic(self,o)
+                        print("disable "+str(o))
+                        playercount=initialise.playerCountX(self,o)
+                        service_state = initialise.get_service(f"{app_name}{o}")
+                        if playercount == 0:
+                            if service_state:
+                                if service_state['status'] == 'running':
+                                    initialise.stop_service(self,f"{app_name}{o}")
+                            initialise.stop_bot(self,f"{app_name}{o}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{o}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{o}.exe")
+                        elif playercount > 0:
+                            print("scheduled shutdown of no longer required service as it sits outside the total servers range")
+                            initialise.schedule_shutdown(temp_dict)
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
                         tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
@@ -1323,6 +1351,7 @@ if is_admin():
                     #             #service_manager = initialise.get_service(service_manager_name)
                     #         time.sleep(5)
                 if identifier == "single":
+                    self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
                     print()
                     print(f"Selected option to configure adminbot-server{serverid}\n")
                     print("==========================================")
@@ -1375,6 +1404,7 @@ if is_admin():
                     print("Selected option to configure ALL servers\n")
                     for i in range(0,int(servertotal)):
                         serverid = i + 1
+                        self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
                         #
                         #   local config
                         if not conf_local.has_section("OPTIONS"):
@@ -1723,7 +1753,7 @@ if is_admin():
             def clean_all():
                 count=0
                 for i in range (1,int(self.dataDict['svr_total'])):
-                    deployed_status = dmgr.mData.returnDict_basic(self,i)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{self.dataDict['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
                     try:
@@ -1750,27 +1780,45 @@ if is_admin():
                                 count+=1
                                 print("removed "+f)
                 print(f"DONE. Cleaned {count} files.")
-            def stop_all():
-                count=0
-                for i in range (1,int(self.dataDict['svr_total'])):
+            def start_all():
+                global deployed_status
+                for i in range (1,(int(self.dataDict['svr_total']) +1)):
                     pcount=initialise.playerCountX(self,i)
-                    deployed_status = dmgr.mData.returnDict_basic(self,i)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     service_name=f"adminbot{i}"
-                    if pcount <= 0:
-                        if deployed_status['use_console'] == 'False':
-                            if initialise.stop_service(self,service_name):
-                                tex.insert(END,f"{service_name} stopped successfully.\n")
-                                viewButton.load_server_mgr(self)
+                    bot_running=initialise.check_proc(f"{service_name}.exe")
+                    if bot_running == False:
+                        if pcount == -3:
+                            if deployed_status['use_console'] == 'False':
+                                if initialise.start_service(self,service_name):
+                                    tex.insert(END,f"{service_name} started successfully.\n")
+                                else:
+                                    tex.insert(END,f"{service_name} failed to start.\n")
                             else:
-                                tex.insert(END,f"{service_name} failed to stop.\n")
+                                initialise.start_bot(self,True)
+                            #viewButton.refresh()
+                #app.after(15000,viewButton.refresh())
+            def stop_all():
+                for i in range (1,(int(self.dataDict['svr_total']) +1)):
+                    pcount=initialise.playerCountX(self,i)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    service_name=f"adminbot{i}"
+                    bot_running=initialise.check_proc(f"{service_name}.exe")
+                    if bot_running:
+                        if pcount <= 0:
+                            if deployed_status['use_console'] == 'False':
+                                if initialise.stop_service(self,service_name):
+                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                else:
+                                    tex.insert(END,f"{service_name} failed to stop.\n")
+                            else:
+                                initialise.stop_bot(self,f"{service_name}.exe")
+                                initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                                initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                            #viewButton.refresh()
                         else:
-                            initialise.stop_bot(self,f"{service_name}.exe")
-                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
-                        viewButton.refresh()
-                    else:
-                        print("[ABORT] players are connected. Scheduling shutdown instead..")
-                        initialise.schedule_shutdown(deployed_status)
+                            print("[ABORT] players are connected. Scheduling shutdown instead..")
+                            initialise.schedule_shutdown(deployed_status)
                 viewButton.refresh()
 
             def get_size(start_path):
@@ -1798,7 +1846,7 @@ if is_admin():
                     pcount = p
                     self.initdict = dmgr.mData()
                     self.dataDict = self.initdict.returnDict()
-                    deployed_status = dmgr.mData.returnDict_basic(self,id)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,id)
                     # self.pcount = pcount
                     print(f"{i} {btn}")
                     if btn == "View Log":
@@ -1904,7 +1952,7 @@ if is_admin():
 
                 def Start(self):
                     pcount = initialise.playerCountX(self,id)
-                    deployed_status = dmgr.mData.returnDict_basic(self,id)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,id)
                     incr_port = 0
                     for i in range(0,id):
                         incr_val = int(self.dataDict['incr_port_by'])
@@ -1924,6 +1972,7 @@ if is_admin():
                                 tex.see(tk.END)
                         else:
                             initialise.start_service(self,service_name)
+                        app.after(15000,viewButton.load_server_mgr(self))
                 def StartProxy(self):
                     proxy_running=False
                     for proc in psutil.process_iter():
@@ -2033,7 +2082,7 @@ if is_admin():
                         x+=1
                         i+=1
                         service_name = f"adminbot{x}"
-                        deployed_status = dmgr.mData.returnDict_basic(self,x)
+                        deployed_status = dmgr.mData.returnDict_deployed(self,x)
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
                         file = "Slave*.log"
                         log = False
@@ -2137,11 +2186,13 @@ if is_admin():
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
-                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[200,0],pady=[20,10])
+                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[300,0],pady=[20,10])
                     tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
-                    tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,0],pady=[20,10])
+                    tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[100,0],pady=[20,10])
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
-                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,200],pady=[20,10])
+                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,100],pady=[20,10])
+                    tab2_stopall = applet.Button(tab2, text="Start All",command=lambda: start_all())
+                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,300],pady=[20,10])
                     tabgui2.grid(column=0,row=20,sticky='ew',columnspan=total_columns)
                 def Tools():
                     pass
