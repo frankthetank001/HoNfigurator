@@ -1112,8 +1112,8 @@ if is_admin():
             global ports_to_forward_game
             global ports_to_forward_voice
 
-            initialise.add_hosts_entry(self)
             self.dataDict = self.initdict.returnDict()
+            initialise.add_hosts_entry(self)
             checks=True
             if " " in hoster:
                 checks=False
