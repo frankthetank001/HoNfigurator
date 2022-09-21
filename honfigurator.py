@@ -140,21 +140,46 @@ if is_admin():
                     proc.kill()
         def add_hosts_entry(self):
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
-            hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
-            hosts.write()
             mserver = self.dataDict['master_server']
+            add_mserver=False
+            ip_addr = None
             if ":" in mserver:
                 mserver = mserver.split(":")
                 mserver = mserver[0]
             try:
                 ip_addr = socket.gethostbyname(mserver)
-            except:
+            except Exception as e:
+                print(e)
                 import wmi
                 c = wmi.WMI()
                 x = c.Win32_PingStatus(Address=mserver)
                 ip_addr = (x[0].ProtocolAddress)
                 print(ip_addr)
-            add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
+            try:
+                process = subprocess.run(["nslookup", "api.kongor.online"], stdout=subprocess.PIPE, text=True)
+                output = process.stdout
+                output = output.split('\n')
+                ip_arr = []
+                for data in output:
+                    if 'Address' in data:
+                        ip_arr.append(data.replace('Address: ',''))
+                ip_arr.pop(0)
+                if len(ip_addr) == 0:
+                    add_mserver=True
+                print (ip_arr)
+            except Exception as e:
+                print(e)
+            if ip_addr == None or ip_addr == '':
+                ip_addr = "73.185.77.188"
+                print(f"Problem obtaining IP. Adding last known IP to hosts file {ip_addr}")
+            if add_mserver:
+                hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
+                hosts.write()
+                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com api.kongor.online    #required by hon as this address is frequently used to poll for match stats'])
+            else:
+                hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
+                hosts.write()
+                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com    #required by hon as this address is frequently used to poll for match stats'])
             hosts.add([add_entry])
             hosts.write()
         def KOTF(self):
@@ -1112,6 +1137,8 @@ if is_admin():
             os.chdir(hon_dir)
             subprocess.Popen(["hon_update_x64.exe"])
             os.chdir(application_path)
+            #honfigurator.creategui(self)
+            
         def return_currentver(self):
             manifest=f"{self.dataDict['hon_directory']}\\Update\\manifest.xml"
             if exists(manifest):
