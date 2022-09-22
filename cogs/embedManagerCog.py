@@ -5,6 +5,7 @@ from asyncio.windows_events import NULL
 from cogs.dataManager import mData
 import cogs.server_status as svrcmd
 import asyncio
+from datetime import datetime
 import traceback
 
 
@@ -127,12 +128,14 @@ class embedManager(commands.Cog):
         This function creates the initial Embed when a server link is created
 
     """
+    def time():
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     @bot.command()
     async def initiateEmbed(self,ctx):
         sent_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Syncing..",description=default_description, color=stripColor_init)
         sent_embed.set_author(name=self.server_status['discord_admin_name'])
         #name='\u200b' to hide title
-        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        sent_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         sent_embed.set_thumbnail(url=init)
         #sent_embed_obj = await ctx.send(file=attachment_init, embed=sent_embed)
         sent_embed_obj = await ctx.send(embed=sent_embed)
@@ -222,7 +225,7 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Offline",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -235,7 +238,7 @@ class embedManager(commands.Cog):
         #embedManager.__init__(self,bot)
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  Starting Server..",description=default_description, color=stripColor_starting)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
-        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+        created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         try:
             await rec_embed.edit(embed=created_embed)
         except: print(traceback.format_exc())
@@ -258,16 +261,16 @@ class embedManager(commands.Cog):
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
         elif 'cookie' in self.server_status and self.server_status['cookie']==False:
             created_embed.add_field(name=f"Cookie error!",value=f"```\nnot currently connected to master server.```",inline=True)
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
             created_embed.set_thumbnail(url=disconnected)
         elif 'proxy_online' in self.server_status and self.server_status['proxy_online']==False:
             created_embed.add_field(name=f"Network error!",value=f"```\nProxy port issue.```",inline=True)
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
             created_embed.set_thumbnail(url=disconnected)
         else:
             #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_dns}:{svr_port}\n```",inline=True)
             created_embed.add_field(name=f"Server is ready!",value=f"```\nconnnect via public games.```",inline=True)
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
             created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
@@ -311,7 +314,7 @@ class embedManager(commands.Cog):
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host ({self.server_status['game_host']}) to begin the game..\n60 seconds until kick```")
             else:
                 created_embed.add_field(name=f"No Lobby",value=f"```\nPlease wait for the host to begin the game..\n60 seconds until kick```")
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
             created_embed.set_thumbnail(url=hosted)
             try:
                 await rec_embed.edit(embed=created_embed)
@@ -360,7 +363,7 @@ class embedManager(commands.Cog):
                 minutes, seconds = divmod(self.server_status['elapsed_duration'], 60)
                 #created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {str(minutes)}:{str(seconds)}```",inline=False)
                 created_embed.add_field(name=f"Match in progress",value=f"```Elapsed duration: {self.match_status['match_time']}```",inline=False)
-            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}")
+            created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
 
             if self.server_status['game_map'] == "caldavar" or self.server_status['game_map'] == "caldavar_old" or self.server_status['game_map'] == "caldavar_reborn":
                 created_embed.set_thumbnail(url=map_caldavar)

@@ -674,6 +674,11 @@ if is_admin():
                 except PermissionError:
                     os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
                     shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                try:
+                    shutil.copy(f"{application_path}\\dependencies\\python310.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\vcruntime140.dll",self.dataDict['sdc_home_dir'])
+                except Exception as e:
+                    print(e)
                 if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe'):
                     try:
                         shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
@@ -1148,7 +1153,7 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1177,16 +1182,41 @@ if is_admin():
                 conf_global = configparser.ConfigParser()
                 #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
                 hondirectory = os.path.join(hondirectory, '')
+                honreplay = os.path.join(honreplay,'')
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
                 #if use_console == False:
                 if hondirectory != self.dataDict['hon_directory']:
                     self.dataDict.update({'hon_directory':hondirectory})
-                
                 if master_server != self.dataDict['master_server']:
                     self.dataDict.update({'master_server':master_server})
                 initialise.add_hosts_entry(self)
-
+                if honreplay != self.dataDict['hon_manager_dir']:
+                    force_update = True
+                    if not exists(honreplay):
+                        try:
+                            os.makedirs(honreplay)
+                            tex.insert(END,f"CHECKME: Base directory {honreplay} has been created. Continuing on\n",'warning')
+                        except Exception as e:
+                            print(e)
+                            tex.insert(END,f"FIXME: Unable to create directory: {honreplay} is it a valid path?\n",'warning')
+                            return
+                    if exists(honreplay):
+                        print("migrating data")
+                        if not exists(honreplay+"\\Documents\\Heroes of Newerth x64\\game\\replays"):
+                            try:
+                                os.makedirs(honreplay+"\\Documents\\Heroes of Newerth x64\\game\\replays")
+                            except Exception as e:
+                                print(e)
+                            tex.insert(END,f"FIXME: Failed to create directory {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays\nIs it a valid path?\n",'warning')    
+                        try:
+                            distutils.dir_util.copy_tree(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays",f"{honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays",update=1)
+                            tex.insert(END,"You have changed the hon replays directory. Please ensure you configure all servers.\n",'interest')
+                            tex.insert(END,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.\n",'interest')
+                            self.dataDict.update({'hon_manager_dir':honreplay})
+                        except Exception as e:
+                            print(e)
+                            tex.insert(END,f"FIXME: Failed to migrate data from {self.dataDict['hon_manager_dir']} to {honreplay}\n",'warning')
                 # stop services that sit outside the total server range
                 if int(servertotal) < int(self.dataDict['svr_total']):
                     x=int(self.dataDict['svr_total']) - int(servertotal)
@@ -1408,7 +1438,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_total",servertotal)
                     conf_local.set("OPTIONS","token",bottoken)
                     conf_local.set("OPTIONS","hon_directory",hondirectory)
-                    #conf_local.set("OPTIONS","hon_root_dir",honroot)
+                    conf_local.set("OPTIONS","hon_manager_dir",honreplay)
                     conf_local.set("OPTIONS","discord_admin",discordadmin)
                     conf_local.set("OPTIONS","master_server",master_server)
                     conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1458,7 +1488,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_total",servertotal)
                         conf_local.set("OPTIONS","token",bottoken)
                         conf_local.set("OPTIONS","hon_directory",hondirectory)
-                        #conf_local.set("OPTIONS","hon_root_dir",honroot)
+                        conf_local.set("OPTIONS","hon_manager_dir",honreplay)
                         conf_local.set("OPTIONS","discord_admin",discordadmin)
                         conf_local.set("OPTIONS","master_server",master_server)
                         conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
@@ -1627,11 +1657,11 @@ if is_admin():
             tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=70)
             tab1_hondird.insert(0,self.dataDict['hon_directory'])
             tab1_hondird.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
-            # #   HoN Home
-            # applet.Label(tab1, text="HoN Home Folder (replays, logs, etc):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
-            # tab1_honroot = applet.Entry(tab1,foreground=textcolor,width=70)
-            # tab1_honroot.insert(0,self.dataDict['hon_root_dir'])
-            # tab1_honroot.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
+            #   HoN Home
+            applet.Label(tab1, text="HoN Storage Folder (replays, long term storage):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
+            tab1_honreplay = applet.Entry(tab1,foreground=textcolor,width=70)
+            tab1_honreplay.insert(0,self.dataDict['hon_manager_dir'])
+            tab1_honreplay.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
             # HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
@@ -1737,9 +1767,9 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
