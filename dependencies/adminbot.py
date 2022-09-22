@@ -840,7 +840,7 @@ if is_admin():
                     await ctx.channel.purge(limit=1000, check=_check)
         @bot.event
         async def on_command_error(ctx, error):
-            if svr_id == 20:
+            if svr_id == 1:
                 await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
                 msg = ctx.message
                 # if msg.author.id == discord_admin.id:

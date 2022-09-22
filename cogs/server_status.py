@@ -15,6 +15,7 @@ processed_data_dict = dmgr.mData().returnDict()
 server_status_dict = {}
 match_status = {}
 size_changed = True
+replay_wait=0
 #os.chdir(processed_data_dict['hon_logs_dir'])
 #
 #   hooks onto hon.exe and manages hon
@@ -55,18 +56,21 @@ class honCMD():
         check.terminate()
         return i
     def wait_for_replay(self):
+        global replay_wait
         # match_id = self.server_status['match_log_location']
         # match_id = match_id.replace(".log","")
         # pattern = f"{match_id}*"
-
         # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csv
         # latest_file = max(list_of_files, key=os.path.getctime)
+        replay_wait +=1
         if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
             time.sleep(1)
             return True
         else: 
-            print("No replay generated for match. Delaying restart for 2 minutes until it is generated.")
+            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/300sec until server is restarted).")
+            if replay_wait == 300:
+                honCMD.restartSERVER()
             return False
     def check_cookie(server_status,log,name):
         def write_mtime(log,name):
@@ -184,13 +188,22 @@ class honCMD():
                     if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                         if file.endswith(".honreplay"):
                             replays.append
-                            shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                            try:
+                                shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                            except Exception as e:
+                                print(e)
                         elif file.endswith(".tmp"):
                             print("deleting temporary file "+file)
-                            os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+                            try:
+                                os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+                            except Exception as e:
+                                print(e)
                     else:
                         print("removing unrequired replay folder " + file)
-                        shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                        try:
+                            shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                        except Exception as e:
+                            print(e)
                 #
                 # gather networking details
                 print("starting service")
