@@ -331,6 +331,22 @@ class heartbeat(commands.Cog):
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                         self.server_status.update({'update_embeds':False})
+                    if self.server_status['game_started'] == True:
+                        match_time = self.match_status['match_time']
+                        if ":" in match_time:
+                            match_too_long = match_time.split(":")
+                            match_too_long_hrs = int(match_too_long[0])
+                            match_too_long_mins = int(match_too_long[1])
+                            if match_too_long_hrs > 1:
+                                self.server_status.update({"server_restarting":True})
+                                self.server_status.update({"restart_required":True})
+                                print("Restarting the server. Last remaining player has not left yet.")
+                                svr_state.restartSERVER()
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] {self.match_status['match_id']} - Game ongoing for over 1 hour, with only 1 player connected, RESTARTING...")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                        
                 #
                 #   Game in progress
                 #   Start a timer so we can show the elapsed time of the match
@@ -345,6 +361,7 @@ class heartbeat(commands.Cog):
                         svr_state.getData("CheckInGame")
                     if playercount != self.server_status['tempcount']:
                         self.server_status.update({'update_embeds':True})
+                        
         
             if self.server_status['update_embeds'] == False or playercount == self.server_status['tempcount'] and (self.server_status['just_collected'] != True and not self.server_status['server_restarting'] == True or not self.server_status['server_starting'] == True): #and just_collected is False:
                 alive = True
@@ -476,6 +493,15 @@ class heartbeat(commands.Cog):
                 elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
                     svr_state.reportPlayer("botmatch")
                     svr_state.restartSERVER()
+            if server_status_bkp['game_started'] == True:
+                match_time = server_status_bkp['match_time']
+                if ":" in match_time:
+                    match_too_long = match_time.split(":")
+                    match_too_long_hrs = int(match_too_long[0])
+                    match_too_long_mins = int(match_too_long[1])
+                    if match_too_long_hrs > 1:
+                        print("Restarting the server. Last remaining player has not left yet.")
+                        svr_state.restartSERVER()
 
     @bot.command()
     async def stopheart(self,ctx):
