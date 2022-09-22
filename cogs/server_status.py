@@ -61,7 +61,7 @@ class honCMD():
 
         # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csv
         # latest_file = max(list_of_files, key=os.path.getctime)
-        if exists(f"{processed_data_dict['hon_replays_dir']}{match_status['match_id']}.honreplay"):
+        if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
             time.sleep(1)
             return True
@@ -181,16 +181,16 @@ class honCMD():
                 files = os.listdir(processed_data_dict['hon_replays_dir'])
                 replays=[]
                 for file in files:
-                    if os.path.isfile(processed_data_dict['hon_replays_dir']+file):
+                    if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                         if file.endswith(".honreplay"):
                             replays.append
-                            shutil.move(processed_data_dict['hon_replays_dir']+file,replays_dest_dir)
+                            shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
                         elif file.endswith(".tmp"):
                             print("deleting temporary file "+file)
-                            os.remove(processed_data_dict['hon_replays_dir']+file)
+                            os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
                     else:
                         print("removing unrequired replay folder " + file)
-                        shutil.rmtree(processed_data_dict['hon_replays_dir']+file,onerror=honCMD.onerror)
+                        shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
                 #
                 # gather networking details
                 print("starting service")
