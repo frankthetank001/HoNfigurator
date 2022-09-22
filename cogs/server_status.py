@@ -68,7 +68,7 @@ class honCMD():
             time.sleep(1)
             return True
         else: 
-            print("Generating replay for match. Delaying restart for up to 3 minutes until it is generated.")
+            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/300sec until server is restarted).")
             if replay_wait == 300:
                 honCMD.restartSERVER()
             return False
