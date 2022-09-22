@@ -109,7 +109,7 @@ class honCMD():
         # if (soft_data > hard_data) or 'first_check' not in status:
         with open (log, "r", encoding='utf-16-le') as f:
             for line in reversed(list(f)):
-                if "session cookie request failed!" in line.lower() or "no session cookie returned!" in line.lower():
+                if "session cookie request failed!" in line.lower() or "no session cookie returned!" in line.lower() or "invalid session cookie" in line.lower():
                     return False
                 elif "new session cookie " in line.lower():
                     return True
