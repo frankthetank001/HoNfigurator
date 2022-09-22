@@ -82,7 +82,7 @@ class heartbeat(commands.Cog):
                 alive_bkp=False
             counter_heartbeat+=1
             await asyncio.sleep(1)
-            playercount = svrcmd.honCMD().playerCount()
+            playercount = svrcmd.honCMD.playerCount(self)
 
             if playercount >=2:
                 if self.server_status['priority_realtime'] == False:
@@ -149,51 +149,92 @@ class heartbeat(commands.Cog):
                 if self.server_status['scheduled_shutdown']==False:
                     self.server_status.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
                     if self.server_status['scheduled_shutdown']:
-                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
-                        try:
-                            await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
-                        await test.createEmbed(ctx,-3)
-                        svr_state.stopSELF()
+                        if self.server_status['game_started'] == True:
+                            if svr_state.wait_for_replay():
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                                await test.createEmbed(ctx,-3)
+                                svr_state.stopSELF()
+                            else: pass
+                        else:
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
+                            try:
+                                await embed_log.edit(embed=logEmbed)
+                            except: print(traceback.format_exc())
+                            await test.createEmbed(ctx,-3)
+                            svr_state.stopSELF()
                 if self.server_status['hard_reset'] == True:
-                    self.server_status.update({'restart_required':True})
-                    # await test.createEmbed(ctx,playercount)
-                    await asyncio.sleep(restart_timer)
-                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                    self.server_status.update({'update_embeds':False})
-                    # restart notification
-                    if self.processed_data_dict['debug_mode'] == 'True':
-                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
-                        try:
-                            await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
-                    svr_state.restartSELF()
+                    if self.server_status['game_started'] == True:
+                        if svr_state.wait_for_replay():
+                            self.server_status.update({'restart_required':True})
+                            # dont need to delay the restart if we have the replay.
+                            #await asyncio.sleep(restart_timer)
+                            self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                            self.server_status.update({'update_embeds':False})
+                            # restart notification
+                            if self.processed_data_dict['debug_mode'] == 'True':
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                            svr_state.restartSELF()
+                        else: pass
+                    else: 
+                        self.server_status.update({'restart_required':True})
+                        # await test.createEmbed(ctx,playercount)
+                        # await asyncio.sleep(restart_timer)
+                        self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                        self.server_status.update({'update_embeds':False})
+                        # restart notification
+                        if self.processed_data_dict['debug_mode'] == 'True':
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
+                            try:
+                                await embed_log.edit(embed=logEmbed)
+                            except: print(traceback.format_exc())
+                        svr_state.restartSELF()
                 if self.server_status['first_run'] == False:
-                    self.server_status.update({"server_restarting":True})
-                    await test.createEmbed(ctx,playercount)
-                    await asyncio.sleep(restart_timer)
-                    # restart notification
-                    if self.processed_data_dict['debug_mode'] == 'True':
-                        match_id = self.server_status['match_log_location']
-                        match_id = match_id.replace(".log","")
-                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
-                        try:
-                            await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
-                    svr_state.restartSERVER()
-                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                if counter_ipcheck == counter_ipcheck_threshold:
-                    counter_ipcheck = 0
-                    check_ip = dmgr.mData.getData(self,"svr_ip")
-                    if check_ip != self.processed_data_dict['svr_ip']:
+                    if self.server_status['game_started'] == True:
+                        if svr_state.wait_for_replay():
+                            self.server_status.update({"server_restarting":True})
+                            await test.createEmbed(ctx,playercount)
+                            # restart notification
+                            if self.processed_data_dict['debug_mode'] == 'True':
+                                match_id = self.server_status['match_log_location']
+                                match_id = match_id.replace(".log","")
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                            svr_state.restartSERVER()
+                        else: pass
+                    else: 
                         self.server_status.update({"server_restarting":True})
                         await test.createEmbed(ctx,playercount)
+                        # restart notification
                         if self.processed_data_dict['debug_mode'] == 'True':
-                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom ``{self.processed_data_dict['svr_ip']}`` to ``{check_ip}``")
+                            match_id = self.server_status['match_log_location']
+                            match_id = match_id.replace(".log","")
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                             try:
                                 await embed_log.edit(embed=logEmbed)
                             except: print(traceback.format_exc())
                         svr_state.restartSERVER()
+                    self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                if counter_ipcheck == counter_ipcheck_threshold:
+                    counter_ipcheck = 0
+                    if self.server_status['game_started'] == False:
+                        check_ip = dmgr.mData.getData(self,"svr_ip")
+                        if check_ip != self.processed_data_dict['svr_ip']:
+                            self.server_status.update({"server_restarting":True})
+                            await test.createEmbed(ctx,playercount)
+                            if self.processed_data_dict['debug_mode'] == 'True':
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom ``{self.processed_data_dict['svr_ip']}`` to ``{check_ip}``")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except: print(traceback.format_exc())
+                            svr_state.restartSERVER()
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
 
                 """
@@ -363,18 +404,33 @@ class heartbeat(commands.Cog):
                 if server_status_bkp['scheduled_shutdown']==False:
                     server_status_bkp.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
                     if server_status_bkp['scheduled_shutdown']:
-                        svr_state.stopSELF()
+                        if server_status_bkp['game_started'] == True:
+                            if svr_state.wait_for_replay():
+                                svr_state.stopSELF()
+                            else: pass
+                        else:
+                            svr_state.stopSELF()
                 if server_status_bkp['hard_reset'] == True:
-                    svr_state.restartSELF()
+                    if server_status_bkp['game_started'] == True:
+                        if svr_state.wait_for_replay():
+                            svr_state.restartSELF()
+                        else: pass
+                    else:
+                        svr_state.restartSELF()
                 if server_status_bkp['first_run'] == False:
-                    await asyncio.sleep(restart_timer)
-                    svr_state.restartSERVER()
+                    if server_status_bkp['game_started'] == True:
+                        if svr_state.wait_for_replay():
+                            svr_state.restartSERVER()
+                        else: pass
+                    else:
+                        svr_state.restartSERVER()
                 if counter_ipcheck == counter_ipcheck_threshold:
                     counter_ipcheck = 0
-                    check_ip = dmgr.mData.getData(NULL,"svr_ip")
-                    # check if svr id is here
-                    if check_ip != processed_data_dict_bkp['svr_ip']:
-                        svr_state.restartSERVER()
+                    if server_status_bkp['game_started'] == False:
+                        check_ip = dmgr.mData.getData(NULL,"svr_ip")
+                        # check if svr id is here
+                        if check_ip != processed_data_dict_bkp['svr_ip']:
+                            svr_state.restartSERVER()
 
             if playercount >=0:
                 counter_health_checks +=1
