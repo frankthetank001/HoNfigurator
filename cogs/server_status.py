@@ -184,29 +184,29 @@ class honCMD():
                 replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
                 try:
                     files = os.listdir(processed_data_dict['hon_replays_dir'])
+                    replays=[]
+                    for file in files:
+                        if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                            if file.endswith(".honreplay"):
+                                replays.append
+                                try:
+                                    shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                                except Exception as e:
+                                    print(e)
+                            elif file.endswith(".tmp"):
+                                print("deleting temporary file "+file)
+                                try:
+                                    os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+                                except Exception as e:
+                                    print(e)
+                        else:
+                            print("removing unrequired replay folder " + file)
+                            try:
+                                shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                            except Exception as e:
+                                print(e)
                 except Exception as e:
                     print(e)
-                replays=[]
-                for file in files:
-                    if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
-                        if file.endswith(".honreplay"):
-                            replays.append
-                            try:
-                                shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
-                            except Exception as e:
-                                print(e)
-                        elif file.endswith(".tmp"):
-                            print("deleting temporary file "+file)
-                            try:
-                                os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
-                            except Exception as e:
-                                print(e)
-                    else:
-                        print("removing unrequired replay folder " + file)
-                        try:
-                            shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
-                        except Exception as e:
-                            print(e)
                 #
                 # gather networking details
                 print("starting service")
