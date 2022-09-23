@@ -55,7 +55,7 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
-    def wait_for_replay(self):
+    def wait_for_replay(self,wait):
         global replay_wait
         # match_id = self.server_status['match_log_location']
         # match_id = match_id.replace(".log","")
@@ -68,8 +68,8 @@ class honCMD():
             time.sleep(1)
             return True
         else: 
-            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/300sec until server is restarted).")
-            if replay_wait == 300:
+            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            if replay_wait == wait:
                 honCMD().restartSERVER()
             return False
     def check_cookie(server_status,log,name):
@@ -422,6 +422,20 @@ class honCMD():
                 pass
             return fileSize
     def check_for_updates(self,type):
+        if type == "pending_restart":
+            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_shutdown"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except Exception as e:
+                    print(e)
+        elif type == "pending_shutdown":
+            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_restart"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except Exception as e:
+                    print(e)  
         temFile = processed_data_dict['sdc_home_dir']+"\\"+type
         if exists(temFile):
             try:
