@@ -383,7 +383,8 @@ class heartbeat(commands.Cog):
         global alive
         alive_bkp='True'
         processed_data_dict_bkp = svr_state.getDataDict()
-        server_status_bkp = svrcmd.honCMD().getStatus()
+        server_status_bkp = svr_state.getStatus()
+        match_status_bkp = svr_state.getMatchInfo()
         available_maps_bkp = svr_state.getData("availMaps")
         server_status_bkp.update({'server_restarting':False})
         server_status_bkp.update({'server_starting':False})
@@ -494,7 +495,7 @@ class heartbeat(commands.Cog):
                     svr_state.reportPlayer("botmatch")
                     svr_state.restartSERVER()
             if server_status_bkp['game_started'] == True:
-                match_time = server_status_bkp['match_time']
+                match_time = match_status_bkp['match_time']
                 if ":" in match_time:
                     match_too_long = match_time.split(":")
                     match_too_long_hrs = int(match_too_long[0])
