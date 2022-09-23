@@ -494,15 +494,16 @@ class heartbeat(commands.Cog):
                 elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
                     svr_state.reportPlayer("botmatch")
                     svr_state.restartSERVER()
-            if server_status_bkp['game_started'] == True:
-                match_time = match_status_bkp['match_time']
-                if ":" in match_time:
-                    match_too_long = match_time.split(":")
-                    match_too_long_hrs = int(match_too_long[0])
-                    match_too_long_mins = int(match_too_long[1])
-                    if match_too_long_hrs > 1:
-                        print("Restarting the server. Last remaining player has not left yet.")
-                        svr_state.restartSERVER()
+            if 'game_started' in server_status_bkp:
+                if server_status_bkp['game_started'] == True:
+                    match_time = match_status_bkp['match_time']
+                    if ":" in match_time:
+                        match_too_long = match_time.split(":")
+                        match_too_long_hrs = int(match_too_long[0])
+                        match_too_long_mins = int(match_too_long[1])
+                        if match_too_long_hrs > 1:
+                            print("Restarting the server. Last remaining player has not left yet.")
+                            svr_state.restartSERVER()
 
     @bot.command()
     async def stopheart(self,ctx):
