@@ -269,6 +269,7 @@ class honCMD():
                 self.server_status.update({"game_host":"empty"})
                 self.server_status.update({"game_name":"empty"})
                 self.server_status.update({"game_version":"empty"})
+                self.server_status.update({"game_started":False})
                 self.server_status.update({"spectators":0})
                 self.server_status.update({"slots":10})
                 self.server_status.update({"referees":0})
