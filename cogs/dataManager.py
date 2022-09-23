@@ -81,7 +81,7 @@ class mData():
         if 'voice_starting_port' not in self.confDict:
             self.confDict.update({'voice_starting_port':10060})
         if 'debug_mode' not in self.confDict:
-            self.confDict.update({'debug_mode':False})
+            self.confDict.update({'debug_mode':'False'})
         if 'use_proxy' not in self.confDict:
             self.confDict.update({'use_proxy':'True'})
         if 'use_console' not in self.confDict:
@@ -94,6 +94,8 @@ class mData():
             self.confDict.update({'compiled_hash':'requires build'})
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
+        if 'disable_bot' not in self.confDict:
+            self.confDict.update({'disable_bot':'False'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":

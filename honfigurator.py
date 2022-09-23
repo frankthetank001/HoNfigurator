@@ -61,6 +61,8 @@ if is_admin():
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
     #   Otherwise taskbar icon will be python shell icon
     myappid = 'honfiguratoricon.1.0' # arbitrary string
+    mod_by=13
+    mod_by_old=mod_by
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
     players_connected = False
@@ -1153,7 +1155,7 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1454,6 +1456,7 @@ if is_admin():
                     conf_local.set("OPTIONS","svr_password",svr_password)
                     conf_local.set("OPTIONS","use_console",str(use_console))
                     conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+                    conf_local.set("OPTIONS","disable_bot",str(disable_bot))
                     with open(config_local, "w") as a:
                         conf_local.write(a)
                     a.close()
@@ -1504,6 +1507,7 @@ if is_admin():
                         conf_local.set("OPTIONS","svr_password",svr_password)
                         conf_local.set("OPTIONS","use_console",str(use_console))
                         conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+                        conf_local.set("OPTIONS","disable_bot",str(disable_bot))
                         with open(config_local, "w") as c:
                             conf_local.write(c)
                         c.close()
@@ -1745,6 +1749,13 @@ if is_admin():
                 self.debugmode.set(True)
             tab1_debugmode_btn = applet.Checkbutton(tab1,variable=self.debugmode)
             tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
+            #  Run without bots 
+            applet.Label(tab1, text="Run without bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+            self.disablebot = tk.BooleanVar(app)
+            if self.dataDict['disable_bot'] == 'True':
+                self.disablebot.set(True)
+            tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.disablebot)
+            tab1_disablebot_btn.grid(column= 4, row = 6,sticky="w",pady=4)
             # #   auto update
             # applet.Label(tab1, text="Auto update HoNfigurator:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
             # self.autoupdate = tk.BooleanVar(app)
@@ -1754,22 +1765,22 @@ if is_admin():
             # tab1_autoupdate_btn.grid(column= 4, row = 5,sticky="w",pady=4)
             #   branch select
             self.git_branch = tk.StringVar(app,self.git_current_branch())
-            applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Currently selected branch:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
             tab1_git_branch = applet.Combobox(tab1,foreground=textcolor,value=self.git_all_branches(),textvariable=self.git_branch)
-            tab1_git_branch.grid(column= 4, row = 6,sticky="w",pady=4)
+            tab1_git_branch.grid(column= 4, row = 7,sticky="w",pady=4)
             self.git_branch.trace_add('write', self.update_repository)
 
             #   bot version
-            applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
-            applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 7,sticky="w",pady=4)
+            applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=8,sticky="e",padx=[20,0])
+            applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 8,sticky="w",pady=4)
             print(self.forceupdate.get())
 
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
@@ -1941,6 +1952,7 @@ if is_admin():
                     elif btn == "Uninstall":
                         viewButton.Uninstall(self,id)
                 def refresh(*args):
+                    global mod_by
                     if (tabgui.index("current")) == 0:
                         ver=honfigurator.return_currentver(self)
                         ver=ver[1]
@@ -1948,7 +1960,11 @@ if is_admin():
                         status.insert(0,ver)
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
-                        viewButton.load_server_mgr(self)
+                        if type(args[0]) is not Event:
+                            mod_by = args[0]
+                            viewButton.load_server_mgr(self,True)
+                        else:
+                            viewButton.load_server_mgr(self,False)
                         try:
                             status = Entry(app,background=maincolor,foreground='white',width="200")
                             status.insert(0,f"Viewing hon_server_{deployed_status['svr_id']}: {latest_file}")
@@ -2160,12 +2176,21 @@ if is_admin():
             #app.attributes("-topmost",True)
                 def load_server_mgr(self,*args):
                     global total_columns
+                    global mod_by
+                    global mod_by_old
+                    global logolabel_tab2
+                    global tab2_cleanall
+                    global tab2_refresh
+                    global tab2_stopall
+                    global tab2_startall
+
+                    reinit=args[0]
                     # if (tabgui.index("current")) == 1:
                     app.lift()
                     i=2
                     c=0
                     c_len = len(ButtonString)+len(LablString)
-                    mod=13
+
                     svc_or_con="svc"
                     cookie=True
                     # create a grid of 2x6
@@ -2196,7 +2221,7 @@ if is_admin():
                         pcount = initialise.playerCountX(self,x)
                         #
                         # when total servers goes over <num>, move to the next column, and set row back to 1.
-                        if i%mod==0:
+                        if i%mod_by==0:
                             c+=c_len
                             i=3
                         LablString[0]=f"hon_server_{x}"
@@ -2251,7 +2276,7 @@ if is_admin():
                     total_columns=column_rows[0]
                     total_rows=column_rows[1]
                     print(column_rows)
-
+                    mod_by_old = mod_by
                     #Proxy and Manager
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
@@ -2277,17 +2302,32 @@ if is_admin():
                     else:
                         labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
+
+                    stretch_lbl = Label(tab2,width=15,text="servers per rows",background=maincolor,foreground='white')
+                    stretch_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[5,0],sticky='w',pady=[2,4])
+                    stretch = Entry(tab2,width=5)
+                    stretch.insert(0,mod_by)
+                    stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
+                    
                     #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
+                    if reinit:
+                        tab2_cleanall.destroy()
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
-                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[300,0],pady=[20,10])
-                    tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
-                    tab2_refresh.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[100,0],pady=[20,10])
+                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
+                    if reinit:
+                        tab2_refresh.destroy()
+                    tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh(int(stretch.get())))
+                    tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
+                    if reinit:
+                        tab2_stopall.destroy()
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
-                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,100],pady=[20,10])
-                    tab2_stopall = applet.Button(tab2, text="Start All",command=lambda: start_all())
-                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod+1,sticky='n',padx=[0,300],pady=[20,10])
+                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
+                    if reinit:
+                        tab2_startall.destroy()
+                    tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
+                    tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
                     tabgui2.grid(column=0,row=20,sticky='ew',columnspan=total_columns)
                 def Tools():
                     pass

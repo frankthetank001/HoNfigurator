@@ -210,24 +210,45 @@ if is_admin():
                     except: print(traceback.format_exc())
                     print("Proxy port is not online.")
                     return
+                else:
+                    print("starting the server completely failed.")
+                    if len(embed_log) == 0:
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg=f"``{hsl.time()}`` Welcome owner... :)")
+                        try:
+                            if owner_reachable:
+                                embedObj = await discord_admin.send(embed=temp_log)
+                            else:
+                                embedObj = await ctx.author.send(embed=temp_log)
+                        except: print(traceback.format_exc())
+                        embed_log.append(embedObj)
+                        #hsl.LastEmbedLog(embed_log)
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Starting the server failed."))
+                    try:
+                        await embed_log[0].edit(embed=logEmbed)
+                    except: print(traceback.format_exc())
+                    return
             except: print(traceback.format_exc())
-            try:
-                await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
-            except UnboundLocalError:
-                temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+            if processed_data_dict['disable_bot'] == 'False':
                 try:
-                    await discord_admin.send(temp_log)
-                except discord.errors.Forbidden:
-                    print("Owner is not reachable. We will message the person to send me a command then.")
-                    owner_reachable = False
-                except: print(traceback.format_exc())
-                print(traceback.format_exc())
-            try:
-                print("starting behemoth heart.")
-                await ctx.invoke(bot.get_command('startheart'))
-            except Exception as e:
-                print (e)
-                print("starting backup heart until discord command is run.")
+                    await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+                except UnboundLocalError:
+                    temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+                    try:
+                        await discord_admin.send(temp_log)
+                    except discord.errors.Forbidden:
+                        print("Owner is not reachable. We will message the person to send me a command then.")
+                        owner_reachable = False
+                    except: print(traceback.format_exc())
+                    print(traceback.format_exc())
+                try:
+                    print("starting behemoth heart.")
+                    await ctx.invoke(bot.get_command('startheart'))
+                except Exception as e:
+                    print (e)
+                    print("starting backup heart until discord command is run.")
+                    await heart.heartbeat.startheart_bkp()
+            else:
+                print("bot started in local mode.")
                 await heart.heartbeat.startheart_bkp()
         #@bot.event
         # async def on_ready():

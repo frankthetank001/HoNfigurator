@@ -55,7 +55,7 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
-    def wait_for_replay(self):
+    def wait_for_replay(self,wait):
         global replay_wait
         # match_id = self.server_status['match_log_location']
         # match_id = match_id.replace(".log","")
@@ -68,8 +68,8 @@ class honCMD():
             time.sleep(1)
             return True
         else: 
-            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/300sec until server is restarted).")
-            if replay_wait == 300:
+            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            if replay_wait == wait:
                 honCMD().restartSERVER()
             return False
     def check_cookie(server_status,log,name):
@@ -182,28 +182,31 @@ class honCMD():
                 #
                 # move replays off into the manager directory. clean up other temporary files
                 replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
-                files = os.listdir(processed_data_dict['hon_replays_dir'])
-                replays=[]
-                for file in files:
-                    if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
-                        if file.endswith(".honreplay"):
-                            replays.append
+                try:
+                    files = os.listdir(processed_data_dict['hon_replays_dir'])
+                    replays=[]
+                    for file in files:
+                        if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                            if file.endswith(".honreplay"):
+                                replays.append
+                                try:
+                                    shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                                except Exception as e:
+                                    print(e)
+                            elif file.endswith(".tmp"):
+                                print("deleting temporary file "+file)
+                                try:
+                                    os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+                                except Exception as e:
+                                    print(e)
+                        else:
+                            print("removing unrequired replay folder " + file)
                             try:
-                                shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                                shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
                             except Exception as e:
                                 print(e)
-                        elif file.endswith(".tmp"):
-                            print("deleting temporary file "+file)
-                            try:
-                                os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
-                            except Exception as e:
-                                print(e)
-                    else:
-                        print("removing unrequired replay folder " + file)
-                        try:
-                            shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
-                        except Exception as e:
-                            print(e)
+                except Exception as e:
+                    print(e)
                 #
                 # gather networking details
                 print("starting service")
@@ -269,7 +272,6 @@ class honCMD():
                 self.server_status.update({"game_host":"empty"})
                 self.server_status.update({"game_name":"empty"})
                 self.server_status.update({"game_version":"empty"})
-                self.server_status.update({"game_started":False})
                 self.server_status.update({"spectators":0})
                 self.server_status.update({"slots":10})
                 self.server_status.update({"referees":0})
@@ -420,6 +422,20 @@ class honCMD():
                 pass
             return fileSize
     def check_for_updates(self,type):
+        if type == "pending_restart":
+            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_shutdown"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except Exception as e:
+                    print(e)
+        elif type == "pending_shutdown":
+            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_restart"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except Exception as e:
+                    print(e)  
         temFile = processed_data_dict['sdc_home_dir']+"\\"+type
         if exists(temFile):
             try:
