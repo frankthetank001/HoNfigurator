@@ -182,7 +182,10 @@ class honCMD():
                 #
                 # move replays off into the manager directory. clean up other temporary files
                 replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
-                files = os.listdir(processed_data_dict['hon_replays_dir'])
+                try:
+                    files = os.listdir(processed_data_dict['hon_replays_dir'])
+                except Exception as e:
+                    print(e)
                 replays=[]
                 for file in files:
                     if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
@@ -269,7 +272,6 @@ class honCMD():
                 self.server_status.update({"game_host":"empty"})
                 self.server_status.update({"game_name":"empty"})
                 self.server_status.update({"game_version":"empty"})
-                self.server_status.update({"game_started":False})
                 self.server_status.update({"spectators":0})
                 self.server_status.update({"slots":10})
                 self.server_status.update({"referees":0})
