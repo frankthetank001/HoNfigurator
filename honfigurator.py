@@ -2188,6 +2188,7 @@ if is_admin():
                     global tab2_refresh
                     global tab2_stopall
                     global tab2_startall
+                    global tabgui2
 
                     app.lift()
                     i=2
@@ -2323,29 +2324,27 @@ if is_admin():
                     tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                     tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
-                    #tabgui2.grid(column=0,row=20,sticky='ew',columnspan=total_columns)
+
+                    tabgui2 = ttk.Notebook(tab2)
+                    tab11 = ttk.Frame(tabgui2)
+                    tab22 = ttk.Frame(tabgui2)
+                    tab23 = ttk.Frame(tabgui2)
+                    tab24 = ttk.Frame(tabgui2)
+                    tabgui2.add(tab11,text="Server Log")
+                    tabgui2.add(tab22,text="Match Log")
+                    tabgui2.add(tab23,text="Bot Log")
+                    tabgui2.add(tab24,text="Proxy Log")
+                    tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
+                    tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
                     #tabgui2.after(10000,viewButton.refresh((int(stretch.get()))+3))
                 def Tools():
                     pass
             # create a Scrollbar and associate it with txt
             combo = TextScrollCombo(app)
             combo.config(width=600, height=600)
-            app.grid_rowconfigure(0, weight=1)
-            app.grid_columnconfigure(0, weight=1)
-            tabgui2 = ttk.Notebook(tab2)
-            # app.rowconfigure(15, weight=1)
-            tab11 = ttk.Frame(tabgui2)
-            tab22 = ttk.Frame(tabgui2)
-            tab23 = ttk.Frame(tabgui2)
-            tab24 = ttk.Frame(tabgui2)
-            tabgui2.add(tab11,text="Server Log")
-            tabgui2.add(tab22,text="Match Log")
-            tabgui2.add(tab23,text="Bot Log")
-            tabgui2.add(tab24,text="Proxy Log")
-            tabgui.select(0)
             self.update_repository(NULL,NULL,NULL)
             tabgui.bind('<<NotebookTabChanged>>',viewButton.refresh)
-            tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
+            #tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
             app.mainloop()
     test = honfigurator()
     test.creategui()
