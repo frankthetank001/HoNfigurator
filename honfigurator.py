@@ -871,6 +871,7 @@ if is_admin():
                                                 print("copying server exe...")
                                             except Exception as e: print(str(e) + "can't replace exe.")
                                     initialise.schedule_restart(self)
+                                    players_connected=True
                         if use_console == False:
                             initialise.configure_service_bot(self,self.service_name_bot)
                             time.sleep(1)
