@@ -57,6 +57,45 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
+    def simple_match_data(log,type):
+        simple_match_data = {}
+        simple_match_data.update({'match_time':'preparation phase...'})
+        skipped_frames = 0
+        frame_size = 0
+        frame_sizes = []
+        with open (log, "r", encoding='utf-16-le') as f:
+            if type == "match":
+                for line in reversed(list(f)):
+                    if "Server Status" in line and simple_match_data['match_time'] == 'preparation phase...':
+                        #Match Time(00:07:00)
+                        if "Match Time" in line:
+                            pattern="(Match Time\()(.*)(\))"
+                            try:
+                                match_time=re.search(pattern,line)
+                                match_time = match_time.group(2)
+                                simple_match_data.update({'match_time':match_time})
+                                #tempData.update({'match_log_last_line':num})
+                                #print("match_time: "+ match_time)
+                                continue
+                            except AttributeError as e:
+                                pass
+                    if "Skipped" in line or "skipped" in line:
+                        pattern = "\(([^\)]+)\)"
+                        skipped_frames+=1
+                        try:
+                            frame_size = re.findall(r'\(([^\)]+)\)', line)
+                            frame_size = frame_size[0]
+                            frame_size = frame_size.split(" ")
+                            frame_sizes.append(int(frame_size[0]))
+                        except: pass
+        try:
+            largest_frame = max(frame_sizes)
+            simple_match_data.update({'largest_skipped_frame':f"{largest_frame}msec"})
+        except:
+            simple_match_data.update({'largest_skipped_frame':"couldn't get this data."})
+        simple_match_data.update({'skipped_frames':skipped_frames})
+        return simple_match_data
+
     def wait_for_replay(self,wait):
         global replay_wait
         # match_id = self.server_status['match_log_location']
@@ -399,8 +438,10 @@ class honCMD():
             honCMD().getData("getLogList_Slave")
         t = time.localtime()
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-        save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
-        shutil.copyfile(self.server_status['slave_log_location'], save_path)
+        with open(f"{processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt", 'w') as f:
+            f.write(f"{reason}\n{processed_data_dict['svr_identifier']}\n{self.server_status['game_map']}\n{self.server_status['game_host']}\n{self.server_status['client_ip']}")
+        #save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
+        #shutil.copyfile(self.server_status['slave_log_location'], save_path)
     def time():
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     def append_line_to_file(self,file,text,level):
@@ -512,6 +553,7 @@ class honCMD():
             f.close()
             total_games_played = len(resulting_list)
             return total_games_played
+
         elif dtype == "CheckInGame":
             tempData = {}
             total_games_played_prev_int = int(self.server_status['total_games_played_prev'])
