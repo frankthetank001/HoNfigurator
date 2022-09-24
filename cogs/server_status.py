@@ -172,15 +172,15 @@ class honCMD():
     def changePriority(self,priority_realtime):
         if priority_realtime:
             if processed_data_dict['process_priority'] == "normal":
-                self.server_status['hon_pid_hook'].nice(psutil.NORMAL_PRIORITY_CLASS)
+                self.server_status['hon_exe'].nice(psutil.NORMAL_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "high":
-                self.server_status['hon_pid_hook'].nice(psutil.HIGH_PRIORITY_CLASS)
+                self.server_status['hon_exe'].nice(psutil.HIGH_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "realtime":
-                self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
+                self.server_status['hon_exe'].nice(psutil.REALTIME_PRIORITY_CLASS)
             print("priority set to realtime")
             self.server_status.update({'priority_realtime':priority_realtime})
         else:
-            self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
+            self.server_status['hon_exe'].nice(psutil.IDLE_PRIORITY_CLASS)
             print("priority set to normal")
             self.server_status.update({'priority_realtime':priority_realtime})
         return priority_realtime
@@ -205,9 +205,66 @@ class honCMD():
     def getMatchInfo(self):
         return match_status
    #   Starts server
-    def startSERVER(self):
+    def initialise_variables(self):
+        self.first_run = True
+        self.just_collected = False
+        self.game_started = False
+        self.tempcount = -5
+        self.embed_updated = False
+        self.lobby_created = False
+        self.last_restart = honCMD.getData(self,"lastRestart")
+        honCMD().getData("update_last_restarted")
+        #
+        #   Initialise some variables upon hon server starting
+        self.server_status.update({"last_restart":self.last_restart})
+        self.server_status.update({"first_run":self.first_run})
+        self.server_status.update({"just_collected":self.just_collected})
+        self.server_status.update({"game_started":self.game_started})
+        self.server_status.update({"tempcount":self.tempcount})
+        self.server_status.update({'update_embeds':False})
+        self.server_status.update({"embed_updated":self.embed_updated})
+        self.server_status.update({"lobby_created":self.lobby_created})
+        self.server_status.update({"game_map":"empty"})
+        self.server_status.update({"game_type":"empty"})
+        self.server_status.update({"game_mode":"empty"})
+        self.server_status.update({"game_host":"empty"})
+        self.server_status.update({"game_name":"empty"})
+        self.server_status.update({"game_version":"empty"})
+        self.server_status.update({"spectators":0})
+        self.server_status.update({"slots":10})
+        self.server_status.update({"referees":0})
+        self.server_status.update({"client_ip":"empty"})
+        self.server_status.update({"match_info_obtained":False})
+        self.server_status.update({"priority_realtime":False})
+        self.server_status.update({"restart_required":False})
+        self.server_status.update({"game_log_location":"empty"})
+        self.server_status.update({"match_log_location":"empty"})
+        self.server_status.update({"slave_log_location":"empty"})
+        self.server_status.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
+        self.server_status.update({"total_games_played":honCMD.getData(self,"TotalGamesPlayed")})
+        #self.server_status.update({'tempcount':-5})
+        self.server_status.update({"server_ready":False})
+        self.server_status.update({'elapsed_duration':0})
+        self.server_status.update({'pending_restart':False})
+        self.server_status.update({'server_ready':False})
+        self.server_status.update({'server_starting':True})
+        self.server_status.update({'cookie':True})
+        if processed_data_dict['use_proxy']=='True':
+            self.server_status.update({'proxy_online':True})
+        self.server_status.update({'scheduled_shutdown':False})
+        self.server_status.update({'update_embeds':True})
+        self.server_status.update({"hard_reset":False})
+        #self.server_status.update({'restarting_server':False})
+
+        #
+        # Match info dictionary
+        match_status.update({'match_log_last_line':0})
+        match_status.update({'match_id':'empty'})
+        match_status.update({'match_time':'Preparation phase..'})
+    def startSERVER(self,from_react):
         #playercount = playercount()
-        if self.playerCount() < 0 :
+        running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
+        if self.playerCount() < 0:
             returnlist = []
             free_mem = psutil.virtual_memory().free
             if free_mem > 1000000000:
@@ -292,87 +349,42 @@ class honCMD():
                 honCMD.check_for_updates(self,"pending_restart")
                 honCMD.check_for_updates(self,"pending_shutdown")
 
-                running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
-                if running:
-                    for proc in psutil.process_iter():
-                        if proc.name() == processed_data_dict['hon_file_name']:
-                            self.honEXE=proc
-                            self.honP=proc.pid
-                else:
-                    self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
-                    #
-                    #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
-                    self.server_status.update({'hon_exe':self.honEXE})
-                    self.honP = self.honEXE.pid
+                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                #
+                #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
+                self.server_status.update({'hon_exe':self.honEXE})
+                self.honP = self.honEXE.pid
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
-                self.server_status.update({'hon_pid_hook':honPID})
                 honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
 
-                self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
+                self.server_status['hon_exe'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
                 #
                 # Reload the dictionary. This is important as we want to start with a blank slate with every server restart.
-                self.first_run = True
-                self.just_collected = False
-                self.game_started = False
-                self.tempcount = -5
-                self.embed_updated = False
-                self.lobby_created = False
-                self.last_restart = honCMD.getData(self,"lastRestart")
-                honCMD().getData("update_last_restarted")
-                #
-                #   Initialise some variables upon hon server starting
-                self.server_status.update({"last_restart":self.last_restart})
-                self.server_status.update({"first_run":self.first_run})
-                self.server_status.update({"just_collected":self.just_collected})
-                self.server_status.update({"game_started":self.game_started})
-                self.server_status.update({"tempcount":self.tempcount})
-                self.server_status.update({'update_embeds':False})
-                self.server_status.update({"embed_updated":self.embed_updated})
-                self.server_status.update({"lobby_created":self.lobby_created})
-                self.server_status.update({"game_map":"empty"})
-                self.server_status.update({"game_type":"empty"})
-                self.server_status.update({"game_mode":"empty"})
-                self.server_status.update({"game_host":"empty"})
-                self.server_status.update({"game_name":"empty"})
-                self.server_status.update({"game_version":"empty"})
-                self.server_status.update({"spectators":0})
-                self.server_status.update({"slots":10})
-                self.server_status.update({"referees":0})
-                self.server_status.update({"client_ip":"empty"})
-                self.server_status.update({"match_info_obtained":False})
-                self.server_status.update({"priority_realtime":False})
-                self.server_status.update({"restart_required":False})
-                self.server_status.update({"game_log_location":"empty"})
-                self.server_status.update({"match_log_location":"empty"})
-                self.server_status.update({"slave_log_location":"empty"})
-                self.server_status.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
-                self.server_status.update({"total_games_played":honCMD.getData(self,"TotalGamesPlayed")})
-                #self.server_status.update({'tempcount':-5})
-                self.server_status.update({"server_ready":False})
-                self.server_status.update({'elapsed_duration':0})
-                self.server_status.update({'pending_restart':False})
-                self.server_status.update({'server_ready':False})
-                self.server_status.update({'server_starting':True})
-                self.server_status.update({'cookie':True})
-                if processed_data_dict['use_proxy']=='True':
-                    self.server_status.update({'proxy_online':True})
-                self.server_status.update({'scheduled_shutdown':False})
-                self.server_status.update({'update_embeds':True})
-                self.server_status.update({"hard_reset":False})
-                #self.server_status.update({'restarting_server':False})
-
-
-
-                #
-                # Match info dictionary
-                match_status.update({'match_log_last_line':0})
-                match_status.update({'match_id':'empty'})
-                match_status.update({'match_time':'Preparation phase..'})
+                honCMD().initialise_variables()
                 return True
             else:
                 return "ram"
+        elif running and from_react == False:
+            print("detected already running hon instance, attempting to hook on..")
+            for proc in psutil.process_iter():
+                if proc.name() == processed_data_dict['hon_file_name']:
+                    self.honEXE=proc
+                    self.honP=proc.pid
+            try:
+                self.server_status.update({'hon_exe':self.honEXE})
+                self.honP = self.honEXE.pid
+                self.server_status.update({'hon_pid':self.honP})
+                honPID = psutil.Process(pid=self.honEXE.pid)
+                honCMD().initialise_variables()
+                return True
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+
+
+                
     #
     #   Stop server
     def stopSERVER(self):
@@ -426,7 +438,7 @@ class honCMD():
                     playercount = self.playerCount()
                 #
                 #   Once detects server is offline with above code start the server
-                honCMD().startSERVER()
+                honCMD().startSERVER(False)
         else:
             self.server_status.update({'update_embeds':True})
             self.server_status.update({'tempcount':-5})

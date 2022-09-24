@@ -175,7 +175,7 @@ if is_admin():
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             # await ctx.invoke(bot.get_command('getStatus'))
             try:
-                result = srvcmd.honCMD().startSERVER()
+                result = srvcmd.honCMD().startSERVER(False)
                 if result == True:
                     print("server started successfully")
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
@@ -931,7 +931,7 @@ if is_admin():
                         #   Sends the start server command
                         elif (react.emoji.name == "🔼"):
                             heart = await ctx.invoke(bot.get_command('statusheart'))
-                            if svr_cmd.startSERVER():
+                            if svr_cmd.startSERVER(True):
                                 await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
                             if not heart:
                                 await ctx.invoke(bot.get_command('startheart'))
