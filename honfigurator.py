@@ -619,7 +619,7 @@ if is_admin():
             self.game_port = int(self.dataDict['game_starting_port']) + iter
             self.voice_port = int(self.dataDict['voice_starting_port']) + iter
             self.game_port_proxy = self.game_port + 10000
-            self.voice_port_proxy = 21435 + int(self.dataDict['svr_id']) - 1
+            self.voice_port_proxy = self.voice_port + 10000
             self.secrets = initialise.KOTF(self)
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
