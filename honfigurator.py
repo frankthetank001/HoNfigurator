@@ -1969,6 +1969,7 @@ if is_admin():
                             viewButton.clear_frame()
                             viewButton.load_server_mgr(self)
                         else:
+                            viewButton.clear_frame()
                             viewButton.load_server_mgr(self)
                         try:
                             status = Entry(app,background=maincolor,foreground='white',width="200")

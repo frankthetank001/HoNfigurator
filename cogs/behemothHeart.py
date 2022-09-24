@@ -104,7 +104,12 @@ class heartbeat(commands.Cog):
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] Proxy port {self.server_status['svr_proxyport']} offline.")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                # svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening. Stopping server to reduce TMM failures.","INFO")
+                                # await test.createEmbed(ctx,playercount)
+                                # svr_state.stopSERVER()
                             if proxy_online !=self.server_status['proxy_online']:
                                 self.server_status.update({'proxy_online':proxy_online})
                                 self.server_status.update({'update_embeds':True})
@@ -114,7 +119,9 @@ class heartbeat(commands.Cog):
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
                         try:
                             await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if cookie != self.server_status['cookie']:
                         self.server_status.update({'cookie':cookie})
                         self.server_status.update({'update_embeds':True})
@@ -130,7 +137,9 @@ class heartbeat(commands.Cog):
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
                         try:
                             await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 else:
                     if self.server_status['server_restarting'] == False:
                         self.server_status.update({'server_starting':True})
@@ -145,27 +154,9 @@ class heartbeat(commands.Cog):
                 counter_ipcheck +=1
                 if self.server_status['priority_realtime'] == True:
                     svr_state.changePriority(False)
+                # check for or action a scheduled restart
                 if self.server_status['hard_reset'] == False:
                     self.server_status.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
-                if self.server_status['scheduled_shutdown']==False:
-                    self.server_status.update({'scheduled_shutdown':svr_state.check_for_updates("pending_restart")})
-                    if self.server_status['scheduled_shutdown']:
-                        if self.server_status['game_started'] == True:
-                            if svr_state.wait_for_replay(replay_threshold):
-                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
-                                try:
-                                    await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
-                                await test.createEmbed(ctx,-3)
-                                svr_state.stopSELF()
-                            else: pass
-                        else:
-                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
-                            try:
-                                await embed_log.edit(embed=logEmbed)
-                            except: print(traceback.format_exc())
-                            await test.createEmbed(ctx,-3)
-                            svr_state.stopSELF()
                 if self.server_status['hard_reset'] == True:
                     if self.server_status['game_started'] == True:
                         if svr_state.wait_for_replay(replay_threshold):
@@ -179,7 +170,10 @@ class heartbeat(commands.Cog):
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
                             svr_state.restartSELF()
                         else: pass
                     else: 
@@ -193,8 +187,38 @@ class heartbeat(commands.Cog):
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
                             try:
                                 await embed_log.edit(embed=logEmbed)
-                            except: print(traceback.format_exc())
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
                         svr_state.restartSELF()
+                # check for or action a scheduled shutdown
+                if self.server_status['scheduled_shutdown']==False:
+                    self.server_status.update({'scheduled_shutdown':svr_state.check_for_updates("pending_restart")})
+                if self.server_status['scheduled_shutdown']:
+                    if self.server_status['game_started'] == True:
+                        if svr_state.wait_for_replay(replay_threshold):
+                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
+                            try:
+                                await embed_log.edit(embed=logEmbed)
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            await test.createEmbed(ctx,-3)
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled shutdown initiated.","INFO")
+                            svr_state.stopSELF()
+                        else: pass
+                    else:
+                        logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
+                        try:
+                            await embed_log.edit(embed=logEmbed)
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        await test.createEmbed(ctx,-3)
+                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled shutdown initiated.","INFO")
+                        svr_state.stopSELF()
+                # check for or action a natural restart inbetween games
                 if self.server_status['first_run'] == False:
                     if self.server_status['game_started'] == True:
                         if svr_state.wait_for_replay(replay_threshold):
@@ -207,7 +231,9 @@ class heartbeat(commands.Cog):
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             svr_state.restartSERVER()
                         else: pass
                     else: 
@@ -220,9 +246,12 @@ class heartbeat(commands.Cog):
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                             try:
                                 await embed_log.edit(embed=logEmbed)
-                            except: print(traceback.format_exc())
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         svr_state.restartSERVER()
                     self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                # every x seconds, check whether the public IP of the server has changed. If so, schedule a restart
                 if counter_ipcheck == counter_ipcheck_threshold:
                     counter_ipcheck = 0
                     if self.server_status['game_started'] == False:
@@ -234,7 +263,9 @@ class heartbeat(commands.Cog):
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING AS PUBLIC IP HAS CHANGED.\nFrom ``{self.processed_data_dict['svr_ip']}`` to ``{check_ip}``")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             svr_state.restartSERVER()
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
 
@@ -288,18 +319,24 @@ class heartbeat(commands.Cog):
                         if self.server_status['game_started'] == False:
                             try:
                                 svr_state.getData("CheckInGame")
-                            except: print(traceback.format_exc())
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if self.server_status['match_info_obtained'] == False:
                             try:
                                 svr_state.getData("MatchInformation")
-                            except: print(traceback.format_exc())
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             if self.server_status['game_started'] == True and self.server_status['match_info_obtained'] == True and self.processed_data_dict['debug_mode'] == 'True':
                                 match_id = self.server_status['match_log_location']
                                 match_id = match_id.replace(".log","")
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Game Started / Lobby made - {match_id}")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 # Verify the lobby settings. Look out for sinister events and handle it.
                 #
                 #   sinister behaviour detected, save log to file.
@@ -313,7 +350,9 @@ class heartbeat(commands.Cog):
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``), RESTARTING...")
                         try:
                             await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         self.server_status.update({"server_restarting":True})
                         self.server_status.update({"restart_required":True})
                         svr_state.restartSERVER()
@@ -325,13 +364,16 @@ class heartbeat(commands.Cog):
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: creating botmatches), RESTARTING...")
                         try:
                             await embed_log.edit(embed=logEmbed)
-                        except: print(traceback.format_exc())
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         self.server_status.update({"server_restarting":True})
                         self.server_status.update({"restart_required":True})
                         svr_state.restartSERVER()
                         await test.createEmbed(ctx,playercount)
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                         self.server_status.update({'update_embeds':False})
+                    # check for a long-running game of over 1 hr, where there is but a single player connected. Most likely a bug, server should close
                     if self.server_status['game_started'] == True:
                         match_time = self.match_status['match_time']
                         if ":" in match_time:
@@ -346,7 +388,9 @@ class heartbeat(commands.Cog):
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] {self.match_status['match_id']} - Game ongoing for over 1 hour, with only 1 player connected, RESTARTING...")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
-                                except: print(traceback.format_exc())
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         
                 #
                 #   Game in progress
@@ -416,44 +460,54 @@ class heartbeat(commands.Cog):
             await asyncio.sleep(heartbeat_freq)
             playercount = svrcmd.honCMD().playerCount()
             print("players: " + str(playercount))
-            try:
-                if playercount == 0:
-                    counter_ipcheck +=1
-                    if server_status_bkp['priority_realtime'] == True:
-                        svr_state.changePriority(False)
-                    if server_status_bkp['hard_reset'] == False:
-                        server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
-                    if server_status_bkp['scheduled_shutdown']==False:
-                        server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
-                        if server_status_bkp['scheduled_shutdown']:
-                            if server_status_bkp['game_started'] == True:
-                                if svr_state.wait_for_replay(replay_threshold):
-                                    svr_state.stopSELF()
-                                else: pass
-                            else:
-                                svr_state.stopSELF()
-                    if server_status_bkp['hard_reset'] == True:
-                        if server_status_bkp['game_started'] == True:
-                            if svr_state.wait_for_replay(replay_threshold):
-                                svr_state.restartSELF()
-                            else: pass
-                        else:
+            #try:
+            if playercount == 0:
+                counter_ipcheck +=1
+                if server_status_bkp['priority_realtime'] == True:
+                    svr_state.changePriority(False)
+                # check for or action a scheduled restart
+                if server_status_bkp['hard_reset'] == False:
+                    server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
+                if server_status_bkp['hard_reset'] == True:
+                    if server_status_bkp['game_started'] == True:
+                        if svr_state.wait_for_replay(replay_threshold):
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled restart initiated.","INFO")
                             svr_state.restartSELF()
-                    if server_status_bkp['first_run'] == False:
-                        if server_status_bkp['game_started'] == True:
-                            if svr_state.wait_for_replay(replay_threshold):
-                                svr_state.restartSERVER()
-                            else: pass
-                        else:
+                        else: pass
+                    else:
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled restart initiated.","INFO")
+                        svr_state.restartSELF()    
+                # check for or action a scheduled shutdown
+                if server_status_bkp['scheduled_shutdown']==False:
+                    server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
+                if server_status_bkp['scheduled_shutdown'] == True:
+                    if server_status_bkp['game_started'] == True:
+                        if svr_state.wait_for_replay(replay_threshold):
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
+                            svr_state.stopSELF()
+                        else: pass
+                    else:
+                        print("scheduled shutdown, moving to stop server")
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
+                        svr_state.stopSELF()
+                # check for or action a natural restart inbetween games
+                if server_status_bkp['first_run'] == False:
+                    if server_status_bkp['game_started'] == True:
+                        if svr_state.wait_for_replay(replay_threshold):
                             svr_state.restartSERVER()
-                    if counter_ipcheck == counter_ipcheck_threshold:
-                        counter_ipcheck = 0
-                        if server_status_bkp['game_started'] == False:
-                            check_ip = dmgr.mData.getData(NULL,"svr_ip")
-                            # check if svr id is here
-                            if check_ip != processed_data_dict_bkp['svr_ip']:
-                                svr_state.restartSERVER()
-
+                        else: pass
+                    else:
+                        svr_state.restartSERVER()
+                # every x seconds, check if the public IP has changed for the server. Schedule a restart if it has
+                if counter_ipcheck == counter_ipcheck_threshold:
+                    counter_ipcheck = 0
+                    if server_status_bkp['game_started'] == False:
+                        check_ip = dmgr.mData.getData(NULL,"svr_ip")
+                        # check if svr id is here
+                        if check_ip != processed_data_dict_bkp['svr_ip']:
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update.","WARN")
+                            svr_state.restartSERVER()
+                # every x seconds, check if the proxy port is still listening. If it isn't shutdown the server.
                 if playercount >=0:
                     counter_health_checks +=1
                     if counter_health_checks>=threshold_health_checks:
@@ -466,14 +520,18 @@ class heartbeat(commands.Cog):
                                 else:
                                     proxy_online=False
                                     print(f"proxy port: {server_status_bkp['svr_proxyport']} not online")
-            except Exception as e:
-                print(e)
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
+                                    # svr_state.stopSELF()
+            # except:
+            #     print(e)
+            #     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{e}","WARNING")
             try:
                 if playercount >=2:
                     if server_status_bkp['priority_realtime'] == False:
                         svr_state.changePriority(True)
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
 
             try:
                 if playercount >= 1:
@@ -491,14 +549,19 @@ class heartbeat(commands.Cog):
                             counter_gamecheck=0
                             if server_status_bkp['game_started'] == False:
                                 try:
-                                    svr_state.getData("CheckInGame")
-                                except: print(traceback.format_exc())
+                                    svr_state.getDayta("CheckIddnGame")
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                             if server_status_bkp['match_info_obtained'] == False:
                                 try:
                                     svr_state.getData("MatchInformation")
-                                except: print(traceback.format_exc())
-            except Exception as e:
-                print(e)
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if playercount == 1:
                     if (server_status_bkp['game_map'] != "empty" and server_status_bkp['game_map'] not in available_maps_bkp):
@@ -506,8 +569,9 @@ class heartbeat(commands.Cog):
                     elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
                         svr_state.reportPlayer("botmatch")
                         svr_state.restartSERVER()
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if 'game_started' in server_status_bkp:
                     if server_status_bkp['game_started'] == True:
@@ -519,8 +583,9 @@ class heartbeat(commands.Cog):
                             if match_too_long_hrs > 1:
                                 print("Restarting the server. Last remaining player has not left yet.")
                                 svr_state.restartSERVER()
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
 
     @bot.command()
     async def stopheart(self,ctx):
@@ -534,7 +599,9 @@ class heartbeat(commands.Cog):
         if hoster == self.processed_data_dict['svr_hoster'] or hoster == self.processed_data_dict['svr_identifier']:
             try:
                 await ctx.message.delete()
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             if not alive:
                 await ctx.invoke(bot.get_command('startheart'),ctx)
     @bot.command()
@@ -542,7 +609,9 @@ class heartbeat(commands.Cog):
         if hoster == self.processed_data_dict['svr_hoster'] or hoster == self.processed_data_dict['svr_identifier']:
             try:
                 await ctx.message.delete()
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             if hoster == self.processed_data_dict['svr_hoster']:
                 await asyncio.sleep(int(self.processed_data_dict['svr_id']))
             self.server_status.update({'update_embeds':True})
@@ -552,7 +621,9 @@ class heartbeat(commands.Cog):
         if hoster == self.processed_data_dict['svr_identifier']:
             try:
                 await ctx.message.delete()
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             await ctx.invoke(bot.get_command('stopheart'),ctx)
     @bot.command()
     async def heartbeat(self,ctx,hoster):
@@ -569,7 +640,9 @@ class heartbeat(commands.Cog):
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart beating 💓 {playercount} players connected",delete_after=5)
                 else:
                     await ctx.send(f"{self.processed_data_dict['svr_identifier']} Behemoth heart stopped! :broken_heart:",delete_after=5)
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     
 def setup(bot):
     bot.add_cog(heartbeat(bot))
