@@ -1964,7 +1964,7 @@ if is_admin():
                         status.insert(0,ver)
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
-                        if type(args[0]) is int:
+                        if len(args) >= 1 and type(args[0]) is int:
                             mod_by = args[0]
                             viewButton.clear_frame()
                             viewButton.load_server_mgr(self)
