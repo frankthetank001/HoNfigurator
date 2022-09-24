@@ -271,6 +271,8 @@ if is_admin():
             if processed_data_dict['disable_bot'] == 'False':
                 try:
                     await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+                    print("starting behemoth heart.")
+                    await ctx.invoke(bot.get_command('startheart'))
                 except UnboundLocalError:
                     temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
                     try:
@@ -282,14 +284,10 @@ if is_admin():
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     print(traceback.format_exc())
-                print("starting behemoth heart.")
-                await ctx.invoke(bot.get_command('startheart'))
-                # except:
-                #     print(traceback.format_exc())
-                #     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
-                #     print("starting backup heart until discord !createinks command is run.")
-                #     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
-                #     await heart.heartbeat.startheart_bkp()
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
+                    print("starting backup heart until discord !createinks command is run.")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
+                    await heart.heartbeat.startheart_bkp()
             else:
                 print("bot started in local mode.")
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
