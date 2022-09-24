@@ -182,8 +182,9 @@ class embedManager(commands.Cog):
                     # lobby active
                     elif playercount >= 1:
                         await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
-            except Exception as e: 
-                print(e)
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print("we mustn't have data for this yet")
     """
 
@@ -229,7 +230,9 @@ class embedManager(commands.Cog):
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
-        except: print(traceback.format_exc())
+        except:
+            print(traceback.format_exc())
+            svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
     @bot.command()
     async def startingEmbed(self,rec_embed):
@@ -241,7 +244,9 @@ class embedManager(commands.Cog):
         created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รอผู้เล่นสร้างห้อง: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         try:
             await rec_embed.edit(embed=created_embed)
-        except: print(traceback.format_exc())
+        except:
+            print(traceback.format_exc())
+            svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         return
 
     @bot.command()
@@ -274,7 +279,9 @@ class embedManager(commands.Cog):
             created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
-        except: print(traceback.format_exc())
+        except:
+            print(traceback.format_exc())
+            svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         return
     
     @bot.command()
@@ -285,7 +292,9 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                             กรุณารอเซิฟเวอร์กำลังรีสตาร์ท...", color=stripColor_restart)
         try:
             await rec_embed.edit(embed=created_embed)
-        except: print(traceback.format_exc())
+        except:
+            print(traceback.format_exc())
+            svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
 
     
@@ -318,7 +327,9 @@ class embedManager(commands.Cog):
             created_embed.set_thumbnail(url=hosted)
             try:
                 await rec_embed.edit(embed=created_embed)
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         #
         #   BASE EMBED: embed when a lobby has been created
         #   server selected lobby created
@@ -394,7 +405,9 @@ class embedManager(commands.Cog):
                 created_embed.set_thumbnail(url=online)
             try:
                 await rec_embed.edit(embed=created_embed)
-            except: print(traceback.format_exc())
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
     @bot.command()
     async def helpembed(self, ctx):
