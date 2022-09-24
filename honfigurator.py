@@ -619,7 +619,7 @@ if is_admin():
             self.game_port = int(self.dataDict['game_starting_port']) + iter
             self.voice_port = int(self.dataDict['voice_starting_port']) + iter
             self.game_port_proxy = self.game_port + 10000
-            self.voice_port_proxy = 21435 + int(self.dataDict['svr_id']) - 1
+            self.voice_port_proxy = self.voice_port + 10000
             self.secrets = initialise.KOTF(self)
             if self.secrets:
                 self.svr_desc = self.secrets.split(',')[0]
@@ -1140,9 +1140,9 @@ if is_admin():
                 tex.insert(END,"==========================================\n")
                 self.git_branch.set(current_branch)
                 return False
-        def forceupdate_hon(self,hon_dir):
+        def forceupdate_hon(self,hon_dir,master_sesrver):
             os.chdir(hon_dir)
-            subprocess.Popen(["hon_update_x64.exe"])
+            subprocess.Popen(["hon_x64.exe","-update","-masterserver",master_sesrver])
             os.chdir(application_path)
             #honfigurator.creategui(self)
             
@@ -1784,7 +1784,7 @@ if is_admin():
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: self.forceupdate_hon(tab1_hondird.get()))
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: self.forceupdate_hon(tab1_hondird.get(),tab1_masterserver.get()))
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             app.rowconfigure(14,weight=1)
             app.rowconfigure(15,weight=1)
