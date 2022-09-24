@@ -172,15 +172,15 @@ class honCMD():
     def changePriority(self,priority_realtime):
         if priority_realtime:
             if processed_data_dict['process_priority'] == "normal":
-                self.server_status['hon_exe'].nice(psutil.NORMAL_PRIORITY_CLASS)
+                self.server_status['hon_pid_hook'].nice(psutil.NORMAL_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "high":
-                self.server_status['hon_exe'].nice(psutil.HIGH_PRIORITY_CLASS)
+                self.server_status['hon_pid_hook'].nice(psutil.HIGH_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "realtime":
-                self.server_status['hon_exe'].nice(psutil.REALTIME_PRIORITY_CLASS)
+                self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
             print("priority set to realtime")
             self.server_status.update({'priority_realtime':priority_realtime})
         else:
-            self.server_status['hon_exe'].nice(psutil.IDLE_PRIORITY_CLASS)
+            self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
             print("priority set to normal")
             self.server_status.update({'priority_realtime':priority_realtime})
         return priority_realtime
@@ -356,9 +356,10 @@ class honCMD():
                 self.honP = self.honEXE.pid
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
+                self.server_status.update({'hon_pid_hook':honPID})
                 honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
 
-                self.server_status['hon_exe'].nice(psutil.IDLE_PRIORITY_CLASS)
+                self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
                 #
                 # Reload the dictionary. This is important as we want to start with a blank slate with every server restart.
@@ -377,7 +378,11 @@ class honCMD():
                 self.honP = self.honEXE.pid
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
+                self.server_status.update({'hon_pid_hook':honPID})
                 honCMD().initialise_variables()
+
+                total_games_played_prev = int(self.server_status['total_games_played_prev'])
+                self.server_status.update({'total_games_played_prev':total_games_played_prev-1})
                 return True
             except:
                 print(traceback.format_exc())
