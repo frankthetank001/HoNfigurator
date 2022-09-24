@@ -871,6 +871,7 @@ if is_admin():
                                                 print("copying server exe...")
                                             except Exception as e: print(str(e) + "can't replace exe.")
                                     initialise.schedule_restart(self)
+                                    players_connected=True
                         if use_console == False:
                             initialise.configure_service_bot(self,self.service_name_bot)
                             time.sleep(1)
@@ -2307,11 +2308,6 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
-                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                                    log_File = f"Slave*{x}*.clog"
-                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                                    latest_file = max(list_of_files, key=os.path.getctime)
-                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                                 if pcount >=0:
                                     if schd_restart:
                                         colour='indian red'
@@ -2328,11 +2324,6 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
-                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                                    log_File = f"Slave*{x}*.clog"
-                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                                    latest_file = max(list_of_files, key=os.path.getctime)
-                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                             if service_state is not None and deployed_status['use_console'] == 'False':
                                 if service_state == False or service_state['status'] == 'stopped':
                                     colour = 'OrangeRed4'
@@ -2357,7 +2348,12 @@ if is_admin():
                                 elif 'cookie' in labl_name.lower():
                                     labl_ttp = CreateToolTip(labl, \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                                elif 'in-game' in labl_name.lower():
+                                if pcount > 0:
+                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                                    log_File = f"Slave*{x}*.clog"
+                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                                    latest_file = max(list_of_files, key=os.path.getctime)
+                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                                     labl_ttp = CreateToolTip(labl, \
                                         f"Game in progress,\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
                             labl.grid(row=i, column=c_pos1)
