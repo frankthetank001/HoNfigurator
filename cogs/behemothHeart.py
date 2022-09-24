@@ -219,7 +219,7 @@ class heartbeat(commands.Cog):
                 # check for or action a scheduled shutdown
                 if self.server_status['scheduled_shutdown']==False:
                     try:
-                        self.server_status.update({'scheduled_shutdown':svr_state.check_for_updates("pending_restart")})
+                        self.server_status.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
                     except:
                         print(traceback.format_exc())
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")

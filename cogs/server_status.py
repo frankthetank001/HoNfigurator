@@ -49,6 +49,10 @@ class honCMD():
             if proc.name() == proc_name:
                 return True
         return False
+    def stop_proc(proc_name):
+        for proc in psutil.process_iter():
+            if proc.name() == proc_name:
+                proc.kill()
     def check_port(port):
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
@@ -428,6 +432,8 @@ class honCMD():
         if processed_data_dict['use_console'] == 'True':
             os.chdir(processed_data_dict['sdc_home_dir'])
             os.startfile(f"\"{processed_data_dict['sdc_home_dir']}\\adminbot{processed_data_dict['svr_id']}-launch.exe\"")
+            # honCMD.stop_proc(f"{processed_data_dict['hon_file_name']}")
+            # honCMD.stop_proc(f"{processed_data_dict['app_name']}.exe")
             sys.exit(0)
         else:
             sys.exit(1)
