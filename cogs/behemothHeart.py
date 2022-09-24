@@ -276,6 +276,7 @@ class heartbeat(commands.Cog):
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             svr_state.restartSERVER()
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                        self.server_status.update({'update_embeds':False})
                 except:
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -297,6 +298,7 @@ class heartbeat(commands.Cog):
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                                 svr_state.restartSERVER()
                             self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                            self.server_status.update({'update_embeds':False})
                     except:
                         print(traceback.format_exc())
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -381,7 +383,9 @@ class heartbeat(commands.Cog):
                     if (self.server_status['game_map'] != "empty" and self.server_status['game_map'] not in self.available_maps):
                         try:
                             #hard_reset = svr_state.getData("CheckForUpdates")
-                            self.server_status.update({'restart_required':True})
+                            self.server_status.update({"server_restarting":True})
+                            self.server_status.update({"restart_required":True})
+                            await test.createEmbed(ctx,playercount)
                             svr_state.reportPlayer("No_Map")
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} (IP: ``{self.server_status['client_ip']}``) (Reason: Crashing server with false map value: ``{self.server_status['game_map']}``), RESTARTING...")
                             try:
@@ -389,10 +393,7 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            self.server_status.update({"server_restarting":True})
-                            self.server_status.update({"restart_required":True})
                             svr_state.restartSERVER()
-                            await test.createEmbed(ctx,playercount)
                             self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                             self.server_status.update({'update_embeds':False})
                         except:
@@ -412,16 +413,17 @@ class heartbeat(commands.Cog):
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         self.server_status.update({"server_restarting":True})
                         self.server_status.update({"restart_required":True})
+                        await test.createEmbed(ctx,playercount)
                         try:
                             svr_state.restartSERVER()
                         except:
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                        try:
-                            await test.createEmbed(ctx,playercount)
-                        except:
-                            print(traceback.format_exc())
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        # try:
+                        #     await test.createEmbed(ctx,playercount)
+                        # except:
+                        #     print(traceback.format_exc())
+                        #     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                         self.server_status.update({'update_embeds':False})
                         
@@ -436,6 +438,7 @@ class heartbeat(commands.Cog):
                                 if match_too_long_hrs > 1:
                                     self.server_status.update({"server_restarting":True})
                                     self.server_status.update({"restart_required":True})
+                                    await test.createEmbed(ctx,playercount)
                                     print("Restarting the server. Last remaining player has not left yet.")
                                     svr_state.restartSERVER()
                                     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] {self.match_status['match_id']} - Game ongoing for over 1 hour, with only 1 player connected, RESTARTING...")
