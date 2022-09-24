@@ -75,6 +75,11 @@ if is_admin():
         def __init__(self,bot):
             self.bot = bot
             self.server_status = svr_cmd.getStatus()
+            running = srvcmd.honCMD.check_proc(f"{processed_data_dict['app_name']}.exe")
+            if running:
+                print(f"already open. You cannot launch another. Please ensure previous {processed_data_dict['app_name']} is shut down first.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"already open. You cannot launch another. Please ensure previous {processed_data_dict['app_name']} is shut down first.","WARNING")
+
             #   loads the embed manager class
             bot.load_extension("cogs.embedManagerCog")
             bot.load_extension("cogs.behemothHeart")

@@ -44,6 +44,11 @@ class honCMD():
                 func(path)
             else:
                 raise
+    def check_proc(proc_name):
+        for proc in psutil.process_iter():
+            if proc.name() == proc_name:
+                return True
+        return False
     def check_port(port):
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
