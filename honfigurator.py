@@ -62,7 +62,7 @@ if is_admin():
     #   Otherwise taskbar icon will be python shell icon
     myappid = 'honfiguratoricon.1.0' # arbitrary string
     mod_by=13
-    mod_by_old=mod_by
+    bot_tab=0
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
     players_connected = False
@@ -1977,13 +1977,19 @@ if is_admin():
                             status.grid(row=21,column=0,sticky='w')
                         except:pass
                 def load_log(self,*args):
+                    global bot_tab
                     if (tabgui.index("current")) == 1:
+                        bot_tab=tabgui2.index("current")
                         viewButton.ViewLog(self)
 
                 def ViewLog(self):
                     global latest_file
                     tex.delete('1.0', END)
-                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                    try:
+                        logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                    except NameError:
+                        print("please select 'view log' on a server to begin.")
+                        tex.insert(END,"please select 'view log' on a server to begin.")
                     #print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
@@ -2183,7 +2189,7 @@ if is_admin():
                 def load_server_mgr(self,*args):
                     global total_columns
                     global mod_by
-                    global mod_by_old
+                    global bot_tab
                     global logolabel_tab2
                     global tab2_cleanall
                     global tab2_refresh
@@ -2281,7 +2287,6 @@ if is_admin():
                     total_columns=column_rows[0]
                     total_rows=column_rows[1]
                     print(column_rows)
-                    mod_by_old = mod_by
                     #Proxy and Manager
                     manager_service=initialise.get_service("HoN Server Manager")
                     proxy_service=initialise.get_service("HoN Proxy Manager")
@@ -2314,6 +2319,19 @@ if is_admin():
                     stretch.insert(0,mod_by-3)
                     stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
                     
+                    tabgui2 = ttk.Notebook(tab2)
+                    tab11 = ttk.Frame(tabgui2)
+                    tab22 = ttk.Frame(tabgui2)
+                    tab23 = ttk.Frame(tabgui2)
+                    tab24 = ttk.Frame(tabgui2)
+                    tabgui2.add(tab11,text="Server Log")
+                    tabgui2.add(tab22,text="Match Log")
+                    tabgui2.add(tab23,text="Bot Log")
+                    tabgui2.add(tab24,text="Proxy Log")
+                    tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
+                    tabgui2.select(bot_tab)
+                    tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
+
                     #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
@@ -2326,17 +2344,7 @@ if is_admin():
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                     tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
 
-                    tabgui2 = ttk.Notebook(tab2)
-                    tab11 = ttk.Frame(tabgui2)
-                    tab22 = ttk.Frame(tabgui2)
-                    tab23 = ttk.Frame(tabgui2)
-                    tab24 = ttk.Frame(tabgui2)
-                    tabgui2.add(tab11,text="Server Log")
-                    tabgui2.add(tab22,text="Match Log")
-                    tabgui2.add(tab23,text="Bot Log")
-                    tabgui2.add(tab24,text="Proxy Log")
-                    tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
-                    tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
+                    
                     #tabgui2.after(10000,viewButton.refresh((int(stretch.get()))+3))
                 def Tools():
                     pass

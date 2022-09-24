@@ -77,6 +77,8 @@ class heartbeat(commands.Cog):
         x = 0
         #   this is the start of the heartbeat
         #   anything below is looping
+
+        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
         while alive == True:
             alive=True
             if alive_bkp==True:
@@ -452,6 +454,8 @@ class heartbeat(commands.Cog):
         threshold_health_checks = 30 / heartbeat_freq
         counter_ipcheck_threshold = 30 / heartbeat_freq
         replay_threshold = 300 / heartbeat_freq
+
+        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
         while alive_bkp == 'True':
             if exists(bkup_heart_file):
                 with open(bkup_heart_file,'r') as f:
