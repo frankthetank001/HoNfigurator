@@ -225,7 +225,7 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  ออฟไลน์",description=default_description, color=stripColor_offline)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
             #name='\u200b' to hide title
-        sent_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รอผู้เล่นสร้างห้อง: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
+        created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รอผู้เล่นสร้างห้อง: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
