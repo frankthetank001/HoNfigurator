@@ -353,13 +353,14 @@ class heartbeat(commands.Cog):
                 #   Start a timer so we can show the elapsed time of the match
                 if counter_heartbeat == threshold_heartbeat:
                     counter_heartbeat=0
-                    if self.server_status['game_started'] == True:
-                        elapsed_duration = self.server_status['elapsed_duration']
-                        elapsed_duration = int(elapsed_duration)
-                        elapsed_duration +=1
-                        self.server_status.update({'elapsed_duration':elapsed_duration})
-                        # self.server_status.update({'update_embeds':True})
-                        svr_state.getData("CheckInGame")
+                    if 'game_started' in self.server_status:
+                        if self.server_status['game_started'] == True:
+                            elapsed_duration = self.server_status['elapsed_duration']
+                            elapsed_duration = int(elapsed_duration)
+                            elapsed_duration +=1
+                            self.server_status.update({'elapsed_duration':elapsed_duration})
+                            # self.server_status.update({'update_embeds':True})
+                            svr_state.getData("CheckInGame")
                     if playercount != self.server_status['tempcount']:
                         self.server_status.update({'update_embeds':True})
                         
@@ -508,15 +509,16 @@ class heartbeat(commands.Cog):
             except Exception as e:
                 print(e)
             try:
-                if server_status_bkp['game_started'] == True:
-                    match_time = match_status_bkp['match_time']
-                    if ":" in match_time:
-                        match_too_long = match_time.split(":")
-                        match_too_long_hrs = int(match_too_long[0])
-                        match_too_long_mins = int(match_too_long[1])
-                        if match_too_long_hrs > 1:
-                            print("Restarting the server. Last remaining player has not left yet.")
-                            svr_state.restartSERVER()
+                if 'game_started' in server_status_bkp:
+                    if server_status_bkp['game_started'] == True:
+                        match_time = match_status_bkp['match_time']
+                        if ":" in match_time:
+                            match_too_long = match_time.split(":")
+                            match_too_long_hrs = int(match_too_long[0])
+                            match_too_long_mins = int(match_too_long[1])
+                            if match_too_long_hrs > 1:
+                                print("Restarting the server. Last remaining player has not left yet.")
+                                svr_state.restartSERVER()
             except Exception as e:
                 print(e)
 
