@@ -7,8 +7,10 @@ from os.path import exists
 import glob
 import time
 import shutil
+from datetime import datetime
 import sys
 import asyncio
+import traceback
 import re
 
 processed_data_dict = dmgr.mData().returnDict()
@@ -99,8 +101,9 @@ class honCMD():
                     with open(last_modified_time_file, 'w') as last_modified:
                         last_modified.write(f"{fileSize}")
                     last_modified.close()
-                except Exception as e:
-                    print(e)
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     pass
                 return fileSize
         hard_data = write_mtime(log,name)
@@ -172,13 +175,15 @@ class honCMD():
                 if exists(old_hon_exe1):
                     try:
                         os.remove(old_hon_exe1)
-                    except Exception as e:
-                        print(e)
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 if exists(old_hon_exe2):
                     try:
                         os.remove(old_hon_exe2)
-                    except Exception as e:
-                        print(e)
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
                 # move replays off into the manager directory. clean up other temporary files
                 replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
@@ -191,22 +196,26 @@ class honCMD():
                                 replays.append
                                 try:
                                     shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
-                                except Exception as e:
-                                    print(e)
+                                except:
+                                    print(traceback.format_exc())
+                                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             elif file.endswith(".tmp"):
                                 print("deleting temporary file "+file)
                                 try:
                                     os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
-                                except Exception as e:
-                                    print(e)
+                                except:
+                                    print(traceback.format_exc())
+                                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         else:
                             print("removing unrequired replay folder " + file)
                             try:
                                 shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
-                            except Exception as e:
-                                print(e)
-                except Exception as e:
-                    print(e)
+                            except:
+                                print(traceback.format_exc())
+                                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
                 # gather networking details
                 print("starting service")
@@ -321,8 +330,9 @@ class honCMD():
             #     try:
             #         p = psutil.Process(self.server_status['proxy_pid'])
             #         p.terminate()
-            #     except Exception as e:
-            #         print(e)
+            #     except:
+            #        print(traceback.format_exc())
+            #        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             self.server_status.update({'update_embeds':True})
             return True
         return
@@ -336,8 +346,9 @@ class honCMD():
         #     try:
         #         p = psutil.Process(self.server_status['proxy_pid'])
         #         p.terminate()
-        #     except Exception as e:
-        #         print(e)
+        #     except:
+        #        print(traceback.format_exc())
+        #        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         self.server_status.update({'update_embeds':True})
         return True
 
@@ -390,7 +401,16 @@ class honCMD():
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
         save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         shutil.copyfile(self.server_status['slave_log_location'], save_path)
-
+    def time():
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    def append_line_to_file(self,file,text,level):
+        timenow = honCMD.time()
+        with open(file, 'a+') as f:
+            f.seek(0)
+            data = f.read(100)
+            if len(data) > 0:
+                f.write("\n")
+            f.write(f"[{timenow}] [{level}] {text}")
     def compare_filesizes(self,file,name):
         last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{name}_mtime"
         #
@@ -417,31 +437,36 @@ class honCMD():
                 with open(last_modified_time_file, 'w') as last_modified:
                     last_modified.write(f"{fileSize}")
                 last_modified.close()
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 pass
             return fileSize
     def check_for_updates(self,type):
-        if type == "pending_restart":
-            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_shutdown"
-            if exists(remove_me):
-                try:
-                    os.remove(remove_me)
-                except Exception as e:
-                    print(e)
-        elif type == "pending_shutdown":
-            remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_restart"
-            if exists(remove_me):
-                try:
-                    os.remove(remove_me)
-                except Exception as e:
-                    print(e)  
         temFile = processed_data_dict['sdc_home_dir']+"\\"+type
         if exists(temFile):
+            if type == "pending_restart":
+                remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_shutdown"
+                if exists(remove_me):
+                    try:
+                        os.remove(remove_me)
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            elif type == "pending_shutdown":
+                remove_me=processed_data_dict['sdc_home_dir']+"\\"+"pending_restart"
+                if exists(remove_me):
+                    try:
+                        os.remove(remove_me)
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 os.remove(temFile)
                 return True
-            except Exception as e: print(e)
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         else:
             return False
 #
@@ -455,7 +480,9 @@ class honCMD():
                 try:
                     os.remove(temFile)
                     return True
-                except Exception as e: print(e)
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             else:
                 return False
         if dtype == "TotalGamesPlayed":
@@ -643,8 +670,9 @@ class honCMD():
                 #     if "game" in item or (item.startswith("M") and item.endswith(".log")):
                 #         tempList.append(item)
                 # gameLoc = tempList[len(tempList)-1]
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 pass
             
             return True
@@ -676,8 +704,9 @@ class honCMD():
                 #         tempList.append(item)
                 # gameLoc = tempList[len(tempList)-1]
                 return gameLoc
-            except Exception as e:
-                print(e)
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 pass
         #
         #   Get latest server slave log
@@ -730,9 +759,9 @@ class honCMD():
                     with open(last_modified_time_file, 'w') as last_modified:
                         last_modified.write(f"{fileSize}")
                     last_modified.close()
-                except Exception as e:
-                    print(e)
-                    pass
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 return fileSize
         #
         #    Get the real byte size of the slave log.
