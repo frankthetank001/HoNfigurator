@@ -549,7 +549,7 @@ class heartbeat(commands.Cog):
                             counter_gamecheck=0
                             if server_status_bkp['game_started'] == False:
                                 try:
-                                    svr_state.getDayta("CheckIddnGame")
+                                    svr_state.getData("CheckInGame")
                                 except:
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
