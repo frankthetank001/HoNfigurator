@@ -424,7 +424,7 @@ class heartbeat(commands.Cog):
                     if server_status_bkp['hard_reset'] == False:
                         server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
                     if server_status_bkp['scheduled_shutdown']==False:
-                        server_status_bkp.update({'scheduled_shutdown':svr_state.getData("CheckSchdShutdown")})
+                        server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
                         if server_status_bkp['scheduled_shutdown']:
                             if server_status_bkp['game_started'] == True:
                                 if svr_state.wait_for_replay(replay_threshold):
