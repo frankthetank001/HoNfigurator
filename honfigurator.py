@@ -2435,19 +2435,19 @@ if is_admin():
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                     tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
-                    tab2_cleanall_ttp = CreateToolTip(labl, \
+                    tab2_cleanall_ttp = CreateToolTip(tab2_cleanall, \
                                     f"Remove ALL unnecessary files (7 days or older), such as old log files.")
                     tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh((int(stretch.get()))+3))
                     tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
-                    tab2_refresh_ttp = CreateToolTip(labl, \
+                    tab2_refresh_ttp = CreateToolTip(tab2_refresh, \
                                     f"Refresh this page, reloads server status and shows the most recent data.")
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
                     tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
-                    tab2_refresh_ttp = CreateToolTip(labl, \
+                    tab2_refresh_ttp = CreateToolTip(tab2_stopall, \
                                     f"Schedule a shut down of all servers. Does NOT disconnect games in progress.")
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                     tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
-                    tab2_startall_ttp = CreateToolTip(labl, \
+                    tab2_startall_ttp = CreateToolTip(tab2_startall, \
                                     f"Start all stopped servers with their current configuration.")
 
                     

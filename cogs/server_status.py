@@ -438,8 +438,10 @@ class honCMD():
             honCMD().getData("getLogList_Slave")
         t = time.localtime()
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-        save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
-        shutil.copyfile(self.server_status['slave_log_location'], save_path)
+        with open(f"{processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt", 'w') as f:
+            f.write(f"{reason}\n{processed_data_dict['svr_identifier']}\n{self.server_status['game_map']}\n{self.server_status['game_host']}\n{self.server_status['client_ip']}")
+        #save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
+        #shutil.copyfile(self.server_status['slave_log_location'], save_path)
     def time():
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     def append_line_to_file(self,file,text,level):
