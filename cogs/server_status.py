@@ -380,9 +380,7 @@ class honCMD():
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 self.server_status.update({'hon_pid_hook':honPID})
                 honCMD().initialise_variables()
-
-                total_games_played_prev = int(self.server_status['total_games_played_prev'])
-                self.server_status.update({'total_games_played_prev':total_games_played_prev-1})
+                self.server_status.update({'realtime_priority':True})
                 return True
             except:
                 print(traceback.format_exc())
