@@ -1922,6 +1922,65 @@ if is_admin():
                             if not os.path.islink(fp):
                                 total_size += os.path.getsize(fp)
                     return total_size
+            """ tk_ToolTip_class101.py
+            gives a Tkinter widget a tooltip as the mouse is above the widget
+            tested with Python27 and Python34  by  vegaseat  09sep2014
+            www.daniweb.com/programming/software-development/code/484591/a-tooltip-class-for-tkinter
+
+            Modified to include a delay time by Victor Zaccardo, 25mar16
+            """
+            class CreateToolTip(object):
+                """
+                create a tooltip for a given widget
+                """
+                def __init__(self, widget, text='widget info'):
+                    self.waittime = 500     #miliseconds
+                    self.wraplength = 180   #pixels
+                    self.widget = widget
+                    self.text = text
+                    self.widget.bind("<Enter>", self.enter)
+                    self.widget.bind("<Leave>", self.leave)
+                    self.widget.bind("<ButtonPress>", self.leave)
+                    self.id = None
+                    self.tw = None
+
+                def enter(self, event=None):
+                    self.schedule()
+
+                def leave(self, event=None):
+                    self.unschedule()
+                    self.hidetip()
+
+                def schedule(self):
+                    self.unschedule()
+                    self.id = self.widget.after(self.waittime, self.showtip)
+
+                def unschedule(self):
+                    id = self.id
+                    self.id = None
+                    if id:
+                        self.widget.after_cancel(id)
+
+                def showtip(self, event=None):
+                    x = y = 0
+                    x, y, cx, cy = self.widget.bbox("insert")
+                    x += self.widget.winfo_rootx() + 25
+                    y += self.widget.winfo_rooty() + 20
+                    # creates a toplevel window
+                    self.tw = tk.Toplevel(self.widget)
+                    # Leaves only the label and removes the app window
+                    self.tw.wm_overrideredirect(True)
+                    self.tw.wm_geometry("+%d+%d" % (x, y))
+                    label = tk.Label(self.tw, text=self.text, justify='left',
+                                background="#ffffff", relief='solid', borderwidth=1,
+                                wraplength = self.wraplength)
+                    label.pack(ipadx=1)
+
+                def hidetip(self):
+                    tw = self.tw
+                    self.tw= None
+                    if tw:
+                        tw.destroy()
             class viewButton():
                 # tabgui2 = ttk.Notebook(tab2)
                 # tabgui2.grid(column=0,row=14)
@@ -1990,6 +2049,7 @@ if is_admin():
                     except NameError:
                         print("please select 'view log' on a server to begin.")
                         tex.insert(END,"please select 'view log' on a server to begin.")
+                        return
                     #print(str(deployed_status))
                     # Server Log
                     if (tabgui2.index("current")) == 0:
@@ -2247,6 +2307,11 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
+                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                                    log_File = f"Slave*{x}*.clog"
+                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                                    latest_file = max(list_of_files, key=os.path.getctime)
+                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                                 if pcount >=0:
                                     if schd_restart:
                                         colour='indian red'
@@ -2263,6 +2328,11 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
+                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                                    log_File = f"Slave*{x}*.clog"
+                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                                    latest_file = max(list_of_files, key=os.path.getctime)
+                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                             if service_state is not None and deployed_status['use_console'] == 'False':
                                 if service_state == False or service_state['status'] == 'stopped':
                                     colour = 'OrangeRed4'
@@ -2275,13 +2345,41 @@ if is_admin():
                             c_pos1 = index1 + c
                             if index1==0:
                                 labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
+                                try:
+                                    labl_ttp = CreateToolTip(labl, \
+                                    f"version {deployed_status['bot_version']}")
+                                except: pass
                             elif index1==1:
                                 labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')
+                                if 'available' in labl_name.lower():
+                                    labl_ttp = CreateToolTip(labl, \
+                                        f"Server is available and connected to the master server.")
+                                elif 'cookie' in labl_name.lower():
+                                    labl_ttp = CreateToolTip(labl, \
+                                        f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
+                                elif 'in-game' in labl_name.lower():
+                                    labl_ttp = CreateToolTip(labl, \
+                                        f"Game in progress,\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
                             labl.grid(row=i, column=c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
                                 c_pos2 = index2 + c
                                 btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
+                                if btn_name == "View Log":
+                                    btn_ttp = CreateToolTip(btn, \
+                                        "View the server logs")
+                                elif btn_name == "Start":
+                                    btn_ttp = CreateToolTip(btn, \
+                                        "Start the server with the current configuration.")
+                                elif btn_name == "Stop":
+                                    btn_ttp = CreateToolTip(btn, \
+                                        "Schedule a shutdown of this server. Does NOT disconnect current games.")
+                                elif btn_name == "Clean":
+                                    btn_ttp = CreateToolTip(btn, \
+                                        "Remove unnecessary files (7 days or older), such as old log files.")
+                                elif btn_name == "Uninstall":
+                                    btn_ttp = CreateToolTip(btn, \
+                                        "Remove this server and bot, also removes folders and files.")
                                 btn.grid(row=i, column=c_pos2)
                     column_rows=(tab2.grid_size())
                     total_columns=column_rows[0]
@@ -2337,12 +2435,20 @@ if is_admin():
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                     tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
+                    tab2_cleanall_ttp = CreateToolTip(labl, \
+                                    f"Remove ALL unnecessary files (7 days or older), such as old log files.")
                     tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh((int(stretch.get()))+3))
                     tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
+                    tab2_refresh_ttp = CreateToolTip(labl, \
+                                    f"Refresh this page, reloads server status and shows the most recent data.")
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
                     tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
+                    tab2_refresh_ttp = CreateToolTip(labl, \
+                                    f"Schedule a shut down of all servers. Does NOT disconnect games in progress.")
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                     tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
+                    tab2_startall_ttp = CreateToolTip(labl, \
+                                    f"Start all stopped servers with their current configuration.")
 
                     
                     #tabgui2.after(10000,viewButton.refresh((int(stretch.get()))+3))
