@@ -162,13 +162,16 @@ class mData():
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
         self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
-        self.confDict_deployed.update({"bot_version":self.confDict_root['bot_version']})
         self.confDict_deployed.update({"app_name":f"adminbot{svr_id}"})
         self.confDict_deployed.update({"app_log":f"{self.confDict_deployed['sdc_home_dir']}\\{self.confDict_deployed['app_name']}.log"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
+        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
+            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
+            for option in conf_parse_deployed.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
             conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
             for option in conf_parse_deployed.options("OPTIONS"):
