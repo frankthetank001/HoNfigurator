@@ -1951,6 +1951,10 @@ if is_admin():
                         viewButton.Clean(self)
                     elif btn == "Uninstall":
                         viewButton.Uninstall(self,id)
+                def clear_frame():
+                    list = tab2.grid_slaves()
+                    for l in list:
+                        l.destroy()
                 def refresh(*args):
                     global mod_by
                     if (tabgui.index("current")) == 0:
@@ -1960,11 +1964,12 @@ if is_admin():
                         status.insert(0,ver)
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
-                        if type(args[0]) is not Event:
+                        if type(args[0]) is int:
                             mod_by = args[0]
-                            viewButton.load_server_mgr(self,True)
+                            viewButton.clear_frame()
+                            viewButton.load_server_mgr(self)
                         else:
-                            viewButton.load_server_mgr(self,False)
+                            viewButton.load_server_mgr(self)
                         try:
                             status = Entry(app,background=maincolor,foreground='white',width="200")
                             status.insert(0,f"Viewing hon_server_{deployed_status['svr_id']}: {latest_file}")
@@ -2184,8 +2189,6 @@ if is_admin():
                     global tab2_stopall
                     global tab2_startall
 
-                    reinit=args[0]
-                    # if (tabgui.index("current")) == 1:
                     app.lift()
                     i=2
                     c=0
@@ -2303,32 +2306,25 @@ if is_admin():
                         labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
 
-                    stretch_lbl = Label(tab2,width=15,text="servers per rows",background=maincolor,foreground='white')
+                    stretch_lbl = Label(tab2,width=15,text="servers per row",background=maincolor,foreground='white')
                     stretch_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[5,0],sticky='w',pady=[2,4])
                     stretch = Entry(tab2,width=5)
-                    stretch.insert(0,mod_by)
+                    stretch.insert(0,mod_by-3)
                     stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
                     
                     #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
-                    if reinit:
-                        tab2_cleanall.destroy()
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                     tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
-                    if reinit:
-                        tab2_refresh.destroy()
-                    tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh(int(stretch.get())))
+                    tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh((int(stretch.get()))+3))
                     tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
-                    if reinit:
-                        tab2_stopall.destroy()
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
                     tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
-                    if reinit:
-                        tab2_startall.destroy()
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                     tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
-                    tabgui2.grid(column=0,row=20,sticky='ew',columnspan=total_columns)
+                    #tabgui2.grid(column=0,row=20,sticky='ew',columnspan=total_columns)
+                    #tabgui2.after(10000,viewButton.refresh((int(stretch.get()))+3))
                 def Tools():
                     pass
             # create a Scrollbar and associate it with txt
