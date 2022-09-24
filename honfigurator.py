@@ -1143,7 +1143,7 @@ if is_admin():
         def forceupdate_hon(self,hon_dir,master_sesrver):
             os.chdir(hon_dir)
             subprocess.Popen(["hon_x64.exe","-update","-masterserver",master_sesrver])
-            os.chdir(application_path)
+            #os.chdir(application_path)
             #honfigurator.creategui(self)
             
         def return_currentver(self):
