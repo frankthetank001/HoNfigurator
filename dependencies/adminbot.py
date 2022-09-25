@@ -13,7 +13,8 @@ from time import sleep
 import traceback
 from discord.ext import tasks
 import ctypes, sys
-from typing import Optional 
+from typing import Optional
+import shutil
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -63,6 +64,7 @@ if is_admin():
     ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
     #os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
 
+    # clean up previous instance, import pending configurations
     old_adminbot_exe = f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe"
     if exists(old_adminbot_exe):
         try:

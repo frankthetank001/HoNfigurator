@@ -85,7 +85,11 @@ class heartbeat(commands.Cog):
                 alive_bkp=False
             counter_heartbeat+=1
             await asyncio.sleep(1)
-            playercount = svrcmd.honCMD.playerCount(self)
+            try:
+                playercount = svrcmd.honCMD.playerCount(self)
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             if playercount >=2:
                 try:
                     if self.server_status['priority_realtime'] == False:
@@ -93,6 +97,7 @@ class heartbeat(commands.Cog):
                 except:
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    
             if playercount >=0:
                 try:
                     counter_health_checks +=1
@@ -523,8 +528,20 @@ class heartbeat(commands.Cog):
                     alive_bkp = f.readline()
 
             await asyncio.sleep(heartbeat_freq)
-            playercount = svrcmd.honCMD().playerCount()
-            print("players: " + str(playercount))
+            try:
+                playercount = svrcmd.honCMD().playerCount()
+                print("players: " + str(playercount))
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+            
+            if playercount >=2:
+                try:
+                    if server_status_bkp['priority_realtime'] == False:
+                        svr_state.changePriority(True)
+                except:
+                    print(traceback.format_exc())
+                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if playercount == 0:
                     counter_ipcheck +=1
@@ -532,7 +549,11 @@ class heartbeat(commands.Cog):
                         svr_state.changePriority(False)
                     # check for or action a scheduled restart
                     if server_status_bkp['hard_reset'] == False:
-                        server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
+                        try:
+                            server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if server_status_bkp['hard_reset'] == True:
                         if server_status_bkp['game_started'] == True:
                             if svr_state.wait_for_replay(replay_threshold):
@@ -544,7 +565,11 @@ class heartbeat(commands.Cog):
                             svr_state.restartSELF()    
                     # check for or action a scheduled shutdown
                     if server_status_bkp['scheduled_shutdown']==False:
-                        server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
+                        try:
+                            server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if server_status_bkp['scheduled_shutdown'] == True:
                         if server_status_bkp['game_started'] == True:
                             if svr_state.wait_for_replay(replay_threshold):

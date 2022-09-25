@@ -19,13 +19,17 @@ import stat
 import hashlib
 import sys
 import multiprocessing
+import shutil
 
 #import cogs.server_status as svrcmd
+
 
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
 conf_parse_deployed_global = configparser.ConfigParser(interpolation=None)
 conf_parse_deployed_local = configparser.ConfigParser(interpolation=None)
+conf_parse_temp_local = configparser.ConfigParser(interpolation=None)
+conf_parse_temp_global = configparser.ConfigParser(interpolation=None)
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -34,7 +38,8 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS
         #print("running from tempdir "+base_path)
     except Exception:
-        base_path = os.path.abspath(".")
+        #base_path = os.path.abspath(".")
+        base_path = os.path.dirname(sys.argv[0])
         #print("running from base "+base_path)
 
     return os.path.join(base_path, relative_path)
@@ -45,6 +50,17 @@ class mData():
     
     #def returnDict(self,configFile):      
     def returnDict(self):
+        
+        print(os.getcwd())
+        if exists(resource_path("config\\local_config.ini.incoming")):
+            try:
+                shutil.move(resource_path("config\\local_config.ini.incoming"),resource_path("config\\local_config.ini"))
+            except Exception as e: print(e)
+        if exists(resource_path("config\\global_config.ini.incoming")):
+            try:
+                shutil.move(resource_path("config\\global_config.ini.incoming"),resource_path("config\\global_config.ini"))
+            except Exception as e: print(e)
+
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
@@ -180,8 +196,19 @@ class mData():
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
-
         
+    def returnDict_temp(self):
+        print(os.getcwd())
+        confDict_temp = {}
+        if exists(resource_path("config\\local_config.ini.incoming")):
+            conf_parse_temp_local.read(resource_path("config\\local_config.ini.incoming"))
+            for option in conf_parse_temp_local.options("OPTIONS"):
+                confDict_temp.update({option:conf_parse_temp_local['OPTIONS'][option]})
+        if exists(resource_path("config\\global_config.ini.incoming")):
+            conf_parse_temp_global.read(resource_path("config\\global_config.ini.incoming"))
+            for option in conf_parse_temp_global.options("OPTIONS"):
+                confDict_temp.update({option:conf_parse_temp_global['OPTIONS'][option]})
+        return confDict_temp
     # def setData(self,key):
     #     temp={}
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
@@ -189,6 +216,7 @@ class mData():
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})
             
     def returnDict_basic(self,svr_id):
+        
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
 

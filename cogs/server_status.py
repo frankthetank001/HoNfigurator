@@ -7,8 +7,8 @@ from os.path import exists
 import glob
 import time
 import shutil
+import ctypes, sys
 from datetime import datetime
-import sys
 import asyncio
 import traceback
 import re
@@ -448,21 +448,38 @@ class honCMD():
         return True
 
     def restartSELF(self):
-        #service_name = "adminbot"+processed_data_dict['svr_id']
-        #os.system(f'net stop {service_name} & net start {service_name}')
         honCMD().stopSERVER()
-        basename = os.path.abspath(".")
-        if processed_data_dict['use_console'] == 'True':
-            os.chdir(processed_data_dict['sdc_home_dir'])
-            os.startfile(f"\"{processed_data_dict['sdc_home_dir']}\\adminbot{processed_data_dict['svr_id']}-launch.exe\"")
-            # honCMD.stop_proc(f"{processed_data_dict['hon_file_name']}")
-            # honCMD.stop_proc(f"{processed_data_dict['app_name']}.exe")
-            sys.exit(0)
+        incoming_config = dmgr.mData().returnDict_temp()
+        if len(incoming_config) > 0:
+            if processed_data_dict['use_console'] == 'True':
+                if incoming_config['use_console'] == 'True':
+                    os.chdir(processed_data_dict['sdc_home_dir'])
+                    os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
+                    os._exit(0)
+                elif incoming_config['use_console'] == 'False':
+                    os.chdir(processed_data_dict['sdc_home_dir'])
+                    os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
+                    os._exit(0)
+            if processed_data_dict['use_console'] == 'False':
+                if incoming_config['use_console'] == 'False':
+                    os._exit(1)
+                elif incoming_config['use_console'] == 'True':
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"I have turned off because I am unable to transition from a windows service to console mode automatically. Sorry about that. Please start me manually in whatever mode you require.","WARNING")
+        # No changed configuration inbound
         else:
-            sys.exit(1)
+            if processed_data_dict['use_console'] == 'True':
+                os.chdir(processed_data_dict['sdc_home_dir'])
+                os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
+                os._exit(0)
+            else:
+                os._exit(1)
     def stopSELF(self):
         honCMD().stopSERVER()
-        sys.exit(0)
+        if processed_data_dict['use_console'] == 'True':
+            os._exit(0)
+        else:
+            os.system(f"net stop {processed_data_dict['app_name']}")
+        #sys.exit(0)
     def reportPlayer(self,reason):
         #
         #   sinister behaviour detected, save log to file.
@@ -538,11 +555,13 @@ class honCMD():
                         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 os.remove(temFile)
+                #ctypes.windll.kernel32.SetConsoleTitleW(f"{processed_data_dict['app_name']} - {type}")
                 return True
             except:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         else:
+            #ctypes.windll.kernel32.SetConsoleTitleW(f"{processed_data_dict['app_name']}")
             return False
 #
 #   reads and parses hon server log data
