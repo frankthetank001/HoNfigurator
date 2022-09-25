@@ -24,7 +24,8 @@ import multiprocessing
 
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
-conf_parse_deployed = configparser.ConfigParser(interpolation=None)
+conf_parse_deployed_global = configparser.ConfigParser(interpolation=None)
+conf_parse_deployed_local = configparser.ConfigParser(interpolation=None)
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -169,13 +170,13 @@ class mData():
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
-            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
-            for option in conf_parse_deployed.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+            conf_parse_deployed_global.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
+            for option in conf_parse_deployed_global.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
-            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
-            for option in conf_parse_deployed.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+            conf_parse_deployed_local.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+            for option in conf_parse_deployed_local.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
@@ -230,7 +231,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://ifconfig.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
