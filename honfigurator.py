@@ -125,10 +125,14 @@ if is_admin():
         def start_bot(self,deployed):
             #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
-                os.startfile(f"\"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe\"")
+                os.chdir(deployed_status['sdc_home_dir'])
+                os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
+                os.chdir(application_path)
                 #os.system(f"\"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}.exe\" \"{deployed_status['sdc_home_dir']}\\adminbot.py\"")
             else:
-                os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}-launch.exe\"")
+                os.chdir(self.dataDict['sdc_home_dir'])
+                os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
+                os.chdir(application_path)
                 #os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}.exe\" \"{self.dataDict['sdc_home_dir']}\\adminbot.py\"")
             #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
         def check_proc(proc_name):
@@ -517,7 +521,6 @@ if is_admin():
             bot_needs_update = False
             bot_first_launch = False
             exe_force_copy = False
-            deployed_status=dmgr.mData.returnDict_deployed(self,self.dataDict['svr_id'])
             
             os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
@@ -563,10 +566,8 @@ if is_admin():
             except Exception as e:
                             print(e)
 
-            if exists(self.hon_logs_dir):
-                print("exists: " + self.hon_logs_dir)
-                #   os.chdir(self.hon_logs_dir)     # not required as we're honfigurator not a bot.
-            else:
+            if not exists(self.hon_logs_dir):
+                print("creating: " + self.hon_logs_dir)
                 os.makedirs(self.hon_logs_dir)
                 print(f"creating: {self.hon_logs_dir} ...")
                 #   os.chdir(self.hon_logs_dir)     # not required as we're honfigurator not a bot.
@@ -574,6 +575,10 @@ if is_admin():
             if not exists(self.sdc_home_dir):
                 print(f"creating: {self.sdc_home_dir} ...")
                 os.makedirs(self.sdc_home_dir)
+            
+            if not exists(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays"):
+                print(f"creating {self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
+                os.makedirs(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
             # fix this - need a way to know wwhether to copy the old bot directory files
             # if (deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']):
             #     # copy older metadata files
@@ -642,30 +647,31 @@ if is_admin():
             else:
                 firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
             if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
-            #   below commented as we are no longer using game_settings_local.cfg
-            #if not exists(f"{{hon_game_dir}\\startup.cfg") or not exists(f"{self.hon_logs_dir}\\..\\game_settings_local.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
                 if bot_needs_update or force_update == True:
-                    #tex.insert(END,"==========================================\n")
                     tex.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
-                    #tex.insert(END,"==========================================\n")
-                #
-                #    Kongor testing
+                # check if exe's need to be copied, either it doesn't exist or the hash is different.
                 if self.dataDict['master_server'] == "honmasterserver.com":
-                    if not exists(f"{self.dataDict['hon_directory']}\\HON_SERVER_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
-                        try:
-                            shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                            print("copying server exe...")
-                        except: 
-                            exe_force_copy=True
-                            print("server in use, can't replace exe, will try again when server is stopped.")
-                if 'kongor.online' in self.dataDict['master_server']:
-                    if not exists(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe") or force_update == True or bot_needs_update == True:
-                        try:
-                            shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                            print("copying server exe...")
-                        except:
-                            exe_force_copy=True
-                            print("server in use, can't replace exe, will try again when server is stopped.")
+                    exe_path=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe"
+                    exe_path_cut=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}"
+                elif 'kongor.online' in self.dataDict['master_server']:
+                    exe_path=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe"
+                    exe_path_cut=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}"
+                copy=False
+                if exists(exe_path):
+                    hash1=dmgr.mData.get_hash(exe_path)
+                    hash2=dmgr.mData.get_hash(f"{self.dataDict['hon_directory']}hon_x64.exe")
+                    if hash1 != hash2:
+                        copy=True
+                else:
+                    copy=True
+                if copy:
+                    try:
+                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
+                        print("copying server exe...")
+                    except: 
+                        shutil.move(exe_path,f"{exe_path_cut}_old.exe")
+                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
+                        exe_force_copy=True
                 if not exists(f"{self.hon_game_dir}\\startup.cfg"):
                     print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
                 initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
@@ -698,7 +704,18 @@ if is_admin():
                         shutil.copy(src_file, dst_file)
                         print('copied', file_name)
 
-                distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config", f'{self.sdc_home_dir}\\config',update=1)
+                src_folder = os.path.abspath(application_path)+"\\config\\"
+                dst_folder = f'{self.sdc_home_dir}\\config\\'
+                for file_name in os.listdir(src_folder):
+                    src_file = src_folder+file_name
+                    dst_file = dst_folder+file_name
+                    if os.path.isfile(src_file):
+                        if file_name == 'local_config.ini' or file_name == 'global_config.ini':
+                            shutil.copy(src_file, f"{dst_file}.incoming")
+                        else:
+                            shutil.copy(src_file,dst_file)
+                        print('copied', file_name)
+                #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\config", f'{self.sdc_home_dir}\\config',update=1)
                 distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\icons", f'{self.sdc_home_dir}\\icons',update=1)
                 print("Done!")
                 print("Checking and creating required dependencies...")
@@ -778,8 +795,11 @@ if is_admin():
             #     initialise.build(self,app_name)
             service_bot = initialise.get_service(self.service_name_bot)
             proxy_service = initialise.get_service("HoN Proxy Manager")
+            deployed_status=dmgr.mData.returnDict_deployed(self,self.dataDict['svr_id'])
             if service_bot:
                 print(f"HONSERVER STATUS: {self.service_name_bot}")
+                if use_console == False:
+                    initialise.configure_service_bot(self,self.service_name_bot)
                 if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
                     tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
                     if force_update == True or bot_needs_update == True:
@@ -789,123 +809,72 @@ if is_admin():
                         if playercount <= 0:
                             print("No players connected, safe to restart...")
                             initialise.stop_service(self,self.service_name_bot)
-                            if self.dataDict['master_server'] == "honmasterserver.com":
-                                try:
-                                    shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                                    print("copying server exe...")
-                                except Exception as e: print(e + "can't replace exe.")
-                            if 'kongor.online' in self.dataDict['master_server']:
-                                try:
-                                    shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                                    print("copying server exe...")
-                                except Exception as e: print(str(e) + "can't replace exe.")
-                            if use_console==False:
-                                if self.dataDict['use_proxy']=='True':
-                                    if initialise.check_port(self.game_port_proxy):
-                                        #reconfigure service + restart
-                                        initialise.configure_service_bot(self,self.service_name_bot)
-                                        time.sleep(1)
-                                        initialise.start_service(self,self.service_name_bot)
-                                    else:
-                                        tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                        tex.see(tk.END)
+                            if self.dataDict['use_proxy']=='True':
+                                if initialise.check_port(self.game_port_proxy):
+                                    pass
                                 else:
-                                    #reconfigure service + restart
-                                    initialise.configure_service_bot(self,self.service_name_bot)
-                                    time.sleep(1)
-                                    initialise.start_service(self,self.service_name_bot)
-                            else:
-                                if self.dataDict['use_proxy']=='True':
-                                    if initialise.check_port(self.game_port_proxy):
-                                        initialise.start_bot(self,False)
-                                    else:
-                                        tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                                        tex.see(tk.END)
-                                else:
-                                    initialise.start_bot(self,False)
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                    tex.see(tk.END)
+                                    return
+                            initialise.start_bot(self,False)
                         else:
                             players_connected = True
-                            if use_console == False:
-                                #reconfigure service + restart
-                                initialise.configure_service_bot(self,self.service_name_bot)
-                                time.sleep(1)
-                            initialise.schedule_restart(self)
-                            # copy files to _old
-                            if exe_force_copy:
-                                if self.dataDict['master_server'] == "honmasterserver.com":
-                                    try:
-                                        os.rename(f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}_old.exe")
-                                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                                        print("copying server exe...")
-                                    except Exception as e: print(e + "can't replace exe.")
-                                if 'kongor.online' in self.dataDict['master_server']:
-                                    try:
-                                        os.rename(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}_old.exe")
-                                        shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                                        print("copying server exe...")
-                                    except Exception as e: print(str(e) + "can't replace exe.")
+                            bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
+                            if use_console and bot_running:
+                                tex.insert(END,"Players are connected. A scheduled shutdown is being performed. HoNfigurator is unable to automatically reconfigure windows services to start in console mode, due to system limitation.\nPlease start your services manually in the admin tab once the scheduled shutdown is complete.",'warning')
+                                initialise.schedule_shutdown(self)
+                            elif use_console and bot_running == False:
+                                initialise.start_bot(self,False)
+                            else:
+                                initialise.schedule_restart(self)
                 else:
                     bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
+                    server_running=initialise.check_proc(f"{self.dataDict['hon_file_name']}")
                     if force_update == True or bot_needs_update == True:
                         #reconfigure service + restart
-                        if bot_running:
+                        if bot_running or server_running:
                             playercount = initialise.playerCount(self)
-                            if deployed_status['use_console'] == 'True':
-                                if playercount <=0:
-                                    initialise.stop_bot(self,f"{self.service_name_bot}.exe")
-                                    initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
-                                    initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
-                                else:
-                                    # copy files to _old
-                                    if exe_force_copy:
-                                        if self.dataDict['master_server'] == "honmasterserver.com":
-                                            try:
-                                                os.rename(f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}_old.exe")
-                                                shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe")
-                                                print("copying server exe...")
-                                            except Exception as e: print(e + "can't replace exe.")
-                                        if 'kongor.online' in self.dataDict['master_server']:
-                                            try:
-                                                os.rename(f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}_old.exe")
-                                                shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe")
-                                                print("copying server exe...")
-                                            except Exception as e: print(str(e) + "can't replace exe.")
-                                    initialise.schedule_restart(self)
-                                    players_connected=True
-                        if use_console == False:
-                            initialise.configure_service_bot(self,self.service_name_bot)
-                            time.sleep(1)
-
+                            # if deployed_status['use_console'] == 'True':
+                            #if playercount <=0:
+                            initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                                # can we hook onto existing EXEs here instead?
+                            if use_console == False:
+                                initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
+                                initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
+                            # else:
+                            #     # copy files to _old
+                            #     players_connected=True
+                            if exe_force_copy:
+                                initialise.schedule_restart(self)
                     bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
+                    server_running=initialise.check_proc(f"{self.dataDict['hon_file_name']}")
                     if bot_running == False:
                         if self.dataDict['use_proxy']=='True':
                             if initialise.check_port(self.game_port_proxy):
-                                if use_console == False:
-                                    initialise.start_service(self,self.service_name_bot)
-                                    service_bot = initialise.get_service(self.service_name_bot)
-                                    if service_bot['status'] == 'running':
-                                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
-                                    else:
-                                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                                    print("==========================================")
-                                else:
-                                    initialise.start_bot(self,False)
-                                    time.sleep(2)
+                                pass
                             else:
                                 tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                 tex.see(tk.END)
+                                return
+                        initialise.start_bot(self,False)
+                    if use_console == False:
+                        waiting = True
+                        threshold = 15
+                        o=0
+                        while waiting:
+                            o+=1
+                            time.sleep(1)
+                            service_bot = initialise.get_service(self.service_name_bot)
+                            print(f"waiting for service to start.. {o}/{threshold}secs remaining")
+                            if service_bot['status'] == 'running':
+                                waiting=False
+                            if o == threshold:
+                                waiting=False
+                        if service_bot['status'] == 'running' or service_bot['status'] == 'start_pending':
+                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                         else:
-                            if use_console==False:
-                                initialise.start_service(self,self.service_name_bot)
-                                service_bot = initialise.get_service(self.service_name_bot)
-                                if service_bot['status'] == 'running':
-                                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} RUNNING\n")
-                                else:
-                                    tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                                print("==========================================")
-                            else:
-                                initialise.start_bot(self,False)
-                                time.sleep(2)
+                            tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                        print("==========================================")
                     print(self.service_name_bot)
             else:
                 bot_needs_update = True
@@ -915,24 +884,16 @@ if is_admin():
                 initialise.create_service_bot(self,self.service_name_bot)
                 if self.dataDict['use_proxy']=='True':
                     if initialise.check_port(self.game_port_proxy):
-                        if use_console == False:
-                            initialise.start_service(self,self.service_name_bot)
-                        else:
-                            initialise.start_bot(self,False)
-                            time.sleep(2)
+                        pass
                     else:
                         tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                         tex.see(tk.END)
-                else:
-                    if use_console == False:
-                            initialise.configure_service_bot(self,self.service_name_bot)
-                            time.sleep(1)
-                            initialise.start_service(self,self.service_name_bot)
-                    else:
-                        initialise.start_bot(self,False)
-                        time.sleep(2)
+                if use_console == False:
+                    initialise.configure_service_bot(self,self.service_name_bot)
+                initialise.start_bot(self,False)
                 print("==========================================")
                 print(f"HONSERVER STATUS: {self.service_name_bot}")
+
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
                 if players_connected == True:
                     tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
@@ -1870,17 +1831,25 @@ if is_admin():
                 for i in range (1,(int(self.dataDict['svr_total']) +1)):
                     pcount=initialise.playerCountX(self,i)
                     deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    incr_port = 0
+                    for o in range(0,i):
+                        incr_val = int(self.dataDict['incr_port_by'])
+                        incr_port = incr_val * o
                     service_name=f"adminbot{i}"
                     bot_running=initialise.check_proc(f"{service_name}.exe")
                     if bot_running == False:
                         if pcount == -3:
-                            if deployed_status['use_console'] == 'False':
-                                if initialise.start_service(self,service_name):
-                                    tex.insert(END,f"{service_name} started successfully.\n")
+                            if self.dataDict['use_proxy']=='True':
+                                svr_proxyPort=self.base['svr_proxyPort']
+                                svr_proxyPort=svr_proxyPort.replace('"',"")
+                                svr_proxyPort=int(svr_proxyPort)+int(incr_port)
+                                if initialise.check_port(svr_proxyPort):
+                                    pass
                                 else:
-                                    tex.insert(END,f"{service_name} failed to start.\n")
-                            else:
-                                initialise.start_bot(self,True)
+                                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
+                                    tex.see(tk.END)
+                                    return
+                            initialise.start_bot(self,True)
                             #viewButton.refresh()
                 viewButton.load_server_mgr(self)
                 #app.after(15000,viewButton.refresh())
@@ -2135,15 +2104,12 @@ if is_admin():
                             svr_proxyPort=svr_proxyPort.replace('"',"")
                             svr_proxyPort=int(svr_proxyPort)+int(incr_port)
                             if initialise.check_port(svr_proxyPort):
-                                if self.dataDict['use_console'] == 'False':
-                                    initialise.start_service(self,service_name)
-                                else:
-                                    initialise.start_bot(self,True)
+                                pass
                             else:
                                 tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                 tex.see(tk.END)
-                        else:
-                            initialise.start_service(self,service_name)
+                                return
+                        initialise.start_bot(self,True)
                     else:
                         viewButton.load_server_mgr(self)
                         #tabgui2.after(15000,viewButton.load_server_mgr(self))
@@ -2172,28 +2138,28 @@ if is_admin():
                     pcount = initialise.playerCountX(self,id)
                     service_name=f"adminbot{id}"
                     service_check = initialise.get_service(service_name)
-                    if service_check:
-                        if service_check['status'] == 'running':
-                            if initialise.stop_service(self,service_name):
-                                tex.insert(END,f"{service_name} stopped successfully.\n")
-                            else:
-                                tex.insert(END,f"{service_name} failed to stop.\n")
-                    bot_running=initialise.check_proc(f"{service_name}.exe")
-                    if bot_running:
-                        if pcount <= 0:
-                            # if deployed_status['use_console'] == 'False':
-                                # if initialise.stop_service(self,service_name):
-                                #     tex.insert(END,f"{service_name} stopped successfully.\n")
-                                # else:
-                                #     tex.insert(END,f"{service_name} failed to stop.\n")
-                            #else:
-                                initialise.stop_bot(self,f"{service_name}.exe")
-                                initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                                initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
-                            #viewButton.refresh()
-                        else:
-                            print("[ABORT] players are connected. Scheduling shutdown instead..")
-                            initialise.schedule_shutdown(deployed_status)
+                    if pcount <= 0:
+                        if service_check:
+                            if service_check['status'] == 'running':
+                                if initialise.stop_service(self,service_name):
+                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                else:
+                                    tex.insert(END,f"{service_name} failed to stop.\n")
+                        bot_running=initialise.check_proc(f"{service_name}.exe")
+                        if bot_running:
+                                # if deployed_status['use_console'] == 'False':
+                                    # if initialise.stop_service(self,service_name):
+                                    #     tex.insert(END,f"{service_name} stopped successfully.\n")
+                                    # else:
+                                    #     tex.insert(END,f"{service_name} failed to stop.\n")
+                                #else:
+                                    initialise.stop_bot(self,f"{service_name}.exe")
+                                    initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                                    initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                                #viewButton.refresh()
+                    else:
+                        print("[ABORT] players are connected. Scheduling shutdown instead..")
+                        initialise.schedule_shutdown(deployed_status)
                     viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
@@ -2270,7 +2236,7 @@ if is_admin():
                         tab2.rowconfigure(t, weight=1,pad=0)
                     for o in range(100):
                         tab2.columnconfigure(o, weight=1,pad=0)
-                    for x in range(0,int(self.dataDict['svr_total'])):
+                    for x in range(0,(int(self.dataDict['svr_total']))):
                         x+=1
                         i+=1
                         service_name = f"adminbot{x}"
@@ -2423,7 +2389,7 @@ if is_admin():
                     tabgui2.add(tab23,text="Bot Log")
                     tabgui2.add(tab24,text="Proxy Log")
                     tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
-                    tabgui2.select(bot_tab)
+                    #tabgui2.select(bot_tab)
                     tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
 
                     #tab2.grid_rowconfigure(1,weight=1)
