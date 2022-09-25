@@ -162,7 +162,7 @@ if is_admin():
                 ip_addr = (x[0].ProtocolAddress)
                 print(ip_addr)
             try:
-                process = subprocess.run(["nslookup", "api.kongor.online"], stdout=subprocess.PIPE, text=True)
+                process = subprocess.run(["nslookup", mserver], stdout=subprocess.PIPE, text=True)
                 output = process.stdout
                 output = output.split('\n')
                 ip_arr = []
@@ -176,12 +176,14 @@ if is_admin():
             except Exception as e:
                 print(e)
             if ip_addr == None or ip_addr == '':
-                ip_addr = "73.185.77.188"
+                if 'kongor.online' in mserver:
+                    ip_addr = "73.185.77.188"
+                else: return False
                 print(f"Problem obtaining IP. Adding last known IP to hosts file {ip_addr}")
             if add_mserver:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
-                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com api.kongor.online    #required by hon as this address is frequently used to poll for match stats'])
+                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=[f'client.sea.heroesofnewerth.com  {mserver}   #required by hon as this address is frequently used to poll for match stats'])
             else:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
@@ -318,7 +320,7 @@ if is_admin():
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
-            elif 'kongor.online' in self.dataDict['master_server']:
+            else:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
             i = int(check.stdout.read())
             if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
@@ -653,7 +655,7 @@ if is_admin():
                 if self.dataDict['master_server'] == "honmasterserver.com":
                     exe_path=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe"
                     exe_path_cut=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}"
-                elif 'kongor.online' in self.dataDict['master_server']:
+                else:
                     exe_path=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe"
                     exe_path_cut=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}"
                 copy=False
@@ -2389,7 +2391,7 @@ if is_admin():
                     tabgui2.add(tab23,text="Bot Log")
                     tabgui2.add(tab24,text="Proxy Log")
                     tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
-                    #tabgui2.select(bot_tab)
+                    tabgui2.select(bot_tab)
                     tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
 
                     #tab2.grid_rowconfigure(1,weight=1)
