@@ -338,12 +338,14 @@ if is_admin():
         def start_service(self,service_name):
             try:
                 os.system(f'net start "{service_name}"')
+                #subprocess.Popen(['net','start',f'{service_name}'])
             except:
                 print ('could not start service {}'.format(service_name))
             return True
         def stop_service(self,service_name):
             try:
                 os.system(f'net stop "{service_name}"')
+                #subprocess.Popen(['net','stop',f'{service_name}'])
             except:
                 print ('could not stop service {}'.format(service_name))
             return True
@@ -1753,19 +1755,12 @@ if is_admin():
                 for i in range (1,(int(self.dataDict['svr_total']) +1)):
                     pcount=initialise.playerCountX(self,i)
                     deployed_status = dmgr.mData.returnDict_deployed(self,i)
-                    incr_port = 0
-                    for o in range(0,i):
-                        incr_val = int(self.dataDict['incr_port_by'])
-                        incr_port = incr_val * o
                     service_name=f"adminbot{i}"
                     bot_running=initialise.check_proc(f"{service_name}.exe")
                     if bot_running == False:
                         if pcount == -3:
                             if self.dataDict['use_proxy']=='True':
-                                svr_proxyPort=self.base['svr_proxyPort']
-                                svr_proxyPort=svr_proxyPort.replace('"',"")
-                                svr_proxyPort=int(svr_proxyPort)+int(incr_port)
-                                if initialise.check_port(svr_proxyPort):
+                                if initialise.check_port(deployed_status['svr_proxyPort']):
                                     pass
                                 else:
                                     tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
