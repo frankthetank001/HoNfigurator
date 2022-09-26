@@ -1310,11 +1310,13 @@ if is_admin():
                     if service_manager:
                         print("Manager started")
                 if use_proxy:
+                    proxy_running=False
                     os.environ["APPDATA"] = self.dataDict['hon_root_dir']
                     application="proxymanager.exe"
                     service_proxy_name="HoN Proxy Manager"
                     service_proxy = initialise.get_service(service_proxy_name)
-                    proxy_running=False
+                    if svrcmd.honCMD.check_proc(application):
+                        proxy_running=True
                     # if service_proxy:
                     print("proxy exists")
                     proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={game_port}",f"startvoicePort={voice_port}","region=naeu"]
@@ -1325,31 +1327,28 @@ if is_admin():
                     with open(proxy_config_location,"w") as f:
                         for items in proxy_config:
                             f.write(f"{items}\n")
-                    for proc in psutil.process_iter():
-                        # check whether the process name matches
-                        if proc.name() == application:
-                            proxy_running=True
                     if restart_proxy or proxy_running==False:
                         if use_console == False:
                             if service_proxy:
                                 initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                                 if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                                     initialise.stop_service(self,service_proxy_name)
+                                else:
+                                    if svrcmd.honCMD.check_proc(application):
+                                        svrcmd.honCMD.stop_proc(application)
                                 initialise.start_service(self,service_proxy_name)
                             else:
                                 initialise.create_service_generic(self,service_proxy_name,application)
                                 initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
                                 initialise.start_service(self,service_proxy_name)
+                            print("waiting 30 seconds for proxy to finish setting up ports...")
                             time.sleep(30)
                         else:
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == application:
-                                    proc.kill()
-                            for proc in psutil.process_iter():
-                                # check whether the process name matches
-                                if proc.name() == "proxy.exe":
-                                    proc.kill()
+                            if service_proxy:
+                                if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
+                                    initialise.stop_service(self,service_proxy_name)
+                            if svrcmd.honCMD.check_proc(application):
+                                svrcmd.honCMD.stop_proc(application)
                             os.chdir(self.dataDict['hon_directory'])
                             os.startfile(f"proxymanager.exe")
                             os.chdir(application_path)
