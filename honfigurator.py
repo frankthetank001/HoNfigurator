@@ -371,7 +371,7 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
             time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"\"USERPROFILE={self.dataDict['hon_manager_dir']}\""])
+                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
             return True
         def configure_service_api(self,service_name):
             sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
