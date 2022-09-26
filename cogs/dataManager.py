@@ -138,6 +138,10 @@ class mData():
         self.confDict.update({"last_restart_loc":mData.getData(self,"lastRestartLoc")})
         self.confDict.update({"incr_port":mData.getData(self,"incr_port")})
         self.confDict.update({"total_games_played":mData.getData(self,"TotalGamesPlayed")})
+        self.confDict.update({"svr_port":int(self.confDict['game_starting_port'])+int(self.confDict['incr_port'])})
+        self.confDict.update({"svr_proxyPort":self.confDict['svr_port']+10000})
+        self.confDict.update({"svr_proxyLocalVoicePort":int(self.confDict['voice_starting_port'])+int(self.confDict['incr_port'])})
+        self.confDict.update({"svr_proxyRemoteVoicePort":self.confDict['svr_proxyLocalVoicePort']+10000})
         #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
         if exists(f"{self.confDict['hon_game_dir']}\\startup.cfg"):
             self.game_config = mData.parse_config(self,f"{self.confDict['hon_game_dir']}\\startup.cfg")
@@ -195,6 +199,12 @@ class mData():
                 self.confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
+        self.confDict_deployed.update({"incr_port":mData.incr_port(int(svr_id),self.confDict_deployed['incr_port_by'])})
+        self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
+        self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
+        self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
+        self.confDict_deployed.update({"svr_proxyRemoteVoicePort":self.confDict_deployed['svr_proxyLocalVoicePort']+10000})
+
         return self.confDict_deployed
         
     def returnDict_temp(self):
@@ -255,6 +265,13 @@ class mData():
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
     #     for option in conf_parse_local.options("OPTIONS"):
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})    
+    def incr_port(svr_id,incr_port_by):
+            incr_port = 0
+            for i in range(0,svr_id):
+                incr_val = int(incr_port_by)
+                incr_port = incr_val * i
+            #print("port iteration: " +str(incr_port))
+            return incr_port
     def getData(self, dtype):
         if dtype == "hon":
             return "data"
