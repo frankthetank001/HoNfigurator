@@ -1244,8 +1244,8 @@ if is_admin():
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.stop_service(self,service_manager_name)
                         else:
-                            if svrcmd.honCMD.check_proc(application):
-                                svrcmd.honCMD.stop_proc(application)
+                            if svrcmd.honCMD.check_proc(manager_application):
+                                svrcmd.honCMD.stop_proc(manager_application)
                         if copy_retry:
                             shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manager_application}")
                         if use_console == False:
@@ -1253,8 +1253,8 @@ if is_admin():
                         else:
                             subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                     else:
-                        if svrcmd.honCMD.check_proc(application):
-                            svrcmd.honCMD.stop_proc(application)
+                        if svrcmd.honCMD.check_proc(manager_application):
+                            svrcmd.honCMD.stop_proc(manager_application)
                         if use_console == False:
                             initialise.create_service_generic(self,service_manager_name,application)
                             initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
