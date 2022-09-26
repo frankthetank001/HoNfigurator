@@ -1116,7 +1116,7 @@ if is_admin():
             #honfigurator.creategui(self)
             
         def return_currentver(self):
-            manifest=f"{self.dataDict['hon_directory']}\\Update\\manifest.xml"
+            manifest=f"{self.dataDict['hon_directory']}Update\\manifest.xml"
             if exists(manifest):
                 with open(manifest,'r') as f:
                     for line in f:
@@ -1239,7 +1239,8 @@ if is_admin():
 
                 if force_update or manager_running==False:
                     if service_manager:
-                        initialise.configure_service_generic(self,service_manager_name,manager_application,None)
+                        if use_console == False:
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,None)
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.stop_service(self,service_manager_name)
                         else:
@@ -1247,11 +1248,19 @@ if is_admin():
                                 svrcmd.honCMD.stop_proc(application)
                         if copy_retry:
                             shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manager_application}")
-                        initialise.start_service(self,service_manager_name)
+                        if use_console == False:
+                            initialise.start_service(self,service_manager_name)
+                        else:
+                            subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                     else:
-                        initialise.create_service_generic(self,service_manager_name,application)
-                        initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
-                        initialise.start_service(self,service_manager_name)
+                        if svrcmd.honCMD.check_proc(application):
+                            svrcmd.honCMD.stop_proc(application)
+                        if use_console == False:
+                            initialise.create_service_generic(self,service_manager_name,application)
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
+                            initialise.start_service(self,service_manager_name)
+                        else:
+                            subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                 if use_proxy:
                     proxy_running=False
                     os.environ["APPDATA"] = self.dataDict['hon_root_dir']
