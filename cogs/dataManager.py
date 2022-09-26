@@ -19,12 +19,17 @@ import stat
 import hashlib
 import sys
 import multiprocessing
+import shutil
 
 #import cogs.server_status as svrcmd
 
+
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
-conf_parse_deployed = configparser.ConfigParser(interpolation=None)
+conf_parse_deployed_global = configparser.ConfigParser(interpolation=None)
+conf_parse_deployed_local = configparser.ConfigParser(interpolation=None)
+conf_parse_temp_local = configparser.ConfigParser(interpolation=None)
+conf_parse_temp_global = configparser.ConfigParser(interpolation=None)
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -33,7 +38,8 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS
         #print("running from tempdir "+base_path)
     except Exception:
-        base_path = os.path.abspath(".")
+        #base_path = os.path.abspath(".")
+        base_path = os.path.dirname(sys.argv[0])
         #print("running from base "+base_path)
 
     return os.path.join(base_path, relative_path)
@@ -44,6 +50,17 @@ class mData():
     
     #def returnDict(self,configFile):      
     def returnDict(self):
+        
+        print(os.getcwd())
+        if exists(resource_path("config\\local_config.ini.incoming")):
+            try:
+                shutil.move(resource_path("config\\local_config.ini.incoming"),resource_path("config\\local_config.ini"))
+            except Exception as e: print(e)
+        if exists(resource_path("config\\global_config.ini.incoming")):
+            try:
+                shutil.move(resource_path("config\\global_config.ini.incoming"),resource_path("config\\global_config.ini"))
+            except Exception as e: print(e)
+
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
@@ -81,7 +98,7 @@ class mData():
         if 'voice_starting_port' not in self.confDict:
             self.confDict.update({'voice_starting_port':10060})
         if 'debug_mode' not in self.confDict:
-            self.confDict.update({'debug_mode':False})
+            self.confDict.update({'debug_mode':'False'})
         if 'use_proxy' not in self.confDict:
             self.confDict.update({'use_proxy':'True'})
         if 'use_console' not in self.confDict:
@@ -94,11 +111,13 @@ class mData():
             self.confDict.update({'compiled_hash':'requires build'})
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
+        if 'disable_bot' not in self.confDict:
+            self.confDict.update({'disable_bot':'False'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
             self.confDict.update({"hon_file_name":f"HON_SERVER_{self.svr_id}.exe"})
-        elif 'kongor.online' in self.confDict['master_server']:
+        else:
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
@@ -110,6 +129,8 @@ class mData():
         self.confDict.update({"svr_game_dll":f"{self.confDict['hon_directory']}game\\game_x64.dll"})
         self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\\messages"})
         self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\message{self.confDict['svr_identifier']}.txt"})
+        self.confDict.update({"app_name":f"adminbot{self.svr_id}"})
+        self.confDict.update({"app_log":f"{self.confDict['sdc_home_dir']}\\{self.confDict['app_name']}.log"})
         self.confDict.update({"svr_ip":mData.getData(self,"svr_ip")})
         self.confDict.update({"svr_dns":mData.getData(self,"DNSName")})
         self.confDict.update({"python_location":mData.getData(self,"pythonLoc")})
@@ -158,19 +179,36 @@ class mData():
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
         self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
         self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
+        self.confDict_deployed.update({"app_name":f"adminbot{svr_id}"})
+        self.confDict_deployed.update({"app_log":f"{self.confDict_deployed['sdc_home_dir']}\\{self.confDict_deployed['app_name']}.log"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
+        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
+            conf_parse_deployed_global.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
+            for option in conf_parse_deployed_global.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
-            conf_parse_deployed.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
-            for option in conf_parse_deployed.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed['OPTIONS'][option]})
+            conf_parse_deployed_local.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+            for option in conf_parse_deployed_local.options("OPTIONS"):
+                self.confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
         return self.confDict_deployed
-
         
+    def returnDict_temp(self):
+        print(os.getcwd())
+        confDict_temp = {}
+        if exists(resource_path("config\\local_config.ini.incoming")):
+            conf_parse_temp_local.read(resource_path("config\\local_config.ini.incoming"))
+            for option in conf_parse_temp_local.options("OPTIONS"):
+                confDict_temp.update({option:conf_parse_temp_local['OPTIONS'][option]})
+        if exists(resource_path("config\\global_config.ini.incoming")):
+            conf_parse_temp_global.read(resource_path("config\\global_config.ini.incoming"))
+            for option in conf_parse_temp_global.options("OPTIONS"):
+                confDict_temp.update({option:conf_parse_temp_global['OPTIONS'][option]})
+        return confDict_temp
     # def setData(self,key):
     #     temp={}
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
@@ -178,6 +216,7 @@ class mData():
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})
             
     def returnDict_basic(self,svr_id):
+        
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
 
