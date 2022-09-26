@@ -1078,6 +1078,7 @@ if is_admin():
             else:
                 self.game_port.set("wow")
         def update_repository(self,var,index,mode):
+            os.chdir(application_path)
             selected_branch = self.git_branch.get()
             current_branch = Repository('.').head.shorthand  # 'master'
             # if selected_branch != current_branch:
