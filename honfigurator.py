@@ -95,7 +95,7 @@ if is_admin():
             self.bot_version = self.dataDict['bot_version']
             self.hon_home_dir = self.dataDict['hon_home_dir']
             self.svr_hoster = self.dataDict['svr_hoster']
-            self.svr_region = self.dataDict['svr_region']
+            #self.svr_region = self.dataDict['svr_region']
             self.svr_region_short = self.dataDict['svr_region_short']
             self.svr_id = self.dataDict['svr_id']
             self.svr_ip = self.dataDict['svr_ip']
@@ -162,7 +162,7 @@ if is_admin():
                 ip_addr = (x[0].ProtocolAddress)
                 print(ip_addr)
             try:
-                process = subprocess.run(["nslookup", "api.kongor.online"], stdout=subprocess.PIPE, text=True)
+                process = subprocess.run(["nslookup", mserver], stdout=subprocess.PIPE, text=True)
                 output = process.stdout
                 output = output.split('\n')
                 ip_arr = []
@@ -176,12 +176,14 @@ if is_admin():
             except Exception as e:
                 print(e)
             if ip_addr == None or ip_addr == '':
-                ip_addr = "73.185.77.188"
+                if 'kongor.online' in mserver:
+                    ip_addr = "73.185.77.188"
+                else: return False
                 print(f"Problem obtaining IP. Adding last known IP to hosts file {ip_addr}")
             if add_mserver:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
-                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=['client.sea.heroesofnewerth.com api.kongor.online    #required by hon as this address is frequently used to poll for match stats'])
+                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=[f'client.sea.heroesofnewerth.com  {mserver}   #required by hon as this address is frequently used to poll for match stats'])
             else:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
@@ -318,7 +320,7 @@ if is_admin():
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
-            elif 'kongor.online' in self.dataDict['master_server']:
+            else:
                 check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
             i = int(check.stdout.read())
             if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
@@ -350,6 +352,8 @@ if is_admin():
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
+            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
@@ -653,7 +657,7 @@ if is_admin():
                 if self.dataDict['master_server'] == "honmasterserver.com":
                     exe_path=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe"
                     exe_path_cut=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}"
-                elif 'kongor.online' in self.dataDict['master_server']:
+                else:
                     exe_path=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}.exe"
                     exe_path_cut=f"{self.dataDict['hon_directory']}KONGOR_ARENA_{self.svr_id}"
                 copy=False
@@ -726,8 +730,6 @@ if is_admin():
                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\{self.dataDict['player_count_exe']}",f"{self.dataDict['hon_directory']}{self.dataDict['player_count_exe']}")
                 except Exception as e: print(e)
                 print("copying other dependencies...")
-                if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
-                    shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
                 print("Done!")
             
             if self.dataDict['master_server'] == "honmasterserver.com":
@@ -1044,16 +1046,16 @@ if is_admin():
             return True
             
         def regions(self):
-            return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil","NEWERTH"],["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]]
+            return ["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]
         def masterserver(self):
             return ["kongor.online:666","api.kongor.online","honmasterserver.com"]
-        def reg_def_link(self,var,index,mode):
-            reglist = self.regions()
-            svrloc = str(self.svr_loc.get()).lower()
-            for reg in reglist[0]:
-                if svrloc == reg.lower():
-                    self.svr_loc.set(reglist[0][reglist[0].index(reg)])
-                    self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+        # def reg_def_link(self,var,index,mode):
+        #     reglist = self.regions()
+        #     svrloc = str(self.svr_loc.get()).lower()
+        #     for reg in reglist[0]:
+        #         if svrloc == reg.lower():
+        #             self.svr_loc.set(reglist[0][reglist[0].index(reg)])
+        #             self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
         def svr_num_link(self,var,index,mode):
             if self.svr_id_var.get() == "(for single server)":
                 return
@@ -1117,7 +1119,7 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1395,7 +1397,7 @@ if is_admin():
                     if not conf_local.has_section("OPTIONS"):
                         conf_local.add_section("OPTIONS")
                     conf_local.set("OPTIONS","svr_hoster",hoster)
-                    conf_local.set("OPTIONS","svr_region",region)
+                    #conf_local.set("OPTIONS","svr_region",region)
                     conf_local.set("OPTIONS","svr_region_short",regionshort)
                     conf_local.set("OPTIONS","svr_id",serverid)
                     conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
@@ -1446,7 +1448,7 @@ if is_admin():
                         if not conf_local.has_section("OPTIONS"):
                             conf_local.add_section("OPTIONS")
                         conf_local.set("OPTIONS","svr_hoster",hoster)
-                        conf_local.set("OPTIONS","svr_region",region)
+                        #conf_local.set("OPTIONS","svr_region",region)
                         conf_local.set("OPTIONS","svr_region_short",regionshort)
                         conf_local.set("OPTIONS","svr_id",str(serverid))
                         conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
@@ -1600,17 +1602,17 @@ if is_admin():
             tab1_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
             #
             #   region
-            self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
-            applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-            tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
-            tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
-            self.svr_loc.trace_add('write', self.reg_def_link)
+            # self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
+            # applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+            # tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
+            # tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
+            # self.svr_loc.trace_add('write', self.reg_def_link)
             #   regionId
             self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
-            applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
-            tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code,width=5)
-            tab1_regionsd.grid(column= 2 , row = 4,sticky="w",pady=4)
-            self.svr_reg_code.trace_add('write', self.reg_def_link)
+            applet.Label(tab1, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+            tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
+            tab1_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
+            #self.svr_reg_code.trace_add('write', self.reg_def_link)
             #   server id
             self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
             applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
@@ -1740,9 +1742,9 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
@@ -2389,7 +2391,7 @@ if is_admin():
                     tabgui2.add(tab23,text="Bot Log")
                     tabgui2.add(tab24,text="Proxy Log")
                     tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
-                    #tabgui2.select(bot_tab)
+                    tabgui2.select(bot_tab)
                     tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
 
                     #tab2.grid_rowconfigure(1,weight=1)
