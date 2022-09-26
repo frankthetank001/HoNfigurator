@@ -349,6 +349,8 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
+            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
