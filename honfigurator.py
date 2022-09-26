@@ -1311,7 +1311,7 @@ if is_admin():
                     proxy_running=False
                     # if service_proxy:
                     print("proxy exists")
-                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={self.dataDict['game_starting_port']}",f"startvoicePort={self.dataDict['voice_starting_port']}","region=naeu"]
+                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={game_port}",f"startvoicePort={voice_port}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
