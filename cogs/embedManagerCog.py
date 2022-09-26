@@ -25,7 +25,6 @@ hon_logs_dir = processed_data_dict['hon_logs_dir']
 bot_version = f"{processed_data_dict['bot_version']}-{processed_data_dict['environment']}"
 hon_home_dir = processed_data_dict['hon_home_dir']
 svr_hoster = processed_data_dict['svr_hoster']
-svr_region = processed_data_dict['svr_region']
 svr_region_short = processed_data_dict['svr_region_short']
 svr_id = processed_data_dict['svr_id']
 svr_id_total = processed_data_dict['svrid_total']

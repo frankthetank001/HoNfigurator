@@ -95,7 +95,7 @@ if is_admin():
             self.bot_version = self.dataDict['bot_version']
             self.hon_home_dir = self.dataDict['hon_home_dir']
             self.svr_hoster = self.dataDict['svr_hoster']
-            self.svr_region = self.dataDict['svr_region']
+            #self.svr_region = self.dataDict['svr_region']
             self.svr_region_short = self.dataDict['svr_region_short']
             self.svr_id = self.dataDict['svr_id']
             self.svr_ip = self.dataDict['svr_ip']
@@ -1046,16 +1046,16 @@ if is_admin():
             return True
             
         def regions(self):
-            return [["US - West","US - East","Thailand","Australia","Malaysia","Russia","Europe","Brazil","NEWERTH"],["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]]
+            return ["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]
         def masterserver(self):
             return ["kongor.online:666","api.kongor.online","honmasterserver.com"]
-        def reg_def_link(self,var,index,mode):
-            reglist = self.regions()
-            svrloc = str(self.svr_loc.get()).lower()
-            for reg in reglist[0]:
-                if svrloc == reg.lower():
-                    self.svr_loc.set(reglist[0][reglist[0].index(reg)])
-                    self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+        # def reg_def_link(self,var,index,mode):
+        #     reglist = self.regions()
+        #     svrloc = str(self.svr_loc.get()).lower()
+        #     for reg in reglist[0]:
+        #         if svrloc == reg.lower():
+        #             self.svr_loc.set(reglist[0][reglist[0].index(reg)])
+        #             self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
         def svr_num_link(self,var,index,mode):
             if self.svr_id_var.get() == "(for single server)":
                 return
@@ -1119,7 +1119,7 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
-        def sendData(self,identifier,hoster, region, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1397,7 +1397,7 @@ if is_admin():
                     if not conf_local.has_section("OPTIONS"):
                         conf_local.add_section("OPTIONS")
                     conf_local.set("OPTIONS","svr_hoster",hoster)
-                    conf_local.set("OPTIONS","svr_region",region)
+                    #conf_local.set("OPTIONS","svr_region",region)
                     conf_local.set("OPTIONS","svr_region_short",regionshort)
                     conf_local.set("OPTIONS","svr_id",serverid)
                     conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
@@ -1448,7 +1448,7 @@ if is_admin():
                         if not conf_local.has_section("OPTIONS"):
                             conf_local.add_section("OPTIONS")
                         conf_local.set("OPTIONS","svr_hoster",hoster)
-                        conf_local.set("OPTIONS","svr_region",region)
+                        #conf_local.set("OPTIONS","svr_region",region)
                         conf_local.set("OPTIONS","svr_region_short",regionshort)
                         conf_local.set("OPTIONS","svr_id",str(serverid))
                         conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
@@ -1602,17 +1602,17 @@ if is_admin():
             tab1_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
             #
             #   region
-            self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
-            applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-            tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
-            tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
-            self.svr_loc.trace_add('write', self.reg_def_link)
+            # self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
+            # applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+            # tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
+            # tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
+            # self.svr_loc.trace_add('write', self.reg_def_link)
             #   regionId
             self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
-            applet.Label(tab1, text="Region Code:",background=maincolor,foreground='white').grid(column=1, row=4,sticky="e")
-            tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[1],textvariable=self.svr_reg_code,width=5)
-            tab1_regionsd.grid(column= 2 , row = 4,sticky="w",pady=4)
-            self.svr_reg_code.trace_add('write', self.reg_def_link)
+            applet.Label(tab1, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+            tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
+            tab1_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
+            #self.svr_reg_code.trace_add('write', self.reg_def_link)
             #   server id
             self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
             applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
@@ -1742,9 +1742,9 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regiond.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
