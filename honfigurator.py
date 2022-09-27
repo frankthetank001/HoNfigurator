@@ -1230,7 +1230,7 @@ if is_admin():
                 checks=False
                 tex.insert(END,"FIXME: Please provide a discord user ID (10 digit number).\n",'warning')
                 tex.see(tk.END)
-            if static_ip is not None:
+            if static_ip is not '':
                 try:
                     # legal
                     socket.inet_aton(static_ip)
@@ -1417,7 +1417,7 @@ if is_admin():
                     #conf_local.set("OPTIONS","svr_region",region)
                     conf_local.set("OPTIONS","svr_region_short",regionshort)
                     conf_local.set("OPTIONS","svr_id",serverid)
-                    if static_ip is not None:
+                    if static_ip is not '':
                         conf_local.set("OPTIONS","static_ip",'True')
                         conf_local.set("OPTIONS","svr_ip",str(static_ip))
                     else:
@@ -1472,7 +1472,7 @@ if is_admin():
                         #conf_local.set("OPTIONS","svr_region",region)
                         conf_local.set("OPTIONS","svr_region_short",regionshort)
                         conf_local.set("OPTIONS","svr_id",str(serverid))
-                        if static_ip is not None:
+                        if static_ip is not '':
                             conf_local.set("OPTIONS","static_ip",'True')
                             conf_local.set("OPTIONS","svr_ip",str(static_ip))
                         else:
