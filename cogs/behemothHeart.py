@@ -125,17 +125,24 @@ class heartbeat(commands.Cog):
                                     self.server_status.update({'update_embeds':True})
                                     self.server_status.update({'tempcount':-5})
                         cookie=svrcmd.honCMD.check_cookie(self.processed_data_dict,self.server_status['slave_log_location'],'slave_cookie_check')
-                        if cookie==False:
-                            logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
-                            try:
-                                await embed_log.edit(embed=logEmbed)
-                            except:
-                                print(traceback.format_exc())
-                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if cookie != self.server_status['cookie']:
                             self.server_status.update({'cookie':cookie})
                             self.server_status.update({'update_embeds':True})
                             self.server_status.update({'tempcount':-5})
+                            if cookie == False:
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            else:
+                                logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [OK] Connection recovered.")
+                                try:
+                                    await embed_log.edit(embed=logEmbed)
+                                except:
+                                    print(traceback.format_exc())
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 except:
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
