@@ -131,7 +131,10 @@ if is_admin():
                 try:
                     os.chdir(deployed_status['sdc_home_dir'])
                     os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
-                    os.chdir(application_path)
+                    try:
+                        os.chdir(application_path)
+                    except Exception as e:
+                        print(e)
                     return True
                 except Exception as e:
                     print(e)
@@ -140,7 +143,10 @@ if is_admin():
                 try:
                     os.chdir(self.dataDict['sdc_home_dir'])
                     os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
-                    os.chdir(application_path)
+                    try:
+                        os.chdir(application_path)
+                    except Exception as e:
+                        print(e)
                     return True
                 except Exception as e:
                     print(e)
@@ -1165,7 +1171,10 @@ if is_admin():
             else:
                 self.game_port.set("wow")
         def update_repository(self,var,index,mode):
-            os.chdir(application_path)
+            try:
+                os.chdir(application_path)
+            except Exception as e:
+                print(e)
             selected_branch = self.git_branch.get()
             current_branch = Repository('.').head.shorthand  # 'master'
             # if selected_branch != current_branch:
@@ -1199,7 +1208,10 @@ if is_admin():
         def forceupdate_hon(self,hon_dir,master_server):
             os.chdir(hon_dir)
             sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
-            os.chdir(application_path)
+            try:
+                os.chdir(application_path)
+            except Exception as e:
+                print(e)
             #honfigurator.creategui(self)
             
         def return_currentver(self):
