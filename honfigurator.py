@@ -1284,16 +1284,19 @@ if is_admin():
                     if restart_proxy or proxy_running==False:
                         # if use_console == False:
                         if service_proxy:
-                            initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                            initialise.configure_service_generic(self,service_proxy_name,application,None)
                             if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                                 initialise.stop_service(self,service_proxy_name)
-                            else:
-                                if svrcmd.honCMD.check_proc(application):
-                                    svrcmd.honCMD.stop_proc(application)
+                            if svrcmd.honCMD.check_proc(application):
+                                svrcmd.honCMD.stop_proc(application)
+                            if svrcmd.honCMD.check_proc("proxy.exe"):
+                                svrcmd.honCMD.stop_proc("proxy.exe")
                             initialise.start_service(self,service_proxy_name)
                         else:
+                            if svrcmd.honCMD.check_proc(application):
+                                svrcmd.honCMD.stop_proc(application)
                             initialise.create_service_generic(self,service_proxy_name,application)
-                            initialise.configure_service_generic(self,service_proxy_name,"proxymanager.exe",None)
+                            initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name)
                         print("waiting 30 seconds for proxy to finish setting up ports...")
                         time.sleep(30)
