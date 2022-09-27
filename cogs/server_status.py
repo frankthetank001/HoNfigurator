@@ -158,12 +158,14 @@ class honCMD():
         soft_data = os.stat(log).st_size # initial file size
         status={}
         # if (soft_data > hard_data) or 'first_check' not in status:
+        connection_errors = ['connection to chat server terminated',"session cookie request failed!","invalid session cookie"]
         with open (log, "r", encoding='utf-16-le') as f:
             for line in reversed(list(f)):
-                if "session cookie request failed!" in line.lower() or "no session cookie returned!" in line.lower() or "invalid session cookie" in line.lower():
-                    return False
-                elif "new session cookie " in line.lower():
-                    return True
+                for item in connection_errors:
+                    if item in line.lower():
+                        return False
+                    elif "new session cookie " in line.lower():
+                        return True
         return True
         # status.update({'first_check':'Done'})
         #return True
@@ -292,6 +294,13 @@ class honCMD():
                 #
                 # move replays off into the manager directory. clean up other temporary files
                 replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
+                try:
+                    if not exists(processed_data_dict['hon_replays_dir']):
+                        os.makedirs(processed_data_dict['hon_replays_dir'])
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+
                 try:
                     files = os.listdir(processed_data_dict['hon_replays_dir'])
                     replays=[]
