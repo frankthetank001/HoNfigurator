@@ -1978,7 +1978,7 @@ if is_admin():
                     pcount=initialise.playerCountX(self,i)
                     deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     service_name=f"adminbot{i}"
-                    bot_running=initialise.check_proc(f"{service_name}.exe")
+                    bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
                     if bot_running == False:
                         if pcount == -3:
                             if self.dataDict['use_proxy']=='True':
@@ -2005,7 +2005,7 @@ if is_admin():
                                     tex.insert(END,f"{service_name} stopped successfully.\n")
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
-                        bot_running=initialise.check_proc(f"{service_name}.exe")
+                        bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
                         if bot_running:
                             # if deployed_status['use_console'] == 'False':
                                 # if initialise.stop_service(self,service_name,True):
@@ -2186,6 +2186,9 @@ if is_admin():
                     pcount = initialise.playerCountX(self,id)
                     deployed_status = dmgr.mData.returnDict_deployed(self,id)
                     if pcount == -3:
+                        service_name=f"adminbot{id}"
+                        if svrcmd.honCMD.check_proc(f"{service_name}.exe"):
+                            svrcmd.honCMD.stop_bot(f"{service_name}.exe")
                         if self.dataDict['use_proxy']=='True':
                             if initialise.check_port(deployed_status['svr_proxyPort']):
                                 pass
