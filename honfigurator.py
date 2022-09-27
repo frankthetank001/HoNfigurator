@@ -1690,7 +1690,8 @@ if is_admin():
             tab1_ip = applet.Entry(tab1,foreground=textcolor,width=16)
             labl_ttp = honfigurator.CreateToolTip(tab1_ip, \
                     f"An optional static IP. Otherwise, your IP will be set to {self.dataDict['svr_ip']}")
-            #tab1_ip.insert(0,self.dataDict['svr_ip'])
+            if 'static_ip' in self.dataDict:
+                tab1_ip.insert(0,self.dataDict['svr_ip'])
             tab1_ip.grid(column= 2 , row = 4,sticky="w",pady=4)
             #
             #   region
