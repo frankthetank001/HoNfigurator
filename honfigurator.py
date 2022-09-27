@@ -1258,7 +1258,7 @@ if is_admin():
                         if svrcmd.honCMD.check_proc(manager_application):
                             svrcmd.honCMD.stop_proc(manager_application)
                         if use_console == False:
-                            initialise.create_service_generic(self,service_manager_name,application)
+                            initialise.create_service_generic(self,service_manager_name,manager_application)
                             initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
                             initialise.start_service(self,service_manager_name)
                         else:
