@@ -109,7 +109,8 @@ if is_admin():
             self.service_name_bot = f"adminbot{self.svr_id}"
             self.service_name_api = "honserver-registration"
             deployed_config = self.sdc_home_dir+"\\config\\global_config.ini"
-            self.deployed_status = self.data.returnDict_deployed(self.svr_id)
+            if exists(f"{self.dataDict['sdc_home_dir']}\\config\\local_config.ini"):
+                self.deployed_status = self.data.returnDict_deployed(self.svr_id)
             if exists(deployed_config):
                 config = configparser.ConfigParser()
                 config.read(deployed_config)
@@ -405,6 +406,8 @@ if is_admin():
             sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
+            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
             #time.sleep
             if arguments is not None:
@@ -422,9 +425,13 @@ if is_admin():
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
+            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
+            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
@@ -633,22 +640,23 @@ if is_admin():
             if not exists(f"{self.dataDict['hon_root_dir']}\\Documents"):
                 os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
 
-            try:
-                if self.deployed_status['hon_directory'] != self.dataDict['hon_directory']:
-                    # think about migrating here, like
-                    #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
-                    try:
-                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
-                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
-                    except Exception as e:
-                        print(e)
-                if self.deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
-                    try:
-                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
-                    except Exception as e:
-                        print(e)
-            except Exception as e:
+            if exists(f"{self.dataDict['sdc_home_dir']}\\config\\local_config.ini"):
+                try:
+                    if self.deployed_status['hon_directory'] != self.dataDict['hon_directory']:
+                        # think about migrating here, like
+                        #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
+                        try:
+                            shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
+                            shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
+                        except Exception as e:
                             print(e)
+                    if self.deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
+                        try:
+                            shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        except Exception as e:
+                            print(e)
+                except Exception as e:
+                                print(e)
 
             if not exists(self.hon_logs_dir):
                 print("creating: " + self.hon_logs_dir)
