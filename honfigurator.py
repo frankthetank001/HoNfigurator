@@ -1034,7 +1034,10 @@ if is_admin():
             else:
                 raise
         def git_current_branch(self):
-            os.chdir(application_path)
+            try:
+                os.chdir(application_path)
+            except Exception as e:
+                print(e)
             current_branch = Repository('.').head.shorthand  # 'master'
             return current_branch
         def git_all_branches(self):
