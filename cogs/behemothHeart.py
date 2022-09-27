@@ -589,7 +589,7 @@ class heartbeat(commands.Cog):
                         else:
                             svr_state.restartSERVER()
                     # every x seconds, check if the public IP has changed for the server. Schedule a restart if it has
-                    if counter_ipcheck == counter_ipcheck_threshold:
+                    if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
                         counter_ipcheck = 0
                         if server_status_bkp['game_started'] == False:
                             check_ip = dmgr.mData.getData(NULL,"svr_ip")
