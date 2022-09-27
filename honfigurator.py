@@ -511,7 +511,7 @@ if is_admin():
             self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
             iter = self.dataDict['incr_port']
             svr_identifier = self.dataDict['svrid_total']
-            svr_ip = dmgr.mData.getData(self,"svr_ip")
+            svr_ip = self.dataDict['svr_ip']
             # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
             # for i in networking:
             #     temp_port = self.base[i]
