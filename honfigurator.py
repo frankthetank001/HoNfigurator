@@ -916,29 +916,30 @@ if is_admin():
                             else:
                                 initialise.schedule_restart(self)
                 else:
-                    bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
-                    server_running=initialise.check_proc(f"{self.dataDict['hon_file_name']}")
                     if force_update == True or bot_needs_update == True:
                         #reconfigure service + restart
-                        if bot_running or server_running:
+                        if initialise.check_proc(f"{self.service_name_bot}.exe") or initialise.check_proc(f"{self.dataDict['hon_file_name']}"):
                             playercount = initialise.playerCount(self)
                             # if self.deployed_status['use_console'] == 'True':
-                            #if playercount <=0:
-                            initialise.stop_bot(self,f"{self.service_name_bot}.exe")
-                                # can we hook onto existing EXEs here instead?
-                            old_ip=self.dataDict['svr_ip']
-                            new_ip=dmgr.mData.getData(self,"svr_ip")
-                            if use_console == False or (old_ip != new_ip):
+                            if playercount <=0:
+                                initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                                 initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
                                 initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
+                                # can we hook onto existing EXEs here instead?
+                            # old_ip=self.dataDict['svr_ip']
+                            # new_ip=dmgr.mData.getData(self,"svr_ip")
+                            else:
+                                if use_console == False:
+                                    #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                                    initialise.schedule_restart(self)
+                                    players_connected=True
                             # else:
                             #     # copy files to _old
                             #     players_connected=True
-                            if exe_force_copy:
-                                initialise.schedule_restart(self)
-                    bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
-                    server_running=initialise.check_proc(f"{self.dataDict['hon_file_name']}")
-                    if bot_running == False:
+                            # re enable this if you hook back onto the exe
+                            # if exe_force_copy:
+                            #     initialise.schedule_restart(self)
+                    if initialise.check_proc(f"{self.service_name_bot}.exe") == False:
                         if self.dataDict['use_proxy']=='True':
                             if initialise.check_port(self.game_port_proxy):
                                 pass
