@@ -1,8 +1,9 @@
 discord.py==1.7.3
+pillow
 psutil
 wmi
 getmac
 pygit2
 gitpython
 python-hosts
-pyinstaller
+pkg-resources

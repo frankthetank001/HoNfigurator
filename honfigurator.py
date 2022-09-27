@@ -1,7 +1,7 @@
 import pkg_resources
 import sys
 import subprocess as sp
-required = {'mutagen', 'gTTS','discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pyinstaller','pillow'}
+required = {'discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pillow'}
 installed = {pkg.key for pkg in pkg_resources.working_set}
 missing = required - installed
 
