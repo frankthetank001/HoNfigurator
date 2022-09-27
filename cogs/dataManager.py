@@ -199,6 +199,8 @@ class mData():
                 self.confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
         if 'use_console' not in self.confDict_deployed:
             self.confDict_deployed.update({'use_console':'False'})
+        if 'incr_port_by' not in self.confDict_deployed:
+            self.confDict_deployed.update({'incr_port_by':self.confDict_root['incr_port_by']})
         self.confDict_deployed.update({"incr_port":mData.incr_port(int(svr_id),self.confDict_deployed['incr_port_by'])})
         self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
