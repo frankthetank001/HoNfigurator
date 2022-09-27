@@ -926,7 +926,9 @@ if is_admin():
                             #if playercount <=0:
                             initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                                 # can we hook onto existing EXEs here instead?
-                            if use_console == False:
+                            old_ip=self.dataDict['svr_ip']
+                            new_ip=dmgr.mData.getData(self,"svr_ip")
+                            if use_console == False or (old_ip != new_ip):
                                 initialise.stop_bot(self,f"KONGOR_ARENA_{self.dataDict['svr_id']}.exe")
                                 initialise.stop_bot(self,f"HON_SERVER_{self.dataDict['svr_id']}.exe")
                             # else:
@@ -1230,7 +1232,7 @@ if is_admin():
                 checks=False
                 tex.insert(END,"FIXME: Please provide a discord user ID (10 digit number).\n",'warning')
                 tex.see(tk.END)
-            if static_ip is not '':
+            if static_ip != '':
                 try:
                     # legal
                     socket.inet_aton(static_ip)
@@ -1417,7 +1419,7 @@ if is_admin():
                     #conf_local.set("OPTIONS","svr_region",region)
                     conf_local.set("OPTIONS","svr_region_short",regionshort)
                     conf_local.set("OPTIONS","svr_id",serverid)
-                    if static_ip is not '':
+                    if static_ip != '':
                         conf_local.set("OPTIONS","static_ip",'True')
                         conf_local.set("OPTIONS","svr_ip",str(static_ip))
                     else:
@@ -1472,7 +1474,7 @@ if is_admin():
                         #conf_local.set("OPTIONS","svr_region",region)
                         conf_local.set("OPTIONS","svr_region_short",regionshort)
                         conf_local.set("OPTIONS","svr_id",str(serverid))
-                        if static_ip is not '':
+                        if static_ip != '':
                             conf_local.set("OPTIONS","static_ip",'True')
                             conf_local.set("OPTIONS","svr_ip",str(static_ip))
                         else:
