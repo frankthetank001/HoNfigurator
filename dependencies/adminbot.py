@@ -970,15 +970,19 @@ if is_admin():
         async def pruneall(ctx, hoster):
             msg = ctx.message
             if msg.author.id == discord_admin.id:
-                if svr_id == 1 and hoster == svr_hoster:
-                    await ctx.message.delete()
-                    def _check(message):
-                        if message.author != bot.user:
-                            return False
-                        _check.count += 1
-                        return _check.count
-                    _check.count = 0
-                    await ctx.channel.purge(limit=1000, check=_check)
+                if svr_id == 1:
+                    if hoster == svr_hoster:
+                        await ctx.message.delete()
+                        def _check(message):
+                            if message.author != bot.user:
+                                return False
+                            _check.count += 1
+                            return _check.count
+                        _check.count = 0
+                        await ctx.channel.purge(limit=1000, check=_check)
+                    else:
+                        await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
+                        await ctx.invoke(bot.get_command('portalhelp'))
         @bot.event
         async def on_command_error(ctx, error):
             if svr_id == 1:
