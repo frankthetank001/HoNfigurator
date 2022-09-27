@@ -199,25 +199,29 @@ class embedManager(commands.Cog):
         #await ctx.message.delete()
         playercount = int(playercount)
         for embedObjects in self.mEmbed_objects:
-            if self.server_status['server_starting']:
-                await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
-            elif self.server_status['server_restarting']:
-                await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
-            elif self.server_status['hard_reset']:
-                await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
-            else:
-                #
-                #   Server is offline
-                if playercount < 0:
+            try:
+                if self.server_status['server_starting']:
+                    await ctx.invoke(bot.get_command('startingEmbed'),rec_embed = embedObjects)
+                elif self.server_status['server_restarting']:
+                    await ctx.invoke(bot.get_command('restartEmbed'),rec_embed = embedObjects)
+                elif self.server_status['hard_reset']:
                     await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
-                #
-                #   Server is online
-                elif playercount == 0:
-                    await ctx.invoke(bot.get_command('onlineEmbed'),rec_embed = embedObjects)
-                # lobby active
-                elif playercount >= 1:
-                    await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
-            
+                else:
+                    #
+                    #   Server is offline
+                    if playercount < 0:
+                        await ctx.invoke(bot.get_command('offlineEmbed'),rec_embed = embedObjects)
+                    #
+                    #   Server is online
+                    elif playercount == 0:
+                        await ctx.invoke(bot.get_command('onlineEmbed'),rec_embed = embedObjects)
+                    # lobby active
+                    elif playercount >= 1:
+                        await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
+            except:
+                print(traceback.format_exc())
+                print("we mustn't have any data for this yet")
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     @bot.command()
     async def offlineEmbed(self,rec_embed):
         print("server offline")
