@@ -1,13 +1,13 @@
-import pkg_resources
+#import pkg_resources
 import sys
 import subprocess as sp
-required = {'discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pillow'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
+# required = {'discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pillow'}
+# installed = {pkg.key for pkg in pkg_resources.working_set}
+# missing = required - installed
 
-if missing:
-    python = sys.executable
-    sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
+# if missing:
+#     python = sys.executable
+#     sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
 # determine if application is a script file or frozen exe
 
 from asyncio.subprocess import DEVNULL
@@ -27,7 +27,6 @@ import ctypes
 from tkinter import END
 import distutils
 from distutils import dir_util
-import subprocess
 import traceback
 # task scheduler component, didn't quite work as I intended
 #import win32com.client
@@ -127,7 +126,7 @@ if is_admin():
             #     config.read(f"{self.sdc_home_dir}\\config\\local_config.ini")
             # return
         def start_bot(self,deployed):
-            #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
+            #start_bot = sp.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
                 try:
                     os.chdir(deployed_status['sdc_home_dir'])
@@ -173,7 +172,7 @@ if is_admin():
                 ip_addr = (x[0].ProtocolAddress)
                 print(ip_addr)
             try:
-                process = subprocess.run(["nslookup", mserver], stdout=subprocess.PIPE, text=True)
+                process = sp.run(["nslookup", mserver], stdout=sp.PIPE, text=True)
                 output = process.stdout
                 output = output.split('\n')
                 ip_arr = []
@@ -202,7 +201,7 @@ if is_admin():
             hosts.add([add_entry])
             hosts.write()
         def KOTF(self):
-            app_svr_desc = subprocess.run([f'{application_path}\\cogs\\keeper.exe'],stdout=subprocess.PIPE, text=True)
+            app_svr_desc = sp.run([f'{application_path}\\cogs\\keeper.exe'],stdout=sp.PIPE, text=True)
             rc = app_svr_desc.returncode
             result = str(app_svr_desc.stdout)
             if rc == 0:
@@ -246,10 +245,10 @@ if is_admin():
         #                 # print('Last Run   : %s' % task.LastRunTime)
         #                 # print('Last Result: %s\n' % task.LastTaskResult)
         #                 if TASK_STATE[task.State] == "Ready" and auto_update == False:
-        #                     p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #                     p = sp.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/DISABLE"],stdout=sp.PIPE, stderr=sp.PIPE)
         #                     return True
         #                 elif TASK_STATE[task.State] == "Disabled" and auto_update == True:
-        #                     p = subprocess.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #                     p = sp.Popen(['SCHTASKS', '/CHANGE', '/TN', task.Path,"/ENABLE"],stdout=sp.PIPE, stderr=sp.PIPE)
         #                     return False
         #                 return
         #         else: 
@@ -261,12 +260,12 @@ if is_admin():
         def update_repository(self,selected_branch):
             current_branch = Repository('.').head.shorthand  # 'master'
             if selected_branch != current_branch:
-                checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+                checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
                 if checkout.returncode == 0:
                     print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
                     tex.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
                     print(f"Updating selected repository: {selected_branch} branch")
-                    output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                    output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
                     print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                     tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                     tex.see(tk.END)
@@ -280,7 +279,7 @@ if is_admin():
                     return False
             else:
                 print(f"Updating selected repository: {selected_branch} branch")
-                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.see(tk.END)
@@ -303,16 +302,16 @@ if is_admin():
             #doesnt work
             os.system(f'net disable "{service_name}"')
         def playerCount(self):
-            check = subprocess.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=subprocess.PIPE, text=True)
+            check = sp.Popen([self.dataDict['player_count_exe_loc'],self.dataDict['hon_file_name']],stdout=sp.PIPE, text=True)
             i = int(check.stdout.read())
             if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
                 try:
-                    check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
             elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
-                    check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
             check.terminate()
@@ -330,18 +329,18 @@ if is_admin():
 
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
-                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
             else:
-                check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
             i = int(check.stdout.read())
             if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
                 try:
-                    check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
             elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
-                    check = subprocess.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=subprocess.PIPE, text=True)
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
                 except: pass
             check.terminate()
@@ -350,9 +349,9 @@ if is_admin():
             try:
                 #os.system(f'net start "{service_name}"')
                 if deployed:
-                    subprocess.Popen(['net','start',f'{service_name}'])
+                    sp.Popen(['net','start',f'{service_name}'])
                 else:
-                    subprocess.run(['net','start',f'{service_name}'])
+                    sp.run(['net','start',f'{service_name}'])
                 # waiting = True
                 # threshold = 15
                 # o=0
@@ -374,9 +373,9 @@ if is_admin():
             try:
                 #os.system(f'net stop "{service_name}"')
                 if deployed:
-                    subprocess.Popen(['net','stop',f'{service_name}'])
+                    sp.Popen(['net','stop',f'{service_name}'])
                 else:
-                    subprocess.run(['net','stop',f'{service_name}'])
+                    sp.run(['net','stop',f'{service_name}'])
                 # waiting = True
                 # threshold = 15
                 # o=0
@@ -1167,12 +1166,12 @@ if is_admin():
             selected_branch = self.git_branch.get()
             current_branch = Repository('.').head.shorthand  # 'master'
             # if selected_branch != current_branch:
-            checkout = subprocess.run(["git","checkout",selected_branch],stdout=subprocess.PIPE,stderr=subprocess.PIPE, text=True)
+            checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
             if checkout.returncode == 0:
                 # print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
                 #tex.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
                 print(f"Updating selected repository: {selected_branch} branch")
-                output = subprocess.run(["git", "pull"],stdout=subprocess.PIPE, text=True)
+                output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,"==========================================\n")
@@ -1196,7 +1195,7 @@ if is_admin():
                 return False
         def forceupdate_hon(self,hon_dir,master_server):
             os.chdir(hon_dir)
-            subprocess.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+            sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
             os.chdir(application_path)
             #honfigurator.creategui(self)
             
@@ -1348,7 +1347,7 @@ if is_admin():
                         if use_console == False:
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                     else:
                         if svrcmd.honCMD.check_proc(manager_application):
                             svrcmd.honCMD.stop_proc(manager_application)
@@ -1357,7 +1356,7 @@ if is_admin():
                             initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                 if use_proxy:
                     proxy_running=False
                     os.environ["APPDATA"] = self.dataDict['hon_root_dir']
@@ -2282,7 +2281,7 @@ if is_admin():
                             except Exception as e:
                                 print(e)
                             try:
-                                remove_service = subprocess.run(['sc.exe','delete',f'adminbot{x}'])
+                                remove_service = sp.run(['sc.exe','delete',f'adminbot{x}'])
                             except Exception as e:
                                 print(e)
                     else:
