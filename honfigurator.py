@@ -902,6 +902,8 @@ if is_admin():
                         if playercount <= 0:
                             print("No players connected, safe to restart...")
                             initialise.stop_service(self,self.service_name_bot,False)
+                            svrcmd.honCMD.stop_proc(f"{self.service_name_bot}.exe")
+
                             if self.dataDict['use_proxy']=='True':
                                 if initialise.check_port(self.game_port_proxy):
                                     pass
