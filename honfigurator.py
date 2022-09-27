@@ -2291,7 +2291,7 @@ if is_admin():
                                     LablString[1]="Offline"
                                 elif pcount == 0:
                                     colour = 'MediumPurple3'
-                                    LablString[1]="cookie error"
+                                    LablString[1]="connect error"
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     LablString[1]=f"In-game ({pcount})"
