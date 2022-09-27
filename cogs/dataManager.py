@@ -131,7 +131,8 @@ class mData():
         self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\message{self.confDict['svr_identifier']}.txt"})
         self.confDict.update({"app_name":f"adminbot{self.svr_id}"})
         self.confDict.update({"app_log":f"{self.confDict['sdc_home_dir']}\\{self.confDict['app_name']}.log"})
-        self.confDict.update({"svr_ip":mData.getData(self,"svr_ip")})
+        if 'static_ip' not in self.confDict:
+            self.confDict.update({"svr_ip":mData.getData(self,"svr_ip")})
         self.confDict.update({"svr_dns":mData.getData(self,"DNSName")})
         self.confDict.update({"python_location":mData.getData(self,"pythonLoc")})
         self.confDict.update({"svr_affinity":mData.getData(self,"cores")})
@@ -278,11 +279,8 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            if "static_ip" in self.confDict:
-                return self.confDict['static_ip']
-            else:
-                external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
-                return external_ip
+            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
             #
