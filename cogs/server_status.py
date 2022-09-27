@@ -339,7 +339,10 @@ class honCMD():
                 svr_proxyport = svr_port + 10000
                 svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
                 svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
-                svr_ip = dmgr.mData.getData(self,"svr_ip")
+                if 'static_ip' not in processed_data_dict:
+                    svr_ip = dmgr.mData.getData(self,"svr_ip")
+                else:
+                    svr_ip = processed_data_dict['svr_ip']
                 tempData.update({'svr_port':svr_port})
                 tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})
                 tempData.update({'svr_proxyport':svr_proxyport})
