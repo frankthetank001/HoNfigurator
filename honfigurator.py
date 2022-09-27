@@ -82,6 +82,8 @@ if is_admin():
     class initialise():
         global config_global
         global config_local
+        global deployed_status
+        #global deployed_status
         def __init__(self):
             global app_name
             self.data = dmgr.mData()
@@ -107,6 +109,7 @@ if is_admin():
             self.service_name_bot = f"adminbot{self.svr_id}"
             self.service_name_api = "honserver-registration"
             deployed_config = self.sdc_home_dir+"\\config\\global_config.ini"
+            self.deployed_status = self.data.returnDict_deployed(self.svr_id)
             if exists(deployed_config):
                 config = configparser.ConfigParser()
                 config.read(deployed_config)
@@ -125,16 +128,23 @@ if is_admin():
         def start_bot(self,deployed):
             #start_bot = subprocess.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
-                os.chdir(deployed_status['sdc_home_dir'])
-                os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
-                os.chdir(application_path)
-                #os.system(f"\"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}.exe\" \"{deployed_status['sdc_home_dir']}\\adminbot.py\"")
+                try:
+                    os.chdir(deployed_status['sdc_home_dir'])
+                    os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
+                    os.chdir(application_path)
+                    return True
+                except Exception as e:
+                    print(e)
+                    return False
             else:
-                os.chdir(self.dataDict['sdc_home_dir'])
-                os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
-                os.chdir(application_path)
-                #os.startfile(f"\"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}.exe\" \"{self.dataDict['sdc_home_dir']}\\adminbot.py\"")
-            #os.spawnl(os.P_DETACH, f"cmd /k \"{self.dataDict['sdc_home_dir']}\\sdc.py\"")
+                try:
+                    os.chdir(self.dataDict['sdc_home_dir'])
+                    os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
+                    os.chdir(application_path)
+                    return True
+                except Exception as e:
+                    print(e)
+                    return False
         def check_proc(proc_name):
             for proc in psutil.process_iter():
                 if proc.name() == proc_name:
@@ -310,7 +320,7 @@ if is_admin():
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
                 print(f"Port {int(port)} is open")
-                tex.insert(END,f"Port {int(port)} is open\n")
+                #tex.insert(END,f"Port {int(port)} is open\n")
                 return True
             else:
                 print(f"Port {int(port)} is not open")
@@ -335,74 +345,138 @@ if is_admin():
                 except: pass
             check.terminate()
             return i
-        def start_service(self,service_name):
+        def start_service(self,service_name,deployed):
             try:
-                os.system(f'net start "{service_name}"')
-                #subprocess.Popen(['net','start',f'{service_name}'])
+                #os.system(f'net start "{service_name}"')
+                if deployed:
+                    subprocess.Popen(['net','start',f'{service_name}'])
+                else:
+                    subprocess.run(['net','start',f'{service_name}'])
+                # waiting = True
+                # threshold = 15
+                # o=0
+                # while waiting:
+                #     o+=1
+                #     service = initialise.get_service(service_name)
+                #     print(f"\nwaiting for service to start.. {o}/{threshold}secs remaining")
+                #     if service['status'] == 'running' or service['status'] == 'start_pending':
+                #         print(f"{service_name} started")
+                #         return True
+                #     time.sleep(1)
+                #     if o == threshold:
+                #         return False
             except:
                 print ('could not start service {}'.format(service_name))
+                return False
             return True
-        def stop_service(self,service_name):
+        def stop_service(self,service_name,deployed):
             try:
-                os.system(f'net stop "{service_name}"')
-                #subprocess.Popen(['net','stop',f'{service_name}'])
+                #os.system(f'net stop "{service_name}"')
+                if deployed:
+                    subprocess.Popen(['net','stop',f'{service_name}'])
+                else:
+                    subprocess.run(['net','stop',f'{service_name}'])
+                # waiting = True
+                # threshold = 15
+                # o=0
+                # while waiting:
+                #     o+=1
+                #     service = initialise.get_service(service_name)
+                #     print(f"\nwaiting for service to stop.. {o}/{threshold}secs remaining")
+                #     if service['status'] == 'stopped':
+                #         print(f"{service_name} stopped")
+                #         return True
+                #     time.sleep(1)
+                #     if o == threshold:
+                #         return False
             except:
                 print ('could not stop service {}'.format(service_name))
+                return False
             return True
 
         def create_service_bot(self,service_name):
             if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+            sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
             if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.Popen([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
+            sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
-            time.sleep
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
+            #time.sleep
             if arguments is not None:
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
-                time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            time.sleep(1)
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
+                #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
+            #time.sleep(1)
             if service_name == "HoN Server Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
             elif service_name == "HoN Proxy Manager":
-                sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            time.sleep(1)
-            sp.Popen([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
+            #time.sleep(1)
+            sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
             return True
 
         def restart_service(self,service_name):
             try:
-                os.system(f'net stop "{service_name}"')
+                #os.system(f'net stop "{service_name}"')
+                sp.run(['net','stop',f'{service_name}'])
+                # waiting = True
+                # threshold = 15
+                # o=0
+                # while waiting:
+                #     o+=1
+                #     service = initialise.get_service(service_name)
+                #     print(f"waiting for service to start.. {o}/{threshold}secs remaining")
+                #     if service['status'] == 'stopped':
+                #         print(f"{service_name} started")
+                #         waiting=False
+                #     time.sleep(1)
+                #     if o == threshold:
+                #         return False
             except:
                 print ('could not stop service {}'.format(service_name))
+                return False
             try:
-                os.system(f'net start "{service_name}"')
+                #os.system(f'net start "{service_name}"')
+                sp.run(['net','start',f'{service_name}'])
+                # waiting = True
+                # threshold = 15
+                # o=0
+                # while waiting:
+                #     o+=1
+                #     service = initialise.get_service(service_name)
+                #     print(f"waiting for service to start.. {o}/{threshold}secs remaining")
+                #     if service['status'] == 'running' or service['status'] == 'start_pending':
+                #         print(f"{service_name} started")
+                #         waiting=False
+                #     time.sleep(1)
+                #     if o == threshold:
+                #         return False
             except:
                 print ('could not start service {}'.format(service_name))
+                return False
             return True
         def schedule_restart(self):
             temFile = f"{self.sdc_home_dir}\\pending_restart"
@@ -560,17 +634,17 @@ if is_admin():
                 os.makedirs(f"{self.dataDict['hon_root_dir']}\\Documents")
 
             try:
-                if deployed_status['hon_directory'] != self.dataDict['hon_directory']:
+                if self.deployed_status['hon_directory'] != self.dataDict['hon_directory']:
                     # think about migrating here, like
                     #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
+                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
                     except Exception as e:
                         print(e)
-                if deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
+                if self.deployed_status['svr_hoster'] != self.dataDict['svr_hoster']:
                     try:
-                        shutil.copy(f"{deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
+                        shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                     except Exception as e:
                         print(e)
             except Exception as e:
@@ -590,11 +664,11 @@ if is_admin():
                 print(f"creating {self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
                 os.makedirs(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
             # fix this - need a way to know wwhether to copy the old bot directory files
-            # if (deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']):
+            # if (self.deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']):
             #     # copy older metadata files
             #     try:
-            #         shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}",f"{self.sdc_home_dir}\\messages\message{self.dataDict['svr_identifier']}.txt")
-            #         shutil.copy(f"{deployed_status['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.sdc_home_dir}\\cogs\\total_games_played")
+            #         shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}",f"{self.sdc_home_dir}\\messages\message{self.dataDict['svr_identifier']}.txt")
+            #         shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.sdc_home_dir}\\cogs\\total_games_played")
             #     except Exception as e:
             #         print(e)
 
@@ -746,8 +820,8 @@ if is_admin():
                         if force_update != True and bot_needs_update != True:
                             tex.insert(END,"HON Registration API STATUS: RUNNING\n")
                         elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
-                            initialise.stop_service(self,self.service_name_api)
-                            time.sleep(1)
+                            initialise.stop_service(self,self.service_name_api,False)
+                            #time.sleep(1)
                             service_api = initialise.get_service(self.service_name_api)
                             if service_api['status'] == 'stopped':
                                 try:
@@ -758,8 +832,8 @@ if is_admin():
                                 except: print(traceback.format_exc())
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
-                            time.sleep(1)
-                            initialise.start_service(self,self.service_name_api)
+                            #time.sleep(1)
+                            initialise.start_service(self,self.service_name_api,False)
                     else:
                         if (force_update ==True or bot_needs_update == True) and hon_api_updated !=True:
                             try:
@@ -771,11 +845,11 @@ if is_admin():
                             #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
-                            time.sleep(1)
-                            initialise.start_service(self,self.service_name_api)
+                            #time.sleep(1)
+                            initialise.start_service(self,self.service_name_api,False)
                         else:
                             print("Windows Service STARTING...")
-                            initialise.start_service(self,self.service_name_api)
+                            initialise.start_service(self,self.service_name_api,False)
                             service_api = initialise.get_service(self.service_name_api)
                         if service_api['status'] == 'running':
                             tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
@@ -789,7 +863,7 @@ if is_admin():
                     print("==========================================")
                     initialise.create_service_generic(self,self.service_name_api,"API_HON_SERVER.exe")
                     print("starting service.. " + self.service_name_api)
-                    initialise.start_service(self,self.service_name_api)
+                    initialise.start_service(self,self.service_name_api,False)
                     print("==========================================")
                     print("HON Registration API STATUS: " + self.service_name_api)
                     service_api = initialise.get_service(self.service_name_api)
@@ -802,8 +876,6 @@ if is_admin():
             #     #Compile bot code into exe
             #     initialise.build(self,app_name)
             service_bot = initialise.get_service(self.service_name_bot)
-            proxy_service = initialise.get_service("HoN Proxy Manager")
-            deployed_status=dmgr.mData.returnDict_deployed(self,self.dataDict['svr_id'])
             if service_bot:
                 print(f"HONSERVER STATUS: {self.service_name_bot}")
                 if use_console == False:
@@ -816,7 +888,7 @@ if is_admin():
                         playercount = initialise.playerCount(self)
                         if playercount <= 0:
                             print("No players connected, safe to restart...")
-                            initialise.stop_service(self,self.service_name_bot)
+                            initialise.stop_service(self,self.service_name_bot,False)
                             if self.dataDict['use_proxy']=='True':
                                 if initialise.check_port(self.game_port_proxy):
                                     pass
@@ -842,7 +914,7 @@ if is_admin():
                         #reconfigure service + restart
                         if bot_running or server_running:
                             playercount = initialise.playerCount(self)
-                            # if deployed_status['use_console'] == 'True':
+                            # if self.deployed_status['use_console'] == 'True':
                             #if playercount <=0:
                             initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                                 # can we hook onto existing EXEs here instead?
@@ -1202,7 +1274,7 @@ if is_admin():
                         if playercount == 0:
                             if service_state:
                                 if service_state['status'] == 'running':
-                                    initialise.stop_service(self,f"{app_name}{o}")
+                                    initialise.stop_service(self,f"{app_name}{o}",False)
                             initialise.stop_bot(self,f"{app_name}{o}.exe")
                             initialise.stop_bot(self,f"KONGOR_ARENA_{o}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{o}.exe")
@@ -1244,14 +1316,14 @@ if is_admin():
                         if use_console == False:
                             initialise.configure_service_generic(self,service_manager_name,manager_application,None)
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
-                            initialise.stop_service(self,service_manager_name)
+                            initialise.stop_service(self,service_manager_name,False)
                         else:
                             if svrcmd.honCMD.check_proc(manager_application):
                                 svrcmd.honCMD.stop_proc(manager_application)
                         if copy_retry:
                             shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manager_application}")
                         if use_console == False:
-                            initialise.start_service(self,service_manager_name)
+                            initialise.start_service(self,service_manager_name,False)
                         else:
                             subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                     else:
@@ -1260,7 +1332,7 @@ if is_admin():
                         if use_console == False:
                             initialise.create_service_generic(self,service_manager_name,manager_application)
                             initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
-                            initialise.start_service(self,service_manager_name)
+                            initialise.start_service(self,service_manager_name,False)
                         else:
                             subprocess.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
                 if use_proxy:
@@ -1286,24 +1358,24 @@ if is_admin():
                         if service_proxy:
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                                initialise.stop_service(self,service_proxy_name)
+                                initialise.stop_service(self,service_proxy_name,False)
                             if svrcmd.honCMD.check_proc(application):
                                 svrcmd.honCMD.stop_proc(application)
                             if svrcmd.honCMD.check_proc("proxy.exe"):
                                 svrcmd.honCMD.stop_proc("proxy.exe")
-                            initialise.start_service(self,service_proxy_name)
+                            initialise.start_service(self,service_proxy_name,False)
                         else:
                             if svrcmd.honCMD.check_proc(application):
                                 svrcmd.honCMD.stop_proc(application)
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
-                            initialise.start_service(self,service_proxy_name)
+                            initialise.start_service(self,service_proxy_name,False)
                         print("waiting 30 seconds for proxy to finish setting up ports...")
                         time.sleep(30)
                         # else:
                         #     if service_proxy:
                         #         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                        #             initialise.stop_service(self,service_proxy_name)
+                        #             initialise.stop_service(self,service_proxy_name,False)
                         #     if svrcmd.honCMD.check_proc(application):
                         #         svrcmd.honCMD.stop_proc(application)
                         #     os.chdir(self.dataDict['hon_directory'])
@@ -1782,14 +1854,14 @@ if is_admin():
                     if pcount <= 0:
                         if service_check:
                             if service_check['status'] == 'running':
-                                if initialise.stop_service(self,service_name):
+                                if initialise.stop_service(self,service_name,True):
                                     tex.insert(END,f"{service_name} stopped successfully.\n")
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         if bot_running:
                             # if deployed_status['use_console'] == 'False':
-                                # if initialise.stop_service(self,service_name):
+                                # if initialise.stop_service(self,service_name,True):
                                 #     tex.insert(END,f"{service_name} stopped successfully.\n")
                                 # else:
                                 #     tex.insert(END,f"{service_name} failed to stop.\n")
@@ -2018,30 +2090,23 @@ if is_admin():
                 def Start(self):
                     pcount = initialise.playerCountX(self,id)
                     deployed_status = dmgr.mData.returnDict_deployed(self,id)
-                    incr_port = 0
-                    for i in range(0,id):
-                        incr_val = int(self.dataDict['incr_port_by'])
-                        incr_port = incr_val * i
                     if pcount == -3:
                         if self.dataDict['use_proxy']=='True':
-                            svr_proxyPort=self.base['svr_proxyPort']
-                            svr_proxyPort=svr_proxyPort.replace('"',"")
-                            svr_proxyPort=int(svr_proxyPort)+int(incr_port)
-                            if initialise.check_port(svr_proxyPort):
+                            if initialise.check_port(deployed_status['svr_proxyPort']):
                                 pass
                             else:
                                 tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                                 tex.see(tk.END)
                                 return
-                        initialise.start_bot(self,True)
-                    else:
-                        viewButton.load_server_mgr(self)
-                        #tabgui2.after(15000,viewButton.load_server_mgr(self))
+                        if initialise.start_bot(self,True):
+                            tex.insert(END,f"{deployed_status['app_name']} started successfully\n")
+                            tex.see(tk.END)
+                        viewButton.refresh()
                 def StartProxy(self):
                     if svrcmd.honCMD.check_proc("HoN Proxy Manager") == False:
                         if self.dataDict['use_proxy']=='True':
                             # if self.dataDict['use_console']=='False':
-                                if initialise.start_service(self,"HoN Proxy Manager"):
+                                if initialise.start_service(self,"HoN Proxy Manager",True):
                                     tex.insert(END,"Proxy started.")
                                     tex.see(tk.END)
                                     viewButton.refresh()
@@ -2058,7 +2123,7 @@ if is_admin():
                             tex.see(tk.END)
                 def StartManager(self):
                     if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe") == False:
-                        if initialise.start_service(self,"HoN Server Manager"):
+                        if initialise.start_service(self,"HoN Server Manager",True):
                             tex.insert(END,"HoN Server Manager started.")
                             tex.see(tk.END)
                             viewButton.refresh()
@@ -2066,21 +2131,20 @@ if is_admin():
                             tex.insert(END,"Failed to start the server manager service. This is required for replays.")
                             tex.see(tk.END)
                 def Stop(self):
-
                     pcount = initialise.playerCountX(self,id)
                     service_name=f"adminbot{id}"
                     service_check = initialise.get_service(service_name)
                     if pcount <= 0:
                         if service_check:
                             if service_check['status'] == 'running':
-                                if initialise.stop_service(self,service_name):
+                                if initialise.stop_service(self,service_name,True):
                                     tex.insert(END,f"{service_name} stopped successfully.\n")
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         if bot_running:
                                 # if deployed_status['use_console'] == 'False':
-                                    # if initialise.stop_service(self,service_name):
+                                    # if initialise.stop_service(self,service_name,True):
                                     #     tex.insert(END,f"{service_name} stopped successfully.\n")
                                     # else:
                                     #     tex.insert(END,f"{service_name} failed to stop.\n")
@@ -2123,7 +2187,7 @@ if is_admin():
                     if pcount <= 0:
                         service_state = initialise.get_service(service_name)
                         if service_state != False and service_state['status'] != 'stopped':
-                            if initialise.stop_service(self,service_name):
+                            if initialise.stop_service(self,service_name,True):
                                 tex.insert(END,f"{service_name} stopped successfully.\n")
                                 viewButton.load_server_mgr(self)
                             else:
