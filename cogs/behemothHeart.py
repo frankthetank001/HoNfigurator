@@ -286,7 +286,7 @@ class heartbeat(commands.Cog):
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 # every x seconds, check whether the public IP of the server has changed. If so, schedule a restart
-                if counter_ipcheck == counter_ipcheck_threshold:
+                if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in self.processed_data_dict:
                     counter_ipcheck = 0
                     try:
                         if self.server_status['game_started'] == False:

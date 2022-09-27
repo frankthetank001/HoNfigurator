@@ -1417,7 +1417,11 @@ if is_admin():
                     #conf_local.set("OPTIONS","svr_region",region)
                     conf_local.set("OPTIONS","svr_region_short",regionshort)
                     conf_local.set("OPTIONS","svr_id",serverid)
-                    conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+                    if static_ip is not None:
+                        conf_local.set("OPTIONS","static_ip",'True')
+                        conf_local.set("OPTIONS","svr_ip",str(static_ip))
+                    else:
+                        conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
                     conf_local.set("OPTIONS","svr_total",servertotal)
                     conf_local.set("OPTIONS","token",bottoken)
                     conf_local.set("OPTIONS","hon_directory",hondirectory)
@@ -1438,8 +1442,6 @@ if is_admin():
                     conf_local.set("OPTIONS","use_console",str(use_console))
                     conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
                     conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-                    if static_ip is not None:
-                        conf_local.set("OPTIONS","static_ip",str(static_ip))
                     with open(config_local, "w") as a:
                         conf_local.write(a)
                     a.close()
@@ -1470,7 +1472,11 @@ if is_admin():
                         #conf_local.set("OPTIONS","svr_region",region)
                         conf_local.set("OPTIONS","svr_region_short",regionshort)
                         conf_local.set("OPTIONS","svr_id",str(serverid))
-                        conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+                        if static_ip is not None:
+                            conf_local.set("OPTIONS","static_ip",'True')
+                            conf_local.set("OPTIONS","svr_ip",str(static_ip))
+                        else:
+                            conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
                         conf_local.set("OPTIONS","svr_total",servertotal)
                         conf_local.set("OPTIONS","token",bottoken)
                         conf_local.set("OPTIONS","hon_directory",hondirectory)
@@ -1491,8 +1497,6 @@ if is_admin():
                         conf_local.set("OPTIONS","use_console",str(use_console))
                         conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
                         conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-                        if static_ip is not None:
-                            conf_local.set("OPTIONS","static_ip",str(static_ip))
                         with open(config_local, "w") as c:
                             conf_local.write(c)
                         c.close()
