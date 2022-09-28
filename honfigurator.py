@@ -1309,12 +1309,12 @@ if is_admin():
                         temp_dict = dmgr.mData.returnDict_basic(self,o)
                         print("disable "+str(o))
                         playercount=initialise.playerCountX(self,o)
-                        service_state = initialise.get_service(f"{app_name}{o}")
+                        service_state = initialise.get_service(f"adminbot{o}")
                         if playercount == 0:
                             if service_state:
                                 if service_state['status'] == 'running':
-                                    initialise.stop_service(self,f"{app_name}{o}",False)
-                            initialise.stop_bot(self,f"{app_name}{o}.exe")
+                                    initialise.stop_service(self,f"adminbot{o}",False)
+                            initialise.stop_bot(self,f"adminbot{o}.exe")
                             initialise.stop_bot(self,f"KONGOR_ARENA_{o}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{o}.exe")
                         elif playercount > 0:
