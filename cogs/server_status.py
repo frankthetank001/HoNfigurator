@@ -250,7 +250,7 @@ class honCMD():
         self.server_status.update({'pending_restart':False})
         self.server_status.update({'server_ready':False})
         self.server_status.update({'server_starting':True})
-        self.server_status.update({'cookie':False})
+        self.server_status.update({'cookie':True})
         if processed_data_dict['use_proxy']=='True':
             self.server_status.update({'proxy_online':True})
         self.server_status.update({'scheduled_shutdown':False})
