@@ -309,8 +309,8 @@ class heartbeat(commands.Cog):
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                                 svr_state.restartSERVER()
-                            self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
-                            self.server_status.update({'update_embeds':False})
+                                self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                                self.server_status.update({'update_embeds':False})
                     except:
                         print(traceback.format_exc())
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
