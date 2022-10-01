@@ -1249,6 +1249,8 @@ if is_admin():
                 hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
                 honreplay = os.path.join(honreplay,'')
                 
+                self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+
                 if not conf_local.has_section("OPTIONS"):
                     conf_local.add_section("OPTIONS")
                 conf_local.set("OPTIONS","svr_hoster",hoster)
@@ -1282,6 +1284,8 @@ if is_admin():
                 with open(config_local, "w") as a:
                     conf_local.write(a)
                 a.close()
+
+                self.dataDict = self.initdict.returnDict()
 
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
