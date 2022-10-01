@@ -1126,7 +1126,7 @@ if is_admin():
                             #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                             python = sys.executable
                             os.execl(python, python, * sys.argv)
-                except Exception as e: print(e)
+                except Exception as e: print(e) 
                 return True
             else:
                 print(f"Repository: {selected_branch}\nCheckout status: {checkout.stderr}")
