@@ -1124,9 +1124,8 @@ if is_admin():
                     if 'updating' in output.stdout.lower() or 'switched to branch' in checkout.stderr.lower():
                         if honfigurator.popup_bonus():
                             #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-                            base_path = os.path.dirname(sys.argv[0])
-                            os.startfile(f"{base_path}\\HoNfigurator.exe")
-                            sys.exit(0)
+                            python = sys.executable
+                            os.execl(python, python, * sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
@@ -2423,7 +2422,7 @@ if is_admin():
                                     f"Start all stopped servers with their current configuration.")
                 def Tools():
                     pass
-            def auto_refresher(): 
+            def auto_refresher():
                 global refresh_next
                 if refresh_next==True:
                     if (tabgui.index("current")) == 1:
