@@ -377,17 +377,17 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
             if arguments is not None:
@@ -401,12 +401,12 @@ if is_admin():
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
@@ -1124,9 +1124,8 @@ if is_admin():
                     if 'updating' in output.stdout.lower() or 'switched to branch' in checkout.stderr.lower():
                         if honfigurator.popup_bonus():
                             #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-                            base_path = os.path.dirname(sys.argv[0])
-                            sp.Popen([f"{base_path}\\HoNfigurator.exe"])
-                            sys.exit(0)
+                            python = sys.executable
+                            os.execl(python, python, * sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
@@ -1162,6 +1161,7 @@ if is_admin():
             global ports_to_forward_voice
 
             self.dataDict = self.initdict.returnDict()
+
             checks=True
             if " " in hoster:
                 checks=False
@@ -1185,25 +1185,14 @@ if is_admin():
                     socket.inet_aton(static_ip)
                     tex.insert(END,f"{static_ip} will be used to start your servers.\n")
                     tex.see(tk.END)
-                    self.dataDict.update({'static_ip':static_ip})
                 except socket.error:
                     # Not legal
                     checks=False
                     tex.insert(END,"FIXME: Please provide a valid IPv4 address.\n",'warning')
                     tex.see(tk.END)
             if checks==True:
-                conf_local = configparser.ConfigParser()
-                conf_global = configparser.ConfigParser()
-                #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                hondirectory = os.path.join(hondirectory, '')
-                honreplay = os.path.join(honreplay,'')
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
-                #if use_console == False:
-                if hondirectory != self.dataDict['hon_directory']:
-                    self.dataDict.update({'hon_directory':hondirectory})
-                if master_server != self.dataDict['master_server']:
-                    self.dataDict.update({'master_server':master_server})
                 initialise.add_hosts_entry(self)
                 firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',11234)
                 if honreplay != self.dataDict['hon_manager_dir']:
@@ -1251,6 +1240,52 @@ if is_admin():
                         elif playercount > 0:
                             print("scheduled shutdown of no longer required service as it sits outside the total servers range")
                             initialise.schedule_shutdown(temp_dict)
+                
+                # write config to file
+                conf_local = configparser.ConfigParser()
+                conf_global = configparser.ConfigParser()
+                
+                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+                honreplay = os.path.join(honreplay,'')
+                
+                self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+
+                if not conf_local.has_section("OPTIONS"):
+                    conf_local.add_section("OPTIONS")
+                conf_local.set("OPTIONS","svr_hoster",hoster)
+                conf_local.set("OPTIONS","svr_region_short",regionshort)
+                conf_local.set("OPTIONS","svr_id",serverid)
+                if static_ip != '':
+                    conf_local.set("OPTIONS","static_ip",'True')
+                    conf_local.set("OPTIONS","svr_ip",str(static_ip))
+                else:
+                    conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+                conf_local.set("OPTIONS","svr_total",servertotal)
+                conf_local.set("OPTIONS","token",bottoken)
+                conf_local.set("OPTIONS","hon_directory",hondirectory)
+                conf_local.set("OPTIONS","hon_manager_dir",honreplay)
+                conf_local.set("OPTIONS","discord_admin",discordadmin)
+                conf_local.set("OPTIONS","master_server",master_server)
+                conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+                conf_local.set("OPTIONS","core_assignment",core_assignment)
+                conf_local.set("OPTIONS","process_priority",process_priority)
+                conf_local.set("OPTIONS","incr_port_by",increment_port)
+                conf_local.set("OPTIONS","game_starting_port",game_port)
+                conf_local.set("OPTIONS","voice_starting_port",voice_port)
+                conf_local.set("OPTIONS","github_branch",str(selected_branch))
+                conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+                conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+                conf_local.set("OPTIONS","svr_login",svr_login)
+                conf_local.set("OPTIONS","svr_password",svr_password)
+                conf_local.set("OPTIONS","use_console",str(use_console))
+                conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+                conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+                with open(config_local, "w") as a:
+                    conf_local.write(a)
+                a.close()
+
+                self.dataDict = self.initdict.returnDict()
+
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
                         tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
@@ -1355,60 +1390,12 @@ if is_admin():
                         #     time.sleep(30)
                         self.restart_proxy.set(False)
                 if identifier == "single":
-                    self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
                     print()
                     print(f"Selected option to configure adminbot-server{serverid}\n")
                     print("==========================================")
-                    #
-                    #   local config
-                    if not conf_local.has_section("OPTIONS"):
-                        conf_local.add_section("OPTIONS")
-                    conf_local.set("OPTIONS","svr_hoster",hoster)
-                    #conf_local.set("OPTIONS","svr_region",region)
-                    conf_local.set("OPTIONS","svr_region_short",regionshort)
-                    conf_local.set("OPTIONS","svr_id",serverid)
-                    if static_ip != '':
-                        conf_local.set("OPTIONS","static_ip",'True')
-                        conf_local.set("OPTIONS","svr_ip",str(static_ip))
-                    else:
-                        conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
-                    conf_local.set("OPTIONS","svr_total",servertotal)
-                    conf_local.set("OPTIONS","token",bottoken)
-                    conf_local.set("OPTIONS","hon_directory",hondirectory)
-                    conf_local.set("OPTIONS","hon_manager_dir",honreplay)
-                    conf_local.set("OPTIONS","discord_admin",discordadmin)
-                    conf_local.set("OPTIONS","master_server",master_server)
-                    conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
-                    conf_local.set("OPTIONS","core_assignment",core_assignment)
-                    conf_local.set("OPTIONS","process_priority",process_priority)
-                    conf_local.set("OPTIONS","incr_port_by",increment_port)
-                    conf_local.set("OPTIONS","game_starting_port",game_port)
-                    conf_local.set("OPTIONS","voice_starting_port",voice_port)
-                    conf_local.set("OPTIONS","github_branch",str(selected_branch))
-                    conf_local.set("OPTIONS","debug_mode",str(debug_mode))
-                    conf_local.set("OPTIONS","use_proxy",str(use_proxy))
-                    conf_local.set("OPTIONS","svr_login",svr_login)
-                    conf_local.set("OPTIONS","svr_password",svr_password)
-                    conf_local.set("OPTIONS","use_console",str(use_console))
-                    conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
-                    conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-                    with open(config_local, "w") as a:
-                        conf_local.write(a)
-                    a.close()
-                    #
-                    #   global values
-                    # if not conf_global.has_section("OPTIONS"):
-                    #     conf_global.add_section("OPTIONS")
-                    # conf_global.set("OPTIONS","bot_version",self.dataDict['bot_version'])
-
-                    # with open(config_global, "w") as b:
-                    #     conf_global.write(b)
-                    # b.close()
-                    
-
                     initialise().configureEnvironment(self,force_update,use_console)
                     hon_api_updated = False
-                if identifier == "all":
+                elif identifier == "all":
                     #tex.insert(END,"==========================================\n")
                     print("Selected option to configure ALL servers\n")
                     for i in range(0,int(servertotal)):
