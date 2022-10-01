@@ -87,6 +87,7 @@ class heartbeat(commands.Cog):
             await asyncio.sleep(1)
             try:
                 playercount = svrcmd.honCMD.playerCount(self)
+                print(playercount)
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -97,7 +98,24 @@ class heartbeat(commands.Cog):
                 except:
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    
+            if playercount == -3:
+                if 'crash' in self.server_status:
+                    if self.server_status['crash'] == True:
+                        if self.server_status['server_start_attempts'] <= 3:
+                            start_attempts=self.server_status['server_start_attempts']
+                            # server may have crashed, check if we can restart.
+                            try:
+                                if svr_state.startSERVER(False):
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {self.processed_data_dict['hon_game_dir']} for any crash dump files.","WARNING")
+                                    continue
+                                else:
+                                    start_attempts+=1
+                                    self.server_status.update({'server_start_attempts':start_attempts})
+                            except:
+                                start_attempts+=1
+                                self.server_status.update({'server_start_attempts':start_attempts})
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             if playercount >=0:
                 try:
                     counter_health_checks +=1
@@ -549,6 +567,24 @@ class heartbeat(commands.Cog):
                 except:
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+            if playercount == -3:
+                if 'crash' in server_status_bkp:
+                    if server_status_bkp['crash'] == True:
+                        if server_status_bkp['server_start_attempts'] <= 3:
+                            start_attempts=server_status_bkp['server_start_attempts']
+                            # server may have crashed, check if we can restart.
+                            try:
+                                if svr_state.startSERVER(False):
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {processed_data_dict_bkp['hon_game_dir']} for any crash dump files.","WARNING")
+                                    continue
+                                else:
+                                    start_attempts+=1
+                                    server_status_bkp.update({'server_start_attempts':start_attempts})
+                            except:
+                                start_attempts+=1
+                                server_status_bkp.update({'server_start_attempts':start_attempts})
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if playercount == 0:
                     counter_ipcheck +=1

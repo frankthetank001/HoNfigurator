@@ -1,15 +1,15 @@
 #from cogs.dataManager import mData
 import cogs.dataManager as dmgr
+import cogs.homecoming as udp_lsnr
 import os
 import subprocess
 import psutil
 from os.path import exists
+from threading import Thread
 import glob
 import time
 import shutil
-import ctypes, sys
 from datetime import datetime
-import asyncio
 import traceback
 import re
 
@@ -256,6 +256,8 @@ class honCMD():
         self.server_status.update({'scheduled_shutdown':False})
         self.server_status.update({'update_embeds':True})
         self.server_status.update({"hard_reset":False})
+        self.server_status.update({'crash':True})
+        self.server_status.update({'server_start_attempts':0})
         #self.server_status.update({'restarting_server':False})
 
         #
@@ -268,6 +270,17 @@ class honCMD():
         running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
         if self.playerCount() < 0:
             returnlist = []
+
+            if honCMD.check_port(11234) == False:
+                try:
+                    # create a thread
+                    thread = Thread(target=udp_lsnr.Listener.start_listener)
+                    thread.start()
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}\nCouldn't start the UDP listener required for auto server selection",f"{traceback.format_exc()}","WARNING")
+
+
             free_mem = psutil.virtual_memory().free
             if free_mem > 1000000000:
                 ram = True
@@ -378,6 +391,7 @@ class honCMD():
                 honCMD().initialise_variables()
                 return True
             else:
+                self.server_status.update({'crash':True})
                 return "ram"
         elif running and from_react == False:
             print("detected already running hon instance, attempting to hook on..")
@@ -417,6 +431,7 @@ class honCMD():
             #        print(traceback.format_exc())
             #        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             self.server_status.update({'update_embeds':True})
+            self.server_status.update({'crash':False})
             return True
         return
     def forceSERVER(self):
