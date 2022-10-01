@@ -41,7 +41,6 @@ def resource_path(relative_path):
         #base_path = os.path.abspath(".")
         base_path = os.path.dirname(sys.argv[0])
         #print("running from base "+base_path)
-
     return os.path.join(base_path, relative_path)
 
 class mData():
@@ -121,6 +120,7 @@ class mData():
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
+        self.confDict.update({"hon_version":mData.check_hon_version(self,self.confDict['hon_exe'])})
         self.confDict.update({"proxy_exe":f"{self.confDict['hon_directory']}proxy.exe"})
         self.confDict.update({"proxy_manager_exe":f"{self.confDict['hon_directory']}proxymanager.exe"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
@@ -222,6 +222,17 @@ class mData():
             for option in conf_parse_temp_global.options("OPTIONS"):
                 confDict_temp.update({option:conf_parse_temp_global['OPTIONS'][option]})
         return confDict_temp
+    def return_value(path,value):
+        temp={}
+        print(f"config path: {path}")
+        if exists(path):
+            conf_parse_temp_local.read(path)
+            for option in conf_parse_temp_local.options("OPTIONS"):
+                temp.update({option:conf_parse_temp_local['OPTIONS'][option]})
+        if value in temp:
+            return temp[value]
+        return False
+        
     # def setData(self,key):
     #     temp={}
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
@@ -275,6 +286,14 @@ class mData():
                 incr_port = incr_val * i
             #print("port iteration: " +str(incr_port))
             return incr_port
+    def check_hon_version(self,file):
+        version_length=0
+        version_offset=88544
+        hon_x64=open(file,'rb')
+        hon_x64.seek(version_offset,1)
+        version=hon_x64.read(16)
+        return(version.decode('utf-16-le'))
+
     def getData(self, dtype):
         if dtype == "hon":
             return "data"

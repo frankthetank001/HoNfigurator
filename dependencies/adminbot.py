@@ -57,7 +57,7 @@ if is_admin():
     svr_id = processed_data_dict['svr_id']
     svr_id = int(svr_id)
     svr_id_delay = svr_id * 20
-    print(svr_id)
+    #print(svr_id)
     #svr_id_delay = 0
     svr_identifier = processed_data_dict['svr_identifier']
     svr_hoster = processed_data_dict['svr_hoster']
