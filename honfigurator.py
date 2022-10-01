@@ -377,17 +377,17 @@ if is_admin():
             return True
 
         def create_service_bot(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
             if arguments is not None:
@@ -401,12 +401,12 @@ if is_admin():
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
-            if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+            if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
