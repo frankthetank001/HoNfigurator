@@ -6,9 +6,13 @@ class Listener():
     def __init__():
         return
     def start_listener():
+        returnDict = mData().returnDict()
         # listener
         server_address = '0.0.0.0'
-        server_port = 11234
+        if returnDict['use_proxy'] == 'False':
+            server_port = int(returnDict['game_starting_port']) - 1
+        else:
+            server_port = int(returnDict['game_starting_port']) + 10000 - 1
         bufferSize  = 1460
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -16,9 +20,6 @@ class Listener():
         """
             data from server
         """
-        base_path = os.path.dirname(sys.argv[0])
-        print(base_path)
-        returnDict = mData().returnDict()
         try:
             serverName = str.encode(returnDict['svr_hoster'],'utf8')
         except Exception as e:

@@ -1462,7 +1462,11 @@ if is_admin():
                         initialise().configureEnvironment(self,force_update,use_console)
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
                 tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
-                tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice))+'\n')
+                tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
+                if self.dataDict['use_proxy'] == 'False':
+                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                else:
+                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
                 tex.see(tk.END)
                 return
 
