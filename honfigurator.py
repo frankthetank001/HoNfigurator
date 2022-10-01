@@ -1125,7 +1125,7 @@ if is_admin():
                         if honfigurator.popup_bonus():
                             #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                             base_path = os.path.dirname(sys.argv[0])
-                            sp.Popen([f"{base_path}\\HoNfigurator.exe"])
+                            os.startfile(f"{base_path}\\HoNfigurator.exe")
                             sys.exit(0)
                 except Exception as e: print(e)
                 return True
