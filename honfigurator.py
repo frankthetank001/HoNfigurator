@@ -379,42 +379,70 @@ if is_admin():
         def create_service_bot(self,service_name):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+            try:
+                sp.run(['nssm', "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+            except:
+                sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
+            try:
+                sp.run(['nssm', "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
+            except:
+                sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
-            if arguments is not None:
-                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            if service_name == "HoN Server Manager":
-                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
-            elif service_name == "HoN Proxy Manager":
-                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
+            try:
+                sp.run(['nssm', "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
+                if arguments is not None:
+                    sp.run(['nssm', "set",service_name,"AppParameters",arguments])
+                sp.run(['nssm', "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
+                sp.run(['nssm', "set",service_name,"Start","SERVICE_DEMAND_START"])
+                sp.run(['nssm', "set",service_name,f"AppExit","Default","Restart"])
+                if service_name == "HoN Server Manager":
+                    sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
+                elif service_name == "HoN Proxy Manager":
+                    sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
+            except:
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
+                if arguments is not None:
+                    sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
+                if service_name == "HoN Server Manager":
+                    sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
+                elif service_name == "HoN Proxy Manager":
+                    sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             return True
         def configure_service_api(self,service_name):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
+            try:
+                sp.run(['nssm', "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
+            except:
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
-            return True
+            try:
+                sp.run(['nssm', "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+                sp.run(['nssm', "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
+                sp.run(['nssm', "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
+                sp.run(['nssm', "set",service_name,"Start","SERVICE_DEMAND_START"])
+                sp.run(['nssm', "set",service_name,f"AppExit","Default","Restart"])
+                sp.run(['nssm', "set",service_name,"AppParameters",f"adminbot.py"])
+            except:
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
+                sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
 
         def restart_service(self,service_name):
             try:
