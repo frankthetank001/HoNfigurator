@@ -120,7 +120,8 @@ class mData():
             self.confDict.update({"hon_file_name":f"KONGOR_ARENA_{self.svr_id}.exe"})
         #
         self.confDict.update({"hon_exe":f"{self.confDict['hon_directory']}{self.confDict['hon_file_name']}"})
-        self.confDict.update({"hon_version":mData.check_hon_version(self,self.confDict['hon_exe'])})
+        #self.confDict.update({"hon_version":mData.check_hon_version(self,self.confDict['hon_exe'])})
+        self.confDict.update({"hon_version":mData.check_hon_version(self,f"{self.confDict['hon_directory']}hon_x64.exe")})
         self.confDict.update({"proxy_exe":f"{self.confDict['hon_directory']}proxy.exe"})
         self.confDict.update({"proxy_manager_exe":f"{self.confDict['hon_directory']}proxymanager.exe"})
         self.confDict.update({"svr_k2dll":f"{self.confDict['hon_directory']}k2_x64.dll"})
