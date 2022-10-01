@@ -12,7 +12,7 @@ import subprocess as sp
 
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
-from tkinter import *
+from tkinter import Button,Label,Entry
 from tkinter import getboolean, ttk
 import configparser
 import psutil
@@ -31,6 +31,7 @@ import traceback
 # task scheduler component, didn't quite work as I intended
 #import win32com.client
 import datetime
+from threading import Thread
 from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
@@ -161,6 +162,8 @@ if is_admin():
                 if proc.name() == proc_name:
                     proc.kill()
         def add_hosts_entry(self):
+            global ip_addr
+
             hosts = Hosts(path='c:\\windows\\system32\\drivers\\etc\\hosts')
             mserver = self.dataDict['master_server']
             add_mserver=False
@@ -358,43 +361,16 @@ if is_admin():
                     sp.Popen(['net','start',f'{service_name}'])
                 else:
                     sp.run(['net','start',f'{service_name}'])
-                # waiting = True
-                # threshold = 15
-                # o=0
-                # while waiting:
-                #     o+=1
-                #     service = initialise.get_service(service_name)
-                #     print(f"\nwaiting for service to start.. {o}/{threshold}secs remaining")
-                #     if service['status'] == 'running' or service['status'] == 'start_pending':
-                #         print(f"{service_name} started")
-                #         return True
-                #     time.sleep(1)
-                #     if o == threshold:
-                #         return False
             except:
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
         def stop_service(self,service_name,deployed):
             try:
-                #os.system(f'net stop "{service_name}"')
                 if deployed:
                     sp.Popen(['net','stop',f'{service_name}'])
                 else:
                     sp.run(['net','stop',f'{service_name}'])
-                # waiting = True
-                # threshold = 15
-                # o=0
-                # while waiting:
-                #     o+=1
-                #     service = initialise.get_service(service_name)
-                #     print(f"\nwaiting for service to stop.. {o}/{threshold}secs remaining")
-                #     if service['status'] == 'stopped':
-                #         print(f"{service_name} stopped")
-                #         return True
-                #     time.sleep(1)
-                #     if o == threshold:
-                #         return False
             except:
                 print ('could not stop service {}'.format(service_name))
                 return False
@@ -414,16 +390,11 @@ if is_admin():
             if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
-            #time.sleep
             if arguments is not None:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
-                #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.dataDict['hon_directory']}"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            #time.sleep(1)
             if service_name == "HoN Server Manager":
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
             elif service_name == "HoN Proxy Manager":
@@ -438,54 +409,21 @@ if is_admin():
             if not exists(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppDirectory",f"{self.sdc_home_dir}"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppStderr",f"{self.sdc_home_dir}\\{self.service_name_bot}.log"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
-            #time.sleep(1)
             sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
             return True
 
         def restart_service(self,service_name):
             try:
-                #os.system(f'net stop "{service_name}"')
                 sp.run(['net','stop',f'{service_name}'])
-                # waiting = True
-                # threshold = 15
-                # o=0
-                # while waiting:
-                #     o+=1
-                #     service = initialise.get_service(service_name)
-                #     print(f"waiting for service to start.. {o}/{threshold}secs remaining")
-                #     if service['status'] == 'stopped':
-                #         print(f"{service_name} started")
-                #         waiting=False
-                #     time.sleep(1)
-                #     if o == threshold:
-                #         return False
             except:
                 print ('could not stop service {}'.format(service_name))
                 return False
             try:
-                #os.system(f'net start "{service_name}"')
                 sp.run(['net','start',f'{service_name}'])
-                # waiting = True
-                # threshold = 15
-                # o=0
-                # while waiting:
-                #     o+=1
-                #     service = initialise.get_service(service_name)
-                #     print(f"waiting for service to start.. {o}/{threshold}secs remaining")
-                #     if service['status'] == 'running' or service['status'] == 'start_pending':
-                #         print(f"{service_name} started")
-                #         waiting=False
-                #     time.sleep(1)
-                #     if o == threshold:
-                #         return False
             except:
                 print ('could not start service {}'.format(service_name))
                 return False
@@ -517,13 +455,6 @@ if is_admin():
             iter = self.dataDict['incr_port']
             svr_identifier = self.dataDict['svrid_total']
             svr_ip = self.dataDict['svr_ip']
-            # networking = ["svr_proxyPort","svr_proxyRemoteVoicePort"]
-            # for i in networking:
-            #     temp_port = self.base[i]
-            #     temp_port = temp_port.strip('"')
-            #     temp_port = int(temp_port)
-            #     temp_port = temp_port + iter
-            #     self.startup.update({i:f'"{temp_port}"'})
             if type == "startup":
                 print("customising startup.cfg with the following values")
                 print("svr_id: " + str(serverID))
@@ -531,19 +462,6 @@ if is_admin():
                 print("svr_location: " + str(location))
                 print("svr_total: " + str(svr_total))
                 print("svr_ip: " + str(svr_ip))
-                #self.startup = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
-                    # if i == "svr_port":
-                    #     print("svr_port: "+str(temp_port))
-                    # if i == "svr_proxyPort" and self.dataDict['use_proxy'] == True:
-                    #     print("svr_proxyPort: "+str(temp_port))
-                    # if i == "svr_proxyLocalVoicePort" and self.dataDict['use_proxy'] == True:
-                    #     print("voice_port"+str(temp_port))
-                # if self.dataDict['use_proxy'] == True:
-                #     tem_game_port_proxy = int(game_port_proxy)
-                #     tem_voice_port_proxy = int(voice_port_proxy)
-                #     tem_game_port_proxy = tem_game_port_proxy + iter
-                #     tem_voice_port_proxy = tem_voice_port_proxy + iter
-                #     self.startup.update({'svr_proxyPort':f'"{tem_game_port_proxy}"'})
                 self.startup.update({'svr_port':f'"{svr_port}"'})
                 self.startup.update({'svr_proxyPort':f'"{svr_proxyport}"'})
                 self.startup.update({'svr_proxyLocalVoicePort':f'"{voicelocal}"'})
@@ -558,12 +476,8 @@ if is_admin():
                     print("svr_proxyPort: " + str(svr_proxyport))
                     print("svr_voiceProxyPort: " + str(voiceremote))
                     print("Because of use of HoN Proxy, the above values are the ones which must be port forwarded.")
-                    # tem_game_port +=10000
-                    # tem_voice_port +=10000
                 else:
                     self.startup.update({"man_enableProxy":f'"false"'})
-                    # tem_game_port_proxy +=10000
-                    # tem_voice_port_proxy +=10000
                 self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
                 self.startup.update({"svr_location":f'"{location}"'})
                 self.startup.update({"svr_ip":f'"{svr_ip}"'})
@@ -592,6 +506,22 @@ if is_admin():
                     add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" program=\"{application}\" dir=in action=allow")
                     print("firewall rule added.")
                     tex.insert(END,f"Windows firewall configured for application: {application}\n")
+                    return True
+            except: 
+                print(traceback.format_exc())
+                return False
+        def configure_firewall_port(self,name,port):
+            try:
+                check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
+                if check_rule == 0:
+                    add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    print("firewall rule modified.")
+                    tex.insert(END,f"Windows firewall configured for port: {port}\n")
+                    return True
+                elif check_rule == 1:
+                    add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    print("firewall rule added.")
+                    tex.insert(END,f"Windows firewall configured for port: {port}\n")
                     return True
             except: 
                 print(traceback.format_exc())
@@ -917,7 +847,7 @@ if is_admin():
                             bot_running=initialise.check_proc(f"{self.service_name_bot}.exe")
                             if use_console and bot_running:
                                 tex.insert(END,"Players are connected. A scheduled shutdown is being performed. HoNfigurator is unable to automatically reconfigure windows services to start in console mode, due to system limitation.\nPlease start your services manually in the admin tab once the scheduled shutdown is complete.",'warning')
-                                initialise.schedule_shutdown(self)
+                                initialise.schedule_shutdown(self.deployed_status)
                             elif use_console and bot_running == False:
                                 initialise.start_bot(self,False)
                             else:
@@ -1191,12 +1121,12 @@ if is_admin():
                 tex.insert(END,"==========================================\n")
                 #os.execv(sys.argv[0], sys.argv)
                 try:
-                    if 'Updating' in output.stdout or 'Switched to branch' in checkout.stderr:
+                    if 'updating' in output.stdout.lower() or 'switched to branch' in checkout.stderr.lower():
                         if honfigurator.popup_bonus():
-                            #test
-                            path=os.path.abspath(__file__)
-                            path=f"\"{path}\""
-                            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                            #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                            base_path = os.path.dirname(sys.argv[0])
+                            sp.Popen([f"{base_path}\\HoNfigurator.exe"])
+                            sys.exit(0)
                 except Exception as e: print(e)
                 return True
             else:
@@ -1275,6 +1205,7 @@ if is_admin():
                 if master_server != self.dataDict['master_server']:
                     self.dataDict.update({'master_server':master_server})
                 initialise.add_hosts_entry(self)
+                firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',11234)
                 if honreplay != self.dataDict['hon_manager_dir']:
                     force_update = True
                     if not exists(honreplay):
@@ -1335,8 +1266,8 @@ if is_admin():
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
                 manager_application=f"KONGOR ARENA MANAGER.exe"
-                manager_arguments=f"-manager -noconfig -execute \"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {master_server}"
-                manager_arguments_console=f"Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+                manager_arguments=f"-manager -noconfig -execute \"Set svr_port 11234; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {master_server}"
+                manager_arguments_console=f"Set svr_port 11234; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
                 os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
 
                 manager_running=svrcmd.honCMD.check_proc(manager_application)
@@ -1880,19 +1811,20 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
                     f"Configure the currently selected server ID only.")
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: self.sendData("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_allbutton, \
                     f"Configure ALL total servers.")
-            tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: self.update_repository(NULL,NULL,NULL))
+            tab1_updatebutton = applet.Button(tab1, text="Update HoNfigurator",command=lambda: Thread(target=self.update_repository,args=(NULL,NULL,NULL)).start())
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: self.forceupdate_hon(tab1_hondird.get(),tab1_masterserver.get()))
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(tab1_hondird.get(),tab1_masterserver.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2078,10 +2010,9 @@ if is_admin():
                     global refresh_next
                     refresh_next=False
                     if (tabgui.index("current")) == 0:
-                        ver=honfigurator.return_currentver(self)
-                        ver=ver[1]
+                        ver=dmgr.mData.check_hon_version(self,self.dataDict['hon_exe'])
                         status = Entry(app,background=maincolor,foreground='white',width="200")
-                        status.insert(0,ver)
+                        status.insert(0,f"HoN Server Version: {ver}")
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
                         if len(args) >= 1 and type(args[0]) is int:
@@ -2401,7 +2332,7 @@ if is_admin():
                                 labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                    f"version {deployed_status['bot_version']}")
+                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {self.dataDict['hon_version']}")
                                 except: pass
                             elif index1==1:
                                 labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')

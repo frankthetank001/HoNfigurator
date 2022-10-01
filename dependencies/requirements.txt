@@ -1,9 +1,6 @@
 discord.py==1.7.3
-pillow
-psutil
-wmi
-getmac
-pygit2
-gitpython
-python-hosts
-pkg-resources
+GitPython==3.1.27
+psutil==5.9.1
+pygit2==1.10.0
+python_hosts==1.0.3
+WMI==1.5.1
