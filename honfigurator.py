@@ -1222,7 +1222,11 @@ if is_admin():
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
                 initialise.add_hosts_entry(self)
-                firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',11234)
+                if self.dataDict['use_proxy'] == 'False':
+                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) - 1)
+                else:
+                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) + 10000 - 1)
                 if honreplay != self.dataDict['hon_manager_dir']:
                     force_update = True
                     if not exists(honreplay):
