@@ -2423,7 +2423,7 @@ if is_admin():
                                     f"Start all stopped servers with their current configuration.")
                 def Tools():
                     pass
-            def auto_refresher():
+            def auto_refresher(): 
                 global refresh_next
                 if refresh_next==True:
                     if (tabgui.index("current")) == 1:
