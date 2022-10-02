@@ -276,7 +276,7 @@ if is_admin():
                     print("starting behemoth heart.")
                     await ctx.invoke(bot.get_command('startheart'))
                 except UnboundLocalError:
-                    temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {svr_identifier}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
+                    temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {processed_data_dict['svr_hoster']}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
                     try:
                         await discord_admin.send(temp_log)
                     except discord.errors.Forbidden:
