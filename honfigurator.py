@@ -1358,7 +1358,7 @@ if is_admin():
                 if force_update or manager_running==False:
                     if service_manager:
                         if use_console == False:
-                            initialise.configure_service_generic(self,service_manager_name,manager_application,None)
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.stop_service(self,service_manager_name,False)
                         else:
