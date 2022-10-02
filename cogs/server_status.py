@@ -270,8 +270,11 @@ class honCMD():
         running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
         if self.playerCount() < 0:
             returnlist = []
-
-            if honCMD.check_port(11234) == False:
+            if processed_data_dict['use_proxy'] == 'False':
+                udp_listener_port = int(processed_data_dict['game_starting_port']) - 1
+            else:
+                udp_listener_port = int(processed_data_dict['game_starting_port']) + 10000 - 1
+            if honCMD.check_port(udp_listener_port) == False:
                 try:
                     # create a thread
                     thread = Thread(target=udp_lsnr.Listener.start_listener)

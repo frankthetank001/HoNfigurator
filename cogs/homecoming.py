@@ -21,7 +21,7 @@ class Listener():
             data from server
         """
         try:
-            serverName = str.encode(returnDict['svr_hoster'],'utf8')
+            serverName = str.encode(f"{returnDict['svr_hoster']} 0",'utf8')
         except Exception as e:
             print(e)
         version = str.encode(returnDict['hon_version'],'utf8')
