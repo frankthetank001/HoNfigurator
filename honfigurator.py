@@ -202,7 +202,10 @@ if is_admin():
             if add_mserver:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
-                add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=[f'client.sea.heroesofnewerth.com  {mserver}   #required by hon as this address is frequently used to poll for match stats'])
+                if 'kongor.online' in mserver:
+                    add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=[f'client.sea.heroesofnewerth.com  {mserver} kongor.online  #required by hon as this address is frequently used to poll for match stats'])
+                else:
+                    add_entry = HostsEntry(entry_type='ipv4', address=ip_addr, names=[f'client.sea.heroesofnewerth.com  {mserver}  #required by hon as this address is frequently used to poll for match stats'])
             else:
                 hosts.remove_all_matching(name='client.sea.heroesofnewerth.com')
                 hosts.write()
