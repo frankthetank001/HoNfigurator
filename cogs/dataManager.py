@@ -203,6 +203,10 @@ class mData():
         if 'incr_port_by' not in self.confDict_deployed:
             self.confDict_deployed.update({'incr_port_by':self.confDict_root['incr_port_by']})
         self.confDict_deployed.update({"incr_port":mData.incr_port(int(svr_id),self.confDict_deployed['incr_port_by'])})
+        if 'game_starting_port' not in self.confDict_deployed:
+            self.confDict_deployed.update({'game_starting_port':self.confDict_root['game_starting_port']})
+        if 'voice_starting_port' not in self.confDict_deployed:
+            self.confDict_deployed.update({'voice_starting_port':self.confDict_root['voice_starting_port']})
         self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
         self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
@@ -325,6 +329,13 @@ class mData():
                 for num in range(0, self.svr_id):
                     # checking condition
                     if num % 2 == 0:
+                        t +=1
+            elif self.confDict['core_assignment'] == 'three servers/core':
+                affinity = [0,0]
+                t = 0
+                for num in range(0, self.svr_id):
+                    # checking condition
+                    if num % 3 == 0:
                         t +=1
                 affinity[0] = total_cores - t
                 affinity[1] = total_cores - t

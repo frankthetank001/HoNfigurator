@@ -47,12 +47,17 @@ if getattr(sys, 'frozen', False):
 elif __file__:
     application_path = os.path.dirname(__file__)
 if is_admin():
+    def show_exception_and_exit(exc_type, exc_value, tb):
+        traceback.print_exception(exc_type, exc_value, tb)
+        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+        sys.exit(-1)
+    sys.excepthook = show_exception_and_exit
+
     config_global = os.path.abspath(application_path)+"\\config\\global_config.ini"
     config_default = f"{os.path.abspath(application_path)}\\config\\default_config.ini"
     config_local = os.path.abspath(application_path)+"\\config\\local_config.ini"
     if not exists(config_local):
         shutil.copy(config_default,config_local)
-
     import cogs.server_status as svrcmd
     import cogs.dataManager as dmgr
 
@@ -223,11 +228,13 @@ if is_admin():
                 print(bcolors.FAIL +"ERROR CHECKING HASHES, please obtain correct server binaries" + bcolors.ENDC)
                 tex.insert(END,"ERROR CHECKING HASHES, please obtain correct server binaries\n",'warning')
                 tex.insert(END,"continuing anyway")
+                tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
                 return True
             elif rc == 3:
                 print(bcolors.FAIL +"ERROR GETTING MAC ADDR" + bcolors.ENDC)
                 tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
+                tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
                 return True
         # Task scheduler for updating honfigurator, didn't quite work as I wanted.
@@ -337,6 +344,7 @@ if is_admin():
             else:
                 print(f"Port {int(port)} is not open")
                 tex.insert(END,f"Port {int(port)} is not open\n",'warning')
+                tex.see(tk.END)
                 return False
 
         def playerCountX(self,svr_id):
@@ -532,11 +540,13 @@ if is_admin():
                     add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new program=\"{application}\" dir=in action=allow")
                     print("firewall rule modified.")
                     tex.insert(END,f"Windows firewall configured for application: {application}\n")
+                    tex.see(tk.END)
                     return True
                 elif check_rule == 1:
                     add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" program=\"{application}\" dir=in action=allow")
                     print("firewall rule added.")
                     tex.insert(END,f"Windows firewall configured for application: {application}\n")
+                    tex.see(tk.END)
                     return True
             except: 
                 print(traceback.format_exc())
@@ -548,11 +558,13 @@ if is_admin():
                     add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
                     print("firewall rule modified.")
                     tex.insert(END,f"Windows firewall configured for port: {port}\n")
+                    tex.see(tk.END)
                     return True
                 elif check_rule == 1:
                     add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
                     print("firewall rule added.")
                     tex.insert(END,f"Windows firewall configured for port: {port}\n")
+                    tex.see(tk.END)
                     return True
             except: 
                 print(traceback.format_exc())
@@ -591,7 +603,8 @@ if is_admin():
             print("==========================================")
             print("CHECKING EXISTING HON ENVIRONMENT")
             print("==========================================")
-            tex.insert(END,f"================= {self.service_name_bot} ===================\n")
+            tex.insert(END,f"\n================= {self.service_name_bot} ===================\n")
+            tex.see(tk.END)
 
             if exists(f"{self.hon_home_dir}\\Documents"):
                 #os.environ["USERPROFILE"] = self.hon_home_dir
@@ -707,6 +720,7 @@ if is_admin():
             if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
                 if bot_needs_update or force_update == True:
                     tex.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
+                    tex.see(tk.END)
                 # check if exe's need to be copied, either it doesn't exist or the hash is different.
                 if self.dataDict['master_server'] == "honmasterserver.com":
                     exe_path=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe"
@@ -793,6 +807,7 @@ if is_admin():
                     if service_api['status'] == 'running' or service_api['status'] == 'paused':
                         if force_update != True and bot_needs_update != True:
                             tex.insert(END,"HON Registration API STATUS: RUNNING\n")
+                            tex.see(tk.END)
                         elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
                             initialise.stop_service(self,self.service_name_api,False)
                             #time.sleep(1)
@@ -802,6 +817,7 @@ if is_admin():
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                                 except PermissionError:
                                     tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n",'warning')
+                                    tex.see(tk.END)
                                     print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n" + bcolors.ENDC)
                                 except: print(traceback.format_exc())
                             if initialise.configure_service_api(self,self.service_name_api):
@@ -814,6 +830,7 @@ if is_admin():
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             except PermissionError:
                                 tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n",'warning')
+                                tex.see(tk.END)
                                 print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n") + bcolors.ENDC
                             except: print(traceback.format_exc())
                             #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
@@ -829,6 +846,7 @@ if is_admin():
                             tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                         else:
                             tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
+                        tex.see(tk.END)
                         print("==========================================")
                 else:
                     bot_needs_update = True
@@ -845,6 +863,7 @@ if is_admin():
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                     else:
                         tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
+                    tex.see(tk.END)
                     print("==========================================")
             # if force_update or bot_needs_update or bot_first_launch:
             #     #Compile bot code into exe
@@ -856,6 +875,7 @@ if is_admin():
                     initialise.configure_service_bot(self,self.service_name_bot)
                 if service_bot['status'] == 'running' or service_bot['status'] == 'paused':
                     tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot}: RUNNING\n")
+                    tex.see(tk.END)
                     if force_update == True or bot_needs_update == True:
                         svr_state = svrcmd.honCMD()
                         svr_state.getDataDict()
@@ -933,6 +953,7 @@ if is_admin():
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                         else:
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                        tex.see(tk.END)
                         print("==========================================")
                     print(self.service_name_bot)
             else:
@@ -956,6 +977,7 @@ if is_admin():
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
                 if players_connected == True:
                     tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
+                    tex.see(tk.END)
                     print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 if self.dataDict['use_proxy'] == 'False':
                     tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
@@ -1019,7 +1041,7 @@ if is_admin():
                     repositories.append(repos)            
             return repositories
         def coreassign(self):
-            return ["one","two","two servers/core"]
+            return ["one","two","two servers/core","three servers/core"]
         def incrementport(self):
             return["1","10","100","200","500","1000"]
         def priorityassign(self):
@@ -1108,7 +1130,7 @@ if is_admin():
         def regions(self):
             return ["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]
         def masterserver(self):
-            return ["kongor.online:666","api.kongor.online","honmasterserver.com"]
+            return ["api.kongor.online","kongor.online:666","honmasterserver.com"]
         # def reg_def_link(self,var,index,mode):
         #     reglist = self.regions()
         #     svrloc = str(self.svr_loc.get()).lower()
@@ -2081,25 +2103,33 @@ if is_admin():
                             log_File = f"Slave*.log"
                         else:
                             log_File = f"Slave*{id}*.clog"
-                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                        latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
-                        warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
-                        with open(latest_file,'r',encoding='utf-16-le') as file:
-                            for line in file:
-                                tem=line.lower()
-                                if any(x.lower() in tem for x in warnings):
-                                    tex.insert(tk.END,line,'warning')
-                                elif any(x.lower() in tem for x in info):
-                                    tex.insert(tk.END,line,'interest')
-                                else:
-                                    tex.insert(tk.END,line)
+                        try:
+                            list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                            latest_file = max(list_of_files, key=os.path.getctime)
+                            info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
+                            warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
+                            with open(latest_file,'r',encoding='utf-16-le') as file:
+                                for line in file:
+                                    tem=line.lower()
+                                    if any(x.lower() in tem for x in warnings):
+                                        tex.insert(tk.END,line,'warning')
+                                    elif any(x.lower() in tem for x in info):
+                                        tex.insert(tk.END,line,'interest')
+                                    else:
+                                        tex.insert(tk.END,line)
+                            tex.see(tk.END)
+                        except ValueError:
+                            print("This service has most likely yet to be configured.")
+                            tex.insert(END,"This service has most likely yet to be configured.",'WARNING')
+                            tex.see(tk.END)
+
                     if (tabgui2.index("current")) == 1:
                         if pcount > 0:
                             logs_dir = f"{deployed_status['hon_logs_dir']}\\"
                             log_File = "M*.log"
                         else:
                             tex.insert(END,'No match in progress.')
+                            tex.see(tk.END)
                             return
                         list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                         latest_file = max(list_of_files, key=os.path.getctime)
@@ -2114,6 +2144,7 @@ if is_admin():
                                     tex.insert(tk.END,line,'interest')
                                 else:
                                     tex.insert(tk.END,line)
+                        tex.see(tk.END)
                     if (tabgui2.index("current")) == 2:
                         logs_dir = f"{deployed_status['sdc_home_dir']}\\"
                         log_File = f"adminbot{id}.log"
@@ -2123,6 +2154,7 @@ if is_admin():
                             for line in file:
                                 tem=line.lower()
                                 tex.insert(tk.END,line)
+                        tex.see(tk.END)
                     if (tabgui2.index("current")) == 3:
                         logs_dir1 = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
                         #logs_dir2 = f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager\\"
@@ -2139,6 +2171,7 @@ if is_admin():
                                     tex.insert(tk.END,line,'warning')
                                 else:
                                     tex.insert(tk.END,line)
+                        tex.see(tk.END)
                     status = Entry(app,background=maincolor,foreground='white',width="200")
                     status.insert(0,f"Viewing hon_server_{id}: {latest_file}")
                     status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
@@ -2202,6 +2235,7 @@ if is_admin():
                                     tex.insert(END,f"{service_name} stopped successfully.\n")
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
+                                tex.see(tk.END)
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         if bot_running:
                                 # if deployed_status['use_console'] == 'False':
@@ -2253,12 +2287,14 @@ if is_admin():
                                 viewButton.load_server_mgr(self)
                             else:
                                 tex.insert(END,f"{service_name} failed to stop.\n")
+                            tex.see(tk.END)
                         service_state = initialise.get_service(service_name)
                         if service_state == False or service_state['status'] == 'stopped':
                             try:
                                 #shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played")
                                 rem = shutil.rmtree(deployed_status['hon_home_dir'],onerror=honfigurator.onerror)
                                 tex.insert(END,f"removed files: {deployed_status['hon_home_dir']}")
+                                tex.see(tk.END)
                             except Exception as e:
                                 print(e)
                             try:
@@ -2268,6 +2304,7 @@ if is_admin():
                     else:
                         print("[ABORT] players are connected. You must stop the service before uninstalling..")
                         tex.insert(END,"[ABORT] players are connected. You must stop the service before uninstalling..\n")
+                        tex.see(tk.END)
                         initialise.schedule_shutdown(deployed_status)
             #app.attributes("-topmost",True)
                 def load_server_mgr(self,*args):
