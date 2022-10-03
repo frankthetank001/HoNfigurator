@@ -1,7 +1,18 @@
 import socket
 from cogs.dataManager import mData
-import os,sys
+import traceback
 
+class Logger():
+    def __init__():
+        return
+    def append_line_to_file(self,file,text,level):
+        timenow = honCMD.time()
+        with open(file, 'a+') as f:
+            f.seek(0)
+            data = f.read(100)
+            if len(data) > 0:
+                f.write("\n")
+            f.write(f"[{timenow}] [{level}] {text}")
 class Listener():
     def __init__():
         return
@@ -21,10 +32,12 @@ class Listener():
             data from server
         """
         try:
-            serverName = str.encode(f"{returnDict['svr_hoster']} 0",'utf8')
-        except Exception as e:
-            print(e)
-        version = str.encode(returnDict['hon_version'],'utf8')
+            serverName = str.encode(returnDict['svr_hoster'],'utf8')
+            version = str.encode(mData().check_hon_version(f"{returnDict['hon_directory']}hon_x64.exe"),'utf8')
+        except:
+            print(traceback.format_exc())
+            Logger().append_line_to_file(f"{returnDict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            Logger().append_line_to_file(f"{returnDict['app_log']}",f"Servers may be ineligible for auto-server selection until the above error is resolved.","WARNING")
 
         """
             response crafting
