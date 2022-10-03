@@ -1,12 +1,15 @@
 import socket
 from cogs.dataManager import mData
 import traceback
+from datetime import datetime
 
 class Logger():
     def __init__():
         return
+    def time():
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     def append_line_to_file(self,file,text,level):
-        timenow = honCMD.time()
+        timenow = Logger.time()
         with open(file, 'a+') as f:
             f.seek(0)
             data = f.read(100)
@@ -94,24 +97,28 @@ class Listener():
 
         # Listen for incoming datagrams
         while(True):
-            bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-            message = bytesAddressPair[0]
-            address = bytesAddressPair[1]
-            clientMsg = "Message from Client:{}".format(message)
-            clientIP  = "Client IP Address:{}".format(address)
-            
-            # print(clientMsg)
-            # print(clientIP)
+            try:
+                bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+                message = bytesAddressPair[0]
+                address = bytesAddressPair[1]
+                clientMsg = "Message from Client:{}".format(message)
+                clientIP  = "Client IP Address:{}".format(address)
+                
+                # print(clientMsg)
+                # print(clientIP)
 
-            if len(message) !=46:
-                print("Unknown message - wrong length")
-                continue
-            elif message[43] != 0xCA:
-                print("Unknown message - 43")
-                continue
-            # Sending a reply to client
-            else:
-                # write challenge. Setting values in the response to something expected by the server.
-                response[44] = message[44]
-                response[45] = message[45]
-                UDPServerSocket.sendto(bytesToSend, address)
+                if len(message) !=46:
+                    print("Unknown message - wrong length")
+                    continue
+                elif message[43] != 0xCA:
+                    print("Unknown message - 43")
+                    continue
+                # Sending a reply to client
+                else:
+                    # write challenge. Setting values in the response to something expected by the server.
+                    response[44] = message[44]
+                    response[45] = message[45]
+                    UDPServerSocket.sendto(bytesToSend, address)
+            except:
+                print(traceback.format_exc())
+                Logger().append_line_to_file(f"{returnDict['app_log']}",f"{traceback.format_exc()}","WARNING")

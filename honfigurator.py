@@ -1130,7 +1130,7 @@ if is_admin():
         def regions(self):
             return ["USW","USE","TH","AU","SEA","RU","EU","BR","NEWERTH"]
         def masterserver(self):
-            return ["kongor.online:666","api.kongor.online","honmasterserver.com"]
+            return ["api.kongor.online","kongor.online:666","honmasterserver.com"]
         # def reg_def_link(self,var,index,mode):
         #     reglist = self.regions()
         #     svrloc = str(self.svr_loc.get()).lower()
