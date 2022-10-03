@@ -4,6 +4,13 @@ import sys
 import configparser
 from os.path import exists
 import shutil
+import traceback
+
+def show_exception_and_exit(exc_type, exc_value, tb):
+    traceback.print_exception(exc_type, exc_value, tb)
+    raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+    sys.exit(-1)
+sys.excepthook = show_exception_and_exit
 
 dir=os.path.dirname(sys.argv[0])
 os.chdir(dir)
