@@ -87,7 +87,7 @@ class heartbeat(commands.Cog):
             await asyncio.sleep(1)
             try:
                 playercount = svrcmd.honCMD.playerCount(self)
-                print(playercount)
+                #print(playercount)
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
