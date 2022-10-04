@@ -52,7 +52,10 @@ class honCMD():
     def stop_proc(proc_name):
         for proc in psutil.process_iter():
             if proc.name() == proc_name:
-                proc.kill()
+                try:
+                    proc.kill()
+                except Exception as e:
+                    print(e)
     def check_port(port):
             result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
             if result == 0:
@@ -378,6 +381,8 @@ class honCMD():
                 honCMD.check_for_updates(self,"pending_shutdown")
 
                 self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                
+                honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
                 #
                 #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
                 self.server_status.update({'hon_exe':self.honEXE})
@@ -426,6 +431,7 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
+            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping.","INFO")
             # if processed_data_dict['use_proxy'] == 'True':
             #     try:
             #         p = psutil.Process(self.server_status['proxy_pid'])
@@ -443,6 +449,7 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
+        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopping.","INFO")
         # if processed_data_dict['use_proxy'] == 'True':        
         #     try:
         #         p = psutil.Process(self.server_status['proxy_pid'])
@@ -460,6 +467,7 @@ class honCMD():
                 self.server_status.update({'hard_reset':True})
                 honCMD().restartSELF()
             else: 
+                honCMD().append_line_to_file(processed_data_dict['app_log'],"Server about to restart.","INFO")
                 honCMD().stopSERVER()
                 #
                 #   Code is stuck waiting for server to turn off
@@ -478,6 +486,7 @@ class honCMD():
         return True
 
     def restartSELF(self):
+        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
         honCMD().stopSERVER()
         incoming_config = dmgr.mData().returnDict_temp()
         if len(incoming_config) > 0:
@@ -504,6 +513,7 @@ class honCMD():
             else:
                 os._exit(1)
     def stopSELF(self):
+        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping HARD - means we are intentionally stopping the service via server administrator.","INFO")
         honCMD().stopSERVER()
         if processed_data_dict['use_console'] == 'True':
             os._exit(0)
@@ -521,6 +531,7 @@ class honCMD():
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
         with open(f"{processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt", 'w') as f:
             f.write(f"{reason}\n{processed_data_dict['svr_identifier']}\n{self.server_status['game_map']}\n{self.server_status['game_host']}\n{self.server_status['client_ip']}")
+        honCMD().append_line_to_file(processed_data_dict['app_log'],f"Player reported. Reason: {reason}. Deatils in {processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt","INFO")
         #save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         #shutil.copyfile(self.server_status['slave_log_location'], save_path)
     def time():
@@ -585,6 +596,7 @@ class honCMD():
                         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 os.remove(temFile)
+                honCMD().append_line_to_file(processed_data_dict['app_log'],f"scheduled {type} detected.","INFO")
                 #ctypes.windll.kernel32.SetConsoleTitleW(f"{processed_data_dict['app_name']} - {type}")
                 return True
             except:
@@ -663,6 +675,9 @@ class honCMD():
                                     tempData.update({'tempcount':-5})
                                     tempData.update({'update_embeds':True})
                                     honCMD.updateStatus(self,tempData)
+                                    match_id = self.server_status['match_log_location']
+                                    match_id = match_id.replace(".log","")
+                                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Match started. {match_id}","INFO")
                                     return True
                         else:
                             # for num, line in enumerate(f, 1):
@@ -682,6 +697,7 @@ class honCMD():
                                                 self.server_status.update({'tempcount':-5})
                                                 self.server_status.update({'update_embeds':True})
                                                 honCMD.updateStatus_GI(self,tempData)
+                                                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Match in progress, elapsed duration: {match_time}","INFO")
                                             break
                                         except AttributeError as e:
                                             print(e)
