@@ -1107,6 +1107,8 @@ if is_admin():
                 #self.svr_total_var.set(half_core_count)
             elif self.dataDict['core_assignment'] == "two servers/core":
                 total_cores = total_cores * 2
+            elif self.dataDict['core_assignment'] == "three servers/core":
+                total_cores = total_cores * 3
             for i in range(total_cores):
                 cores.append(i+1)
                 
