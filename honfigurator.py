@@ -1052,6 +1052,7 @@ if is_admin():
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
             two_servers_core = total_cores * 2
+            three_servers_core = total_cores * 3
             core_assignment = str(self.core_assign.get()).lower()
             selected_id = str(self.svr_id_var.get())
             if core_assignment == "one":
@@ -1080,6 +1081,16 @@ if is_admin():
                 if int(selected_id) > int(self.svr_total_var.get()):
                     self.svr_id_var.set(two_servers_core)
                 for i in range(two_servers_core):
+                    cores.append(i+1)
+                self.tab1_servertd['values']=cores
+                self.tab1_serveridd['values']=cores
+                return
+            elif core_assignment == "three servers/core":
+                #if int(self.svr_total_var.get()) > two_servers_core:
+                self.svr_total_var.set(three_servers_core)
+                if int(selected_id) > int(self.svr_total_var.get()):
+                    self.svr_id_var.set(three_servers_core)
+                for i in range(three_servers_core):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
                 self.tab1_serveridd['values']=cores
