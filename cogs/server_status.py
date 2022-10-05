@@ -73,6 +73,7 @@ class honCMD():
         simple_match_data = {}
         simple_match_data.update({'match_time':'preparation phase...'})
         skipped_frames = 0
+        skipped_count=True
         frame_size = 0
         frame_sizes = []
         with open (log, "r", encoding='utf-16-le') as f:
@@ -91,15 +92,18 @@ class honCMD():
                                 continue
                             except AttributeError as e:
                                 pass
-                    if "Skipped" in line or "skipped" in line:
-                        pattern = "\(([^\)]+)\)"
-                        skipped_frames+=1
-                        try:
-                            frame_size = re.findall(r'\(([^\)]+)\)', line)
-                            frame_size = frame_size[0]
-                            frame_size = frame_size.split(" ")
-                            frame_sizes.append(int(frame_size[0]))
-                        except: pass
+                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                        skipped_count=False
+                    if skipped_count:
+                        if "Skipped" in line or "skipped" in line:
+                            pattern = "\(([^\)]+)\)"
+                            skipped_frames+=1
+                            try:
+                                frame_size = re.findall(r'\(([^\)]+)\)', line)
+                                frame_size = frame_size[0]
+                                frame_size = frame_size.split(" ")
+                                frame_sizes.append(int(frame_size[0]))
+                            except: pass
         try:
             largest_frame = max(frame_sizes)
             simple_match_data.update({'largest_skipped_frame':f"{largest_frame}msec"})
@@ -362,7 +366,12 @@ class honCMD():
                 svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
                 svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
                 if 'static_ip' not in processed_data_dict:
-                    svr_ip = dmgr.mData.getData(self,"svr_ip")
+                    try:
+                        svr_ip = dmgr.mData.getData(self,"svr_ip")
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        svr_ip = processed_data_dict['svr_ip']
                 else:
                     svr_ip = processed_data_dict['svr_ip']
                 tempData.update({'svr_port':svr_port})
@@ -393,7 +402,11 @@ class honCMD():
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 self.server_status.update({'hon_pid_hook':honPID})
-                honPID.cpu_affinity([0])
+
+                if processed_data_dict['core_assignment'] not in ("one","two"):
+                    honPID.cpu_affinity([0,1])
+                else:
+                    honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 

@@ -1048,7 +1048,7 @@ if is_admin():
             return ["normal","high","realtime"]
         def coreadjust(self,var,index,mode):
             cores = []
-            total_cores = psutil.cpu_count(logical = True) -1
+            total_cores = psutil.cpu_count(logical = True) -2
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
             two_servers_core = total_cores * 2
@@ -1108,7 +1108,7 @@ if is_admin():
                 return
         def corecount(self):
             cores = []
-            total_cores = psutil.cpu_count(logical = True) - 1
+            total_cores = psutil.cpu_count(logical = True) - 2
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
             if self.dataDict['core_assignment'] == "two":

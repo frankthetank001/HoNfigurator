@@ -172,7 +172,8 @@ class heartbeat(commands.Cog):
                     if svr_state.getData("ServerReadyCheck"):
                         self.server_status.update({'server_starting':False})
                         self.server_status.update({'server_restarting':False})
-                        svr_state.assign_cpu()
+                        if self.processed_data_dict['core_assignment'] not in ("one","two"):
+                            svr_state.assign_cpu()
                         if self.processed_data_dict['debug_mode'] == 'True':
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
                             try:
@@ -669,7 +670,8 @@ class heartbeat(commands.Cog):
             try:
                 if server_status_bkp['server_ready'] == False:
                     if svr_state.getData("ServerReadyCheck"):
-                        svr_state.assign_cpu()
+                        if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
+                            svr_state.assign_cpu()
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")

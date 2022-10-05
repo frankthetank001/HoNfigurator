@@ -18,11 +18,11 @@ from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
 import sys
+import traceback
 import multiprocessing
 import shutil
 
 #import cogs.server_status as svrcmd
-
 
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
@@ -305,7 +305,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('https://api.ipify.org').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
