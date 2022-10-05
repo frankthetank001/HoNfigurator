@@ -1053,6 +1053,7 @@ if is_admin():
             half_core_count = int(half_core_count)
             two_servers_core = total_cores * 2
             three_servers_core = total_cores * 3
+            four_servers_core = total_cores * 4
             core_assignment = str(self.core_assign.get()).lower()
             selected_id = str(self.svr_id_var.get())
             if core_assignment == "one":
@@ -1095,6 +1096,16 @@ if is_admin():
                 self.tab1_servertd['values']=cores
                 self.tab1_serveridd['values']=cores
                 return
+            elif core_assignment == "four servers/core":
+                #if int(self.svr_total_var.get()) > two_servers_core:
+                self.svr_total_var.set(four_servers_core)
+                if int(selected_id) > int(self.svr_total_var.get()):
+                    self.svr_id_var.set(four_servers_core)
+                for i in range(four_servers_core):
+                    cores.append(i+1)
+                self.tab1_servertd['values']=cores
+                self.tab1_serveridd['values']=cores
+                return
         def corecount(self):
             cores = []
             total_cores = psutil.cpu_count(logical = True) - 1
@@ -1109,6 +1120,8 @@ if is_admin():
                 total_cores = total_cores * 2
             elif self.dataDict['core_assignment'] == "three servers/core":
                 total_cores = total_cores * 3
+            elif self.dataDict['core_assignment'] == "four servers/core":
+                total_cores = total_cores * 4
             for i in range(total_cores):
                 cores.append(i+1)
                 

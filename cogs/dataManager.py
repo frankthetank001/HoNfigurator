@@ -341,6 +341,15 @@ class mData():
                         t +=1
                 affinity[0] = total_cores - t
                 affinity[1] = total_cores - t
+            elif self.confDict['core_assignment'] == 'four servers/core':
+                affinity = [0,0]
+                t = 0
+                for num in range(0, self.svr_id):
+                    # checking condition
+                    if num % 4 == 0:
+                        t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
             print("CPU Affinity: "+str(affinity))
             return affinity
         if dtype == "pythonLoc":
