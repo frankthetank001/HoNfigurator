@@ -268,6 +268,9 @@ class honCMD():
         match_status.update({'match_log_last_line':0})
         match_status.update({'match_id':'empty'})
         match_status.update({'match_time':'Preparation phase..'})
+    def assign_cpu(self):
+        self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+        print()
     def startSERVER(self,from_react):
         #playercount = playercount()
         running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
@@ -390,7 +393,7 @@ class honCMD():
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 self.server_status.update({'hon_pid_hook':honPID})
-                honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+                honPID.cpu_affinity([0])
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 

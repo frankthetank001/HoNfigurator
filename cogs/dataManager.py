@@ -330,6 +330,8 @@ class mData():
                     # checking condition
                     if num % 2 == 0:
                         t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
             elif self.confDict['core_assignment'] == 'three servers/core':
                 affinity = [0,0]
                 t = 0
