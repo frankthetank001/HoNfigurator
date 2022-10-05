@@ -46,7 +46,7 @@ svr_port = svr_port.strip('"')
 
 if processed_data_dict['master_server'] == "honmasterserver.com":
     default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [honmasterserver.com](https://honmasterserver.com)  |  [honclientfix.exe](https://store6.gofile.io/download/direct/67e53211-4818-4f0d-9a0b-3b17e99a5d3b/HonClientFix-honmasterserver.exe) | [GitHub](https://github.com/frankthetank001/HoNfigurator)'
-elif 'kongor.online' in processed_data_dict['master_server']:
+else:
     default_description = '[Hon Server Portal](https://discord.gg/k86ZcA3R8y)  |  [Kongor Online](https://kongor.online)  |  [Kongor Client Fix](https://store4.gofile.io/download/direct/699f8b3f-e0b1-405a-b68d-e9f4e9a50611/HonClientRestore-Kongor.exe) | [GitHub](https://github.com/frankthetank001/HoNfigurator)'
 default_footer = "v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.last_restart}"
 
