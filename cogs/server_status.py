@@ -71,15 +71,23 @@ class honCMD():
         return i
     def simple_match_data(log,type):
         simple_match_data = {}
-        simple_match_data.update({'match_time':'preparation phase...'})
+        simple_match_data.update({'match_time':'In-Lobby phase...'})
         skipped_frames = 0
-        skipped_count=True
+        skipped_count=False
+        line_num=0
         frame_size = 0
         frame_sizes = []
         with open (log, "r", encoding='utf-16-le') as f:
             if type == "match":
-                for line in reversed(list(f)):
-                    if "Server Status" in line and simple_match_data['match_time'] == 'preparation phase...':
+                #for num,line in reversed(list(f)):
+                for num, line in reversed(list(enumerate(f, 1))):
+                    if not skipped_count:
+                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                            line_num=num
+                            if simple_match_data['match_time'] in ('In-Lobby phase...'):
+                                simple_match_data.update({'match_time':'Hero select phase...'})
+                            skipped_count=True
+                    if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
                         #Match Time(00:07:00)
                         if "Match Time" in line:
                             pattern="(Match Time\()(.*)(\))"
@@ -92,18 +100,18 @@ class honCMD():
                                 continue
                             except AttributeError as e:
                                 pass
-                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                        skipped_count=False
-                    if skipped_count:
-                        if "Skipped" in line or "skipped" in line:
-                            pattern = "\(([^\)]+)\)"
-                            skipped_frames+=1
-                            try:
-                                frame_size = re.findall(r'\(([^\)]+)\)', line)
-                                frame_size = frame_size[0]
-                                frame_size = frame_size.split(" ")
-                                frame_sizes.append(int(frame_size[0]))
-                            except: pass
+                if skipped_count:
+                    for num, line in enumerate(f, 1):
+                        if num > line_num:
+                            if "Skipped" in line or "skipped" in line:
+                                pattern = "\(([^\)]+)\)"
+                                skipped_frames+=1
+                                try:
+                                    frame_size = re.findall(r'\(([^\)]+)\)', line)
+                                    frame_size = frame_size[0]
+                                    frame_size = frame_size.split(" ")
+                                    frame_sizes.append(int(frame_size[0]))
+                                except: pass
         try:
             largest_frame = max(frame_sizes)
             simple_match_data.update({'largest_skipped_frame':f"{largest_frame}msec"})
@@ -138,7 +146,9 @@ class honCMD():
                 with open(last_modified_time_file, 'r') as last_modified:
                     lastmodData = last_modified.readline()
                 last_modified.close()
-                lastmodData = int(lastmodData)
+                try:
+                    lastmodData = int(lastmodData)
+                except: pass
                 #
                 #   Gets the current byte size of the log
                 fileSize = os.stat(log).st_size
