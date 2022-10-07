@@ -281,31 +281,33 @@ class heartbeat(commands.Cog):
                             if svr_state.wait_for_replay(replay_threshold):
                                 self.server_status.update({"server_restarting":True})
                                 await test.createEmbed(ctx,playercount)
+                                match_id = self.server_status['match_log_location']
+                                match_id = match_id.replace(".log","")
                                 # restart notification
                                 if self.processed_data_dict['debug_mode'] == 'True':
-                                    match_id = self.server_status['match_log_location']
-                                    match_id = match_id.replace(".log","")
                                     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                                     try:
                                         await embed_log.edit(embed=logEmbed)
                                     except:
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"[{match_id}] Server restarting inbetween games","INFO")
                                 svr_state.restartSERVER()
                             else: pass
                         else: 
                             self.server_status.update({"server_restarting":True})
                             await test.createEmbed(ctx,playercount)
                             # restart notification
+                            match_id = self.server_status['match_log_location']
+                            match_id = match_id.replace(".log","")
                             if self.processed_data_dict['debug_mode'] == 'True':
-                                match_id = self.server_status['match_log_location']
-                                match_id = match_id.replace(".log","")
                                 logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER INBETWEEN GAME {match_id}")
                                 try:
                                     await embed_log.edit(embed=logEmbed)
                                 except:
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}"f"[{match_id}] Server restarting inbetween games","INFO")
                             svr_state.restartSERVER()
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                         self.server_status.update({'update_embeds':False})
@@ -328,6 +330,7 @@ class heartbeat(commands.Cog):
                                     except:
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.","INFO")
                                 svr_state.restartSERVER()
                                 self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                                 self.server_status.update({'update_embeds':False})
@@ -425,6 +428,7 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}"f"Server restarting due to attempt to crash server with false map.","INFO")
                             svr_state.restartSERVER()
                             self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                             self.server_status.update({'update_embeds':False})
@@ -447,6 +451,7 @@ class heartbeat(commands.Cog):
                         self.server_status.update({"restart_required":True})
                         await test.createEmbed(ctx,playercount)
                         try:
+                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}"f"Server restarting due to bot match (disallowed).","INFO")
                             svr_state.restartSERVER()
                         except:
                             print(traceback.format_exc())
@@ -472,6 +477,7 @@ class heartbeat(commands.Cog):
                                     self.server_status.update({"restart_required":True})
                                     await test.createEmbed(ctx,playercount)
                                     print("Restarting the server. Last remaining player has not left yet.")
+                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}"f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
                                     svr_state.restartSERVER()
                                     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] {self.match_status['match_id']} - Game ongoing for over 1 hour, with only 1 player connected, RESTARTING...")
                                     try:
@@ -627,11 +633,15 @@ class heartbeat(commands.Cog):
                             svr_state.stopSELF()
                     # check for or action a natural restart inbetween games
                     if server_status_bkp['first_run'] == False:
+                        match_id = server_status_bkp['match_log_location']
+                        match_id = match_id.replace(".log","")
                         if server_status_bkp['game_started'] == True:
                             if svr_state.wait_for_replay(replay_threshold):
+                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}"f"[{match_id}] Server restarting inbetween games","INFO")
                                 svr_state.restartSERVER()
                             else: pass
                         else:
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}"f"[{match_id}] Server restarting inbetween games","INFO")
                             svr_state.restartSERVER()
                     # every x seconds, check if the public IP has changed for the server. Schedule a restart if it has
                     if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
@@ -640,7 +650,7 @@ class heartbeat(commands.Cog):
                             check_ip = dmgr.mData.getData(NULL,"svr_ip")
                             # check if svr id is here
                             if check_ip != processed_data_dict_bkp['svr_ip']:
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update.","WARN")
+                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update.","INFO")
                                 svr_state.restartSERVER()
                     # every x seconds, check if the proxy port is still listening. If it isn't shutdown the server.
                     if playercount >=0:
@@ -707,6 +717,7 @@ class heartbeat(commands.Cog):
             try:
                 if playercount == 1:
                     if (server_status_bkp['game_map'] != "empty" and server_status_bkp['game_map'] not in available_maps_bkp):
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}"f"Server restarting due to attempt to crash server with false map.","INFO")
                         svr_state.restartSERVER()
                     elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
                         try:
@@ -714,6 +725,7 @@ class heartbeat(commands.Cog):
                         except:
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}"f"Server restarting due to bot match (disallowed).","INFO")
                         svr_state.restartSERVER()
             except:
                 print(traceback.format_exc())
@@ -728,6 +740,7 @@ class heartbeat(commands.Cog):
                             match_too_long_mins = int(match_too_long[1])
                             if match_too_long_hrs > 1:
                                 print("Restarting the server. Last remaining player has not left yet.")
+                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}"f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
                                 svr_state.restartSERVER()
             except:
                 print(traceback.format_exc())
