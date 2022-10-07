@@ -136,10 +136,10 @@ class honCMD():
         else: 
             print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
             if 'replay_notif_in_log' not in match_status:
-                honCMD().append_line_to_file(f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
                 match_status.update({'replay_notif_in_log':True})
             if replay_wait == wait:
-                honCMD().append_line_to_file(f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
                 honCMD().restartSERVER()
             return False
     def check_cookie(server_status,log,name):
