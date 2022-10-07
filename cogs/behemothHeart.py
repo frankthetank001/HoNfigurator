@@ -72,7 +72,7 @@ class heartbeat(commands.Cog):
         threshold_gamecheck = 5 # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 30
-        counter_ipcheck_threshold = 30
+        counter_ipcheck_threshold = 1800
         replay_threshold = 300
         x = 0
         #   this is the start of the heartbeat
@@ -545,7 +545,7 @@ class heartbeat(commands.Cog):
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5  / heartbeat_freq # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 30 / heartbeat_freq
-        counter_ipcheck_threshold = 30 / heartbeat_freq
+        counter_ipcheck_threshold = 1800 / heartbeat_freq
         replay_threshold = 300 / heartbeat_freq
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")

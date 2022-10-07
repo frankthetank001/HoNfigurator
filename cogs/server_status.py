@@ -73,20 +73,21 @@ class honCMD():
         simple_match_data = {}
         simple_match_data.update({'match_time':'In-Lobby phase...'})
         skipped_frames = 0
-        skipped_count=False
-        line_num=0
+        skipped_count=True
+        match_status.update({'skipped_frames_from_line':0})
         frame_size = 0
         frame_sizes = []
         with open (log, "r", encoding='utf-16-le') as f:
             if type == "match":
                 #for num,line in reversed(list(f)):
                 for num, line in reversed(list(enumerate(f, 1))):
-                    if not skipped_count:
-                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                            line_num=num
-                            if simple_match_data['match_time'] in ('In-Lobby phase...'):
-                                simple_match_data.update({'match_time':'Hero select phase...'})
-                            skipped_count=True
+                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                        if simple_match_data['match_time'] in ('In-Lobby phase...'):
+                            simple_match_data.update({'match_time':'Hero select phase...'})
+                        skipped_count=False
+                    if "Phase(5)" in line:
+                        if match_status['skipped_frames_from_line'] == 0:
+                            match_status.update({'skipped_frames_from_line':num})
                     if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
                         #Match Time(00:07:00)
                         if "Match Time" in line:
@@ -100,9 +101,8 @@ class honCMD():
                                 continue
                             except AttributeError as e:
                                 pass
-                if skipped_count:
-                    for num, line in enumerate(f, 1):
-                        if num > line_num:
+                    if skipped_count:
+                        if num > match_status['skipped_frames_from_line']:
                             if "Skipped" in line or "skipped" in line:
                                 pattern = "\(([^\)]+)\)"
                                 skipped_frames+=1
@@ -116,7 +116,7 @@ class honCMD():
             largest_frame = max(frame_sizes)
             simple_match_data.update({'largest_skipped_frame':f"{largest_frame}msec"})
         except:
-            simple_match_data.update({'largest_skipped_frame':"couldn't get this data."})
+            simple_match_data.update({'largest_skipped_frame':"No skipped frames."})
         simple_match_data.update({'skipped_frames':skipped_frames})
         return simple_match_data
 
@@ -130,11 +130,16 @@ class honCMD():
         replay_wait +=1
         if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
             time.sleep(1)
             return True
         else: 
-            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            if 'replay_notif_in_log' not in match_status:
+                honCMD().append_line_to_file(f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
+                match_status.update({'replay_notif_in_log':True})
             if replay_wait == wait:
+                honCMD().append_line_to_file(f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
                 honCMD().restartSERVER()
             return False
     def check_cookie(server_status,log,name):
@@ -557,7 +562,7 @@ class honCMD():
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
         with open(f"{processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt", 'w') as f:
             f.write(f"{reason}\n{processed_data_dict['svr_identifier']}\n{self.server_status['game_map']}\n{self.server_status['game_host']}\n{self.server_status['client_ip']}")
-        honCMD().append_line_to_file(processed_data_dict['app_log'],f"Player reported. Reason: {reason}. Deatils in {processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt","INFO")
+        honCMD().append_line_to_file(processed_data_dict['app_log'],f"Player reported ({self.server_status['game_host']}). Reason: {reason}. Deatils in {processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt","INFO")
         #save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         #shutil.copyfile(self.server_status['slave_log_location'], save_path)
     def time():
