@@ -292,7 +292,6 @@ class honCMD():
         print()
     def startSERVER(self,from_react):
         #playercount = playercount()
-        running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
         if self.playerCount() < 0:
             returnlist = []
             if processed_data_dict['use_proxy'] == 'False':
@@ -432,7 +431,7 @@ class honCMD():
             else:
                 self.server_status.update({'crash':True})
                 return "ram"
-        elif running and from_react == False:
+        elif honCMD.check_proc(f"{processed_data_dict['hon_file_name']}") and from_react == False:
             print("detected already running hon instance, attempting to hook on..")
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
