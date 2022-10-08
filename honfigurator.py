@@ -1213,16 +1213,34 @@ if is_admin():
                 if 'Please commit your changes or stash them before you switch branches.' in checkout.stderr:
                     print()
                 tex.insert(END,"==========================================\n")
+                tex.see(tk.END)
                 self.git_branch.set(current_branch)
                 return False
         def forceupdate_hon(self,hon_dir,master_server):
-            os.chdir(hon_dir)
-            sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
-            try:
-                os.chdir(application_path)
-            except Exception as e:
-                print(e)
-            #honfigurator.creategui(self)
+            current_version=dmgr.mData.check_hon_version(self,self.dataDict['hon_exe'])
+            latest_version=svrcmd.honCMD().check_upstream_patch()
+            if current_version != latest_version:
+                os.chdir(hon_dir)
+                # rename files to prepare for patching
+                # for i in range(self.dataDict['svr_total']):
+                #     if exists(f"KONGOR_ARENA_{i}"):
+                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
+                #     if exists(f"k2_x64.dll"):
+                #         shutil.move("k2_x64.dll","k2_x64_old.dll")
+                #     if exists("game\\game_shared_x64.dll"):
+                #         shutil.move("game\\game_shared_x64.dll","game\\game_shared_x64_old.dll")
+                #     if exists("game\\game_x64.dll"):
+                #         shutil.move("game\\game_x64.dll","game\\game_x64_old.dll")
+                #     if exists("game\\cgame_x64.dll"):
+                #         shutil.move("game\\cgame_x64.dll","game\\cgame_x64_old.dll")
+                sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+                try:
+                    os.chdir(application_path)
+                except Exception as e:
+                    print(e)
+            else:
+                tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
+                tex.see(tk.END)
             
         def return_currentver(self):
             manifest=f"{self.dataDict['hon_directory']}Update\\manifest.xml"
@@ -2090,7 +2108,7 @@ if is_admin():
                     if (tabgui.index("current")) == 0:
                         ver=dmgr.mData.check_hon_version(self,self.dataDict['hon_exe'])
                         status = Entry(app,background=maincolor,foreground='white',width="200")
-                        status.insert(0,f"HoN Server Version: {ver}")
+                        status.insert(0,f"HoN Server Version: {ver}     |     Version on Master Server: {svrcmd.honCMD().check_upstream_patch()}")
                         status.grid(row=21,column=0,sticky='w')
                     if (tabgui.index("current")) == 1:
                         if len(args) >= 1 and type(args[0]) is int:

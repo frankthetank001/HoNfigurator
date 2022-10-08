@@ -222,6 +222,32 @@ class honCMD():
         #print("updated dictionary: " + str(server_status_dict))
         return
 
+    def check_upstream_patch(self): # function to check latest version on masterserver
+        import requests
+        import re
+
+        version=None
+        url = 'http://api.kongor.online/patcher/patcher.php'
+        payload = {
+            'latest' : '',
+            'os': 'was-crIac6LASwoafrl8FrOa',
+            'arch' : 'x86_64'
+            }
+        x = requests.post(url,data=payload)
+        data=x.text
+        data=re.split(';s:\d+:',data)
+
+        for i in range(len(data)):
+            if '"latest_version"' in data[i]:
+                version=data[i+1]
+
+        if version != None:
+            if '"' in version:
+                version=version.replace('"','')
+            return version
+        else:
+            return False
+
     def getStatus(self):
         return server_status_dict
     def getDataDict(self):
@@ -430,6 +456,7 @@ class honCMD():
                 return True
             else:
                 self.server_status.update({'crash':True})
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Insufficient RAM to start server.","WARNING")
                 return "ram"
         elif honCMD.check_proc(f"{processed_data_dict['hon_file_name']}") and from_react == False:
             print("detected already running hon instance, attempting to hook on..")
@@ -697,6 +724,8 @@ class honCMD():
                 tempData = {}
                 if soft_data > hard_data or 'slave_log_checked' not in self.server_status:
                     self.server_status.update({'slave_log_checked':True})
+                    match_id = self.server_status['match_log_location']
+                    match_id = match_id.replace(".log","")
                     with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
                         if self.server_status['game_started'] == False:
                             for line in f:
@@ -705,8 +734,6 @@ class honCMD():
                                     tempData.update({'tempcount':-5})
                                     tempData.update({'update_embeds':True})
                                     honCMD.updateStatus(self,tempData)
-                                    match_id = self.server_status['match_log_location']
-                                    match_id = match_id.replace(".log","")
                                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Match started. {match_id}","INFO")
                                     return True
                         else:
@@ -727,7 +754,7 @@ class honCMD():
                                                 self.server_status.update({'tempcount':-5})
                                                 self.server_status.update({'update_embeds':True})
                                                 honCMD.updateStatus_GI(self,tempData)
-                                                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Match in progress, elapsed duration: {match_time}","INFO")
+                                                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_id}] Match in progress, elapsed duration: {match_time}","INFO")
                                             break
                                         except AttributeError as e:
                                             print(e)
