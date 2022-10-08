@@ -18,11 +18,11 @@ from stat import S_IREAD, S_IRGRP, S_IROTH
 import stat
 import hashlib
 import sys
+import traceback
 import multiprocessing
 import shutil
 
 #import cogs.server_status as svrcmd
-
 
 conf_parse_global = configparser.ConfigParser()
 conf_parse_local = configparser.ConfigParser(interpolation=None)
@@ -305,7 +305,7 @@ class mData():
         if dtype == "hon":
             return "data"
         if dtype == "svr_ip":
-            external_ip = urllib.request.urlopen('http://4.ident.me').read().decode('utf8')
+            external_ip = urllib.request.urlopen('https://api.ipify.org').read().decode('utf8')
             return external_ip
         if dtype == "cores":
             self.svr_id = int(self.svr_id)
@@ -330,12 +330,23 @@ class mData():
                     # checking condition
                     if num % 2 == 0:
                         t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
             elif self.confDict['core_assignment'] == 'three servers/core':
                 affinity = [0,0]
                 t = 0
                 for num in range(0, self.svr_id):
                     # checking condition
                     if num % 3 == 0:
+                        t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
+            elif self.confDict['core_assignment'] == 'four servers/core':
+                affinity = [0,0]
+                t = 0
+                for num in range(0, self.svr_id):
+                    # checking condition
+                    if num % 4 == 0:
                         t +=1
                 affinity[0] = total_cores - t
                 affinity[1] = total_cores - t
