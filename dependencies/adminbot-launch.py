@@ -14,10 +14,8 @@ def show_exception_and_exit(exc_type, exc_value, tb):
 sys.excepthook = show_exception_and_exit
 
 dir=os.path.dirname(sys.argv[0])
-try:
-    os.chdir(dir)
-except:
-    os.chdir(Path( __file__ ).parent.absolute())
+print("base path: "+dir)
+os.chdir(dir)
 
 print(os.getcwd())
 conf_parse_global = configparser.ConfigParser()
