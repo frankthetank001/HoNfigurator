@@ -71,14 +71,24 @@ class honCMD():
         return i
     def simple_match_data(log,type):
         simple_match_data = {}
-        simple_match_data.update({'match_time':'preparation phase...'})
+        simple_match_data.update({'match_time':'In-Lobby phase...'})
         skipped_frames = 0
+        skipped_count=True
+        match_status.update({'skipped_frames_from_line':0})
         frame_size = 0
         frame_sizes = []
         with open (log, "r", encoding='utf-16-le') as f:
             if type == "match":
-                for line in reversed(list(f)):
-                    if "Server Status" in line and simple_match_data['match_time'] == 'preparation phase...':
+                #for num,line in reversed(list(f)):
+                for num, line in reversed(list(enumerate(f, 1))):
+                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                        if simple_match_data['match_time'] in ('In-Lobby phase...'):
+                            simple_match_data.update({'match_time':'Hero select phase...'})
+                        skipped_count=False
+                    if "Phase(5)" in line:
+                        if match_status['skipped_frames_from_line'] == 0:
+                            match_status.update({'skipped_frames_from_line':num})
+                    if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
                         #Match Time(00:07:00)
                         if "Match Time" in line:
                             pattern="(Match Time\()(.*)(\))"
@@ -91,20 +101,22 @@ class honCMD():
                                 continue
                             except AttributeError as e:
                                 pass
-                    if "Skipped" in line or "skipped" in line:
-                        pattern = "\(([^\)]+)\)"
-                        skipped_frames+=1
-                        try:
-                            frame_size = re.findall(r'\(([^\)]+)\)', line)
-                            frame_size = frame_size[0]
-                            frame_size = frame_size.split(" ")
-                            frame_sizes.append(int(frame_size[0]))
-                        except: pass
+                    if skipped_count:
+                        if num > match_status['skipped_frames_from_line']:
+                            if "Skipped" in line or "skipped" in line:
+                                pattern = "\(([^\)]+)\)"
+                                skipped_frames+=1
+                                try:
+                                    frame_size = re.findall(r'\(([^\)]+)\)', line)
+                                    frame_size = frame_size[0]
+                                    frame_size = frame_size.split(" ")
+                                    frame_sizes.append(int(frame_size[0]))
+                                except: pass
         try:
             largest_frame = max(frame_sizes)
             simple_match_data.update({'largest_skipped_frame':f"{largest_frame}msec"})
         except:
-            simple_match_data.update({'largest_skipped_frame':"couldn't get this data."})
+            simple_match_data.update({'largest_skipped_frame':"No skipped frames."})
         simple_match_data.update({'skipped_frames':skipped_frames})
         return simple_match_data
 
@@ -118,11 +130,16 @@ class honCMD():
         replay_wait +=1
         if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
             time.sleep(1)
             return True
         else: 
-            print(f"Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
+            if 'replay_notif_in_log' not in match_status:
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
+                match_status.update({'replay_notif_in_log':True})
             if replay_wait == wait:
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
                 honCMD().restartSERVER()
             return False
     def check_cookie(server_status,log,name):
@@ -134,7 +151,9 @@ class honCMD():
                 with open(last_modified_time_file, 'r') as last_modified:
                     lastmodData = last_modified.readline()
                 last_modified.close()
-                lastmodData = int(lastmodData)
+                try:
+                    lastmodData = int(lastmodData)
+                except: pass
                 #
                 #   Gets the current byte size of the log
                 fileSize = os.stat(log).st_size
@@ -268,9 +287,11 @@ class honCMD():
         match_status.update({'match_log_last_line':0})
         match_status.update({'match_id':'empty'})
         match_status.update({'match_time':'Preparation phase..'})
+    def assign_cpu(self):
+        self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+        print()
     def startSERVER(self,from_react):
         #playercount = playercount()
-        running = honCMD.check_proc(f"{processed_data_dict['hon_file_name']}")
         if self.playerCount() < 0:
             returnlist = []
             if processed_data_dict['use_proxy'] == 'False':
@@ -359,7 +380,12 @@ class honCMD():
                 svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
                 svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
                 if 'static_ip' not in processed_data_dict:
-                    svr_ip = dmgr.mData.getData(self,"svr_ip")
+                    try:
+                        svr_ip = dmgr.mData.getData(self,"svr_ip")
+                    except:
+                        print(traceback.format_exc())
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        svr_ip = processed_data_dict['svr_ip']
                 else:
                     svr_ip = processed_data_dict['svr_ip']
                 tempData.update({'svr_port':svr_port})
@@ -390,7 +416,11 @@ class honCMD():
                 self.server_status.update({'hon_pid':self.honP})
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 self.server_status.update({'hon_pid_hook':honPID})
-                honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+
+                if processed_data_dict['core_assignment'] not in ("one","two"):
+                    honPID.cpu_affinity([0,1])
+                else:
+                    honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
@@ -401,7 +431,7 @@ class honCMD():
             else:
                 self.server_status.update({'crash':True})
                 return "ram"
-        elif running and from_react == False:
+        elif honCMD.check_proc(f"{processed_data_dict['hon_file_name']}") and from_react == False:
             print("detected already running hon instance, attempting to hook on..")
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
@@ -531,7 +561,7 @@ class honCMD():
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
         with open(f"{processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt", 'w') as f:
             f.write(f"{reason}\n{processed_data_dict['svr_identifier']}\n{self.server_status['game_map']}\n{self.server_status['game_host']}\n{self.server_status['client_ip']}")
-        honCMD().append_line_to_file(processed_data_dict['app_log'],f"Player reported. Reason: {reason}. Deatils in {processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt","INFO")
+        honCMD().append_line_to_file(processed_data_dict['app_log'],f"Player reported ({self.server_status['game_host']}). Reason: {reason}. Deatils in {processed_data_dict['sdc_home_dir']}\\suspicious\\evt-{timestamp}-{reason}.txt","INFO")
         #save_path = f"{processed_data_dict['sdc_home_dir']}\\suspicious\\[{reason}]-{processed_data_dict['svr_identifier']}-{self.server_status['game_map']}-{self.server_status['game_host']}-{self.server_status['client_ip']}-{timestamp}.log"
         #shutil.copyfile(self.server_status['slave_log_location'], save_path)
     def time():
