@@ -20,6 +20,7 @@ try:
     os.chdir(dir)
 except:
     path_error=True
+    pass
 
 print(os.getcwd())
 conf_parse_global = configparser.ConfigParser()
