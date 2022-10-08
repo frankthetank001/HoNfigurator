@@ -13,13 +13,10 @@ def show_exception_and_exit(exc_type, exc_value, tb):
     sys.exit(-1)
 sys.excepthook = show_exception_and_exit
 
-path_error=False
-dir=os.path.dirname(sys.argv[0])
-print("base path: "+dir)
 try:
+    dir=os.path.dirname(sys.argv[0])
     os.chdir(dir)
 except:
-    path_error=True
     pass
 
 print(os.getcwd())
@@ -43,8 +40,6 @@ for option in conf_parse_local.options("OPTIONS"):
     confDict.update({option:conf_parse_local['OPTIONS'][option]})
 for option in conf_parse_global.options("OPTIONS"):
     confDict.update({option:conf_parse_global['OPTIONS'][option]})
-if path_error:
-    os.chdir(confDict['sdc_home_dir'])
 app_name = f"adminbot{confDict['svr_id']}"
 basename=os.path.basename(sys.argv[0])
 exe=basename.split("-")
