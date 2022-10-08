@@ -5,6 +5,7 @@ import configparser
 from os.path import exists
 import shutil
 import traceback
+from pathlib import Path
 
 def show_exception_and_exit(exc_type, exc_value, tb):
     traceback.print_exception(exc_type, exc_value, tb)
@@ -13,7 +14,10 @@ def show_exception_and_exit(exc_type, exc_value, tb):
 sys.excepthook = show_exception_and_exit
 
 dir=os.path.dirname(sys.argv[0])
-os.chdir(dir)
+try:
+    os.chdir(dir)
+except:
+    os.chdir(Path( __file__ ).parent.absolute())
 
 print(os.getcwd())
 conf_parse_global = configparser.ConfigParser()
