@@ -1,14 +1,19 @@
 #import pkg_resources
 import sys
 import subprocess as sp
-# required = {'discord.py==1.7.3','psutil','wmi','getmac','pygit2','gitpython','python-hosts','pillow'}
-# installed = {pkg.key for pkg in pkg_resources.working_set}
-# missing = required - installed
+import pkg_resources
+required = {'discord.py==1.7.3',
+            'GitPython==3.1.27',
+            'psutil==5.9.1',
+            'pygit2==1.10.0',
+            'python_hosts==1.0.3',
+            'WMI==1.5.1'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
 
-# if missing:
-#     python = sys.executable
-#     sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
-# determine if application is a script file or frozen exe
+if missing:
+    python = sys.executable
+    sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
 
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
@@ -42,6 +47,7 @@ def is_admin():
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
+# determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
 elif __file__:
