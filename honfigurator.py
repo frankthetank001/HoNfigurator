@@ -1585,24 +1585,27 @@ if is_admin():
         def stop_all_for_update(self):
             players=False
             for i in range (1,(int(self.dataDict['svr_total']) +1)):
-                pcount=initialise.playerCountX(self,i)
-                deployed_status = dmgr.mData.returnDict_deployed(self,i)
-                service_name=f"adminbot{i}"
-                service_check = initialise.get_service(service_name)
-                if pcount <= 0:
-                    if service_check:
-                        if service_check['status'] == 'running':
-                            if initialise.stop_service(self,service_name,True):
-                                tex.insert(END,f"{service_name} stopped successfully.\n")
-                            else:
-                                tex.insert(END,f"{service_name} failed to stop.\n")
-                    bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
-                    if bot_running:
-                        initialise.stop_bot(self,f"{service_name}.exe")
-                        initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
-                        initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
-                else:
-                    players=True
+                try:
+                    pcount=initialise.playerCountX(self,i)
+                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    service_name=f"adminbot{i}"
+                    service_check = initialise.get_service(service_name)
+                    if pcount <= 0:
+                        if service_check:
+                            if service_check['status'] == 'running':
+                                if initialise.stop_service(self,service_name,True):
+                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                else:
+                                    tex.insert(END,f"{service_name} failed to stop.\n")
+                        bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
+                        if bot_running:
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                    else:
+                        players=True
+                except Exception as e:
+                    print(e)
             if players==True:
                 print("There are still some games in progress. Update requires that all servers are shutdown. Please schedule a server shutdown in the server administration tab.")
                 tex.insert(END,"There are still some games in progress. Update requires that all servers are shutdown. Please schedule a server shutdown in the server administration tab (STOP ALL).","WARNING")
