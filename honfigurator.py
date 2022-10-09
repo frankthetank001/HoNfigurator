@@ -1,20 +1,22 @@
 #import pkg_resources
 import sys
 import subprocess as sp
-import pkg_resources
-required = {'discord.py==1.7.3',
-            'GitPython==3.1.27',
-            'psutil==5.9.1',
-            'pygit2==1.10.0',
-            'python_hosts==1.0.3',
-            'WMI==1.5.1',
-            'requests'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
-
-if missing:
-    python = sys.executable
-    sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
+try:
+    import pkg_resources
+    required = {'discord.py==1.7.3',
+                'GitPython==3.1.27',
+                'psutil==5.9.1',
+                'pygit2==1.10.0',
+                'python_hosts==1.0.3',
+                'WMI==1.5.1',
+                'requests'}
+    installed = {pkg.key for pkg in pkg_resources.working_set}
+    missing = required - installed
+    if missing:
+        python = sys.executable
+        sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
+except Exception as e:
+    print(e)
 
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
