@@ -71,6 +71,8 @@ if is_admin():
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
     players_connected = False
+    update_delay = 20
+    update_counter = 0
 
     class bcolors:
         HEADER = '\033[95m'
@@ -1182,6 +1184,8 @@ if is_admin():
             else:
                 self.game_port.set("wow")
         def update_repository(self,var,index,mode):
+            global update_counter
+            update_counter=0
             try:
                 os.chdir(application_path)
             except Exception as e:
@@ -1201,10 +1205,10 @@ if is_admin():
                 #os.execv(sys.argv[0], sys.argv)
                 try:
                     if 'updating' in output.stdout.lower() or 'switched to branch' in checkout.stderr.lower():
-                        if honfigurator.popup_bonus():
-                            #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-                            python = sys.executable
-                            os.execl(python, python, * sys.argv)
+                        #if honfigurator.popup_bonus():
+                        #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+                        python = sys.executable
+                        os.execl(python, python, * sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
@@ -1216,11 +1220,12 @@ if is_admin():
                 tex.see(tk.END)
                 self.git_branch.set(current_branch)
                 return False
-        def forceupdate_hon(self,hon_dir,master_server):
-            current_version=dmgr.mData.check_hon_version(self,self.dataDict['hon_exe'])
+        def forceupdate_hon(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+            global update_counter
+            update_counter=0
+            current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
             if current_version != latest_version:
-                os.chdir(hon_dir)
                 # rename files to prepare for patching
                 # for i in range(self.dataDict['svr_total']):
                 #     if exists(f"KONGOR_ARENA_{i}"):
@@ -1235,11 +1240,15 @@ if is_admin():
                 #         shutil.move("game\\game_x64.dll","game\\game_x64_old.dll")
                 #     if exists("game\\cgame_x64.dll"):
                 #         shutil.move("game\\cgame_x64.dll","game\\cgame_x64_old.dll")
-                sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
-                try:
-                    os.chdir(application_path)
-                except Exception as e:
-                    print(e)
+                ready_for_update = honfigurator.stop_all_for_update(self)
+                if ready_for_update:
+                    os.chdir(hondirectory)
+                    sp.call(["hon_x64.exe","-update","-masterserver",master_server])
+                    try:
+                        os.chdir(application_path)
+                    except Exception as e:
+                        print(e)
+                    honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                 tex.see(tk.END)
@@ -1563,7 +1572,58 @@ if is_admin():
                     tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
                 tex.see(tk.END)
                 return
-
+        def stop_all_for_update(self):
+            players=False
+            for i in range (1,(int(self.dataDict['svr_total']) +1)):
+                pcount=initialise.playerCountX(self,i)
+                deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                service_name=f"adminbot{i}"
+                service_check = initialise.get_service(service_name)
+                if pcount <= 0:
+                    if service_check:
+                        if service_check['status'] == 'running':
+                            if initialise.stop_service(self,service_name,True):
+                                tex.insert(END,f"{service_name} stopped successfully.\n")
+                            else:
+                                tex.insert(END,f"{service_name} failed to stop.\n")
+                    bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
+                    if bot_running:
+                        initialise.stop_bot(self,f"{service_name}.exe")
+                        initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                        initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                else:
+                    players=True
+            if players==True:
+                print("There are still some games in progress. Update requires that all servers are shutdown. Please schedule a server shutdown in the server administration tab.")
+                tex.insert(END,"There are still some games in progress. Update requires that all servers are shutdown. Please schedule a server shutdown in the server administration tab (STOP ALL).","WARNING")
+                tex.see(tk.END)
+                return False
+            else:
+                service_manager_name = "HoN Server Manager"
+                manager_application = "KONGOR ARENA MANAGER.exe"
+                service_manager = initialise.get_service(service_manager_name)
+                if service_manager:
+                    if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
+                        initialise.stop_service(self,service_manager_name,False)
+                    else:
+                        if svrcmd.honCMD.check_proc(manager_application):
+                            svrcmd.honCMD.stop_proc(manager_application)
+                else:
+                    if svrcmd.honCMD.check_proc(manager_application):
+                        svrcmd.honCMD.stop_proc(manager_application)
+                service_proxy_name = "HON Proxy Manager"
+                proxy_application = "proxymanager.exe"
+                service_proxy = initialise.get_service(service_proxy_name)
+                if service_proxy:
+                    if service_manager['status'] == 'running' or service_proxy['status'] == 'paused':
+                        initialise.stop_service(self,service_proxy_name,False)
+                    else:
+                        if svrcmd.honCMD.check_proc(proxy_application):
+                            svrcmd.honCMD.stop_proc(proxy_application)
+                else:
+                    if svrcmd.honCMD.check_proc(proxy_application):
+                        svrcmd.honCMD.stop_proc(proxy_application)
+                return True
         def botCount(self,num_of_bots):
             for i in range(0,num_of_bots):
                         row = i%8
@@ -1922,7 +1982,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(tab1_hondird.get(),tab1_masterserver.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2108,7 +2168,7 @@ if is_admin():
                     global refresh_next
                     refresh_next=False
                     if (tabgui.index("current")) == 0:
-                        ver=dmgr.mData.check_hon_version(self,self.dataDict['hon_exe'])
+                        ver=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         status = Entry(app,background=maincolor,foreground='white',width="200")
                         status.insert(0,f"HoN Server Version: {ver}     |     Version on Master Server: {svrcmd.honCMD().check_upstream_patch()}")
                         status.grid(row=21,column=0,sticky='w')
@@ -2546,11 +2606,21 @@ if is_admin():
                     pass
             def auto_refresher():
                 global refresh_next
+                global update_counter
+                global update_delay
+                update_counter+=1
                 if refresh_next==True:
+                    if (tabgui.index("current")) == 0:
+                        if update_counter >= update_delay:
+                            update_counter = 0
+                            print("checking honfigurator update")
+                            self.update_repository(NULL,NULL,NULL)
+                            print("checking for hon update")
+                            Thread(target=self.forceupdate_hon,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     if (tabgui.index("current")) == 1:
                         viewButton.refresh(int(stretch.get())+3)
                 refresh_next=True
-                app.after(10000,auto_refresher)
+                app.after(20000,auto_refresher)
             # create a Scrollbar and associate it with txt
             combo = TextScrollCombo(app)
             combo.config(width=600, height=600)
