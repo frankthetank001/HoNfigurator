@@ -7,7 +7,8 @@ required = {'discord.py==1.7.3',
             'psutil==5.9.1',
             'pygit2==1.10.0',
             'python_hosts==1.0.3',
-            'WMI==1.5.1'}
+            'WMI==1.5.1',
+            'requests'}
 installed = {pkg.key for pkg in pkg_resources.working_set}
 missing = required - installed
 
