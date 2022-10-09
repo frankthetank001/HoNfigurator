@@ -1041,7 +1041,7 @@ if is_admin():
                     repositories.append(repos)            
             return repositories
         def coreassign(self):
-            return ["one","two","two servers/core","three servers/core"]
+            return ["one","two","two servers/core","three servers/core","four servers/core"]
         def incrementport(self):
             return["1","10","100","200","500","1000"]
         def priorityassign(self):
@@ -1224,6 +1224,8 @@ if is_admin():
                 # rename files to prepare for patching
                 # for i in range(self.dataDict['svr_total']):
                 #     if exists(f"KONGOR_ARENA_{i}"):
+                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
+                #     if exists(f"KONGOR ARENA MANAGER old.exe"):
                 #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
                 #     if exists(f"k2_x64.dll"):
                 #         shutil.move("k2_x64.dll","k2_x64_old.dll")
