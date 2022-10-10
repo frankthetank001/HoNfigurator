@@ -1,8 +1,9 @@
 #import pkg_resources
 import sys
 import subprocess as sp
+
 try:
-    import pkg_resources
+    import pkg_resources  # TODO: handle exception if this doesnt exist and install it
     required = {'discord.py==1.7.3',
                 'GitPython==3.1.27',
                 'psutil==5.9.1',
@@ -15,7 +16,9 @@ try:
     installed = {pkg.key for pkg in pkg_resources.working_set}
     missing = required - installed
     if missing:
-        python = sys.executable
+        python = sp.getoutput('where python')
+        python = python.split("\n")
+        python = python[0]
         sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
 except Exception as e:
     print(e)
@@ -50,6 +53,13 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 
+i=0
+for proc in psutil.process_iter():
+    if proc.name() == "honfigurator.exe":
+        i+=1
+if i > 2:
+    sys.exit()
+
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
@@ -67,6 +77,15 @@ if is_admin():
         sys.exit(-1)
     sys.excepthook = show_exception_and_exit
 
+    class TextRedirector(object):
+        def __init__(self, widget, tag="stdout"):
+            self.widget = widget
+            self.tag = tag
+
+        def write(self, str):
+            self.widget.configure(state="normal")
+            self.widget.insert("end", str, (self.tag,))
+            self.widget.configure(state="disabled")
     config_global = os.path.abspath(application_path)+"\\config\\global_config.ini"
     config_default = f"{os.path.abspath(application_path)}\\config\\default_config.ini"
     config_local = os.path.abspath(application_path)+"\\config\\local_config.ini"
@@ -74,7 +93,7 @@ if is_admin():
         shutil.copy(config_default,config_local)
     import cogs.server_status as svrcmd
     import cogs.dataManager as dmgr
-
+    
     global hon_api_updated
     #
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
@@ -178,6 +197,12 @@ if is_admin():
                 if proc.name() == proc_name:
                     return True
             return False
+        def check_proc_count(proc_name):
+            i=0
+            for proc in psutil.process_iter():
+                if proc.name() == proc_name:
+                    i+=1
+            return i
         def stop_bot(self,proc_name):
             for proc in psutil.process_iter():
                 if proc.name() == proc_name:
@@ -1021,6 +1046,7 @@ if is_admin():
             self.initdict = dmgr.mData()
             self.dataDict = self.initdict.returnDict()
             print (self.dataDict)
+            
             return
         def onerror(func, path, exc_info):
             """
@@ -2004,6 +2030,13 @@ if is_admin():
             app.rowconfigure(14,weight=1)
             app.rowconfigure(15,weight=1)
             app.columnconfigure(0,weight=1)
+            tex = tk.Text(app,foreground=textcolor,background=textbox,height=10)
+            tex.grid(row=16, column=0, sticky="nsew", padx=2, pady=2)
+            tex.tag_config('warning', background="yellow", foreground="red")
+            tex.tag_config('interest', background="green")
+            tex.tag_configure("stderr", foreground="#b22222")
+            sys.stdout = TextRedirector(tex, "stdout")
+            sys.stderr = TextRedirector(tex, "stderr")
             """
             
             This is the advanced server setup tab
@@ -2045,10 +2078,7 @@ if is_admin():
                 #     self.grid_columnconfigure(0, weight=1)
 
                 # create a Text widget
-                    tex = tk.Text(app,foreground=textcolor,background=textbox,height=10)
-                    tex.grid(row=16, column=0, sticky="nsew", padx=2, pady=2)
-                    tex.tag_config('warning', background="yellow", foreground="red")
-                    tex.tag_config('interest', background="green")
+                    
                 # create a Scrollbar and associate it with txt
                     scrollb = ttk.Scrollbar(app, command=tex.yview)
                     scrollb.grid(row=16, column=1, sticky='nsew')
@@ -2574,7 +2604,6 @@ if is_admin():
                     column_rows=(tab2.grid_size())
                     total_columns=column_rows[0]
                     total_rows=column_rows[1]
-                    print(column_rows)
                     #Proxy and Manager
                     if svrcmd.honCMD.check_proc("proxymanager.exe"):
                         labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
