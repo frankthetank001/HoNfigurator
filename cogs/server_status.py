@@ -140,7 +140,7 @@ class honCMD():
                 match_status.update({'replay_notif_in_log':True})
             if replay_wait == wait:
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
-                honCMD().restartSERVER()
+                honCMD().restartSERVER(False)
             return False
     def check_cookie(server_status,log,name):
         def write_mtime(log,name):
@@ -517,8 +517,8 @@ class honCMD():
         self.server_status.update({'update_embeds':True})
         return True
 
-    def restartSERVER(self):
-        if self.playerCount() == 0 or self.server_status['restart_required']==True:
+    def restartSERVER(self,force):
+        if self.playerCount() == 0 or force == True:
             hard_reset = honCMD().check_for_updates("pending_restart")
             if hard_reset:
                 self.server_status.update({'hard_reset':True})

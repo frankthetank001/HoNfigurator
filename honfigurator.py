@@ -52,7 +52,6 @@ from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
-
 i=0
 for proc in psutil.process_iter():
     if proc.name() == "honfigurator.exe":
@@ -95,6 +94,7 @@ if is_admin():
     import cogs.dataManager as dmgr
     
     global hon_api_updated
+    first_check_complete = False
     #
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
     #   Otherwise taskbar icon will be python shell icon
@@ -1288,6 +1288,8 @@ if is_admin():
                     os.chdir(hondirectory)
                     #sp.call(["hon_x64.exe","-update","-masterserver",master_server])
                     #sp.call(["hon_update_x64.exe"])
+                    if exists("Update\\hon_update_x64.exe.zip"):
+                        os.remove("Update\\hon_update_x64.exe.zip")
                     sp.call(["hon_x64.exe","-update","-masterserver",master_server])
                     try:
                         os.chdir(application_path)
@@ -1660,7 +1662,7 @@ if is_admin():
                 proxy_application = "proxymanager.exe"
                 service_proxy = initialise.get_service(service_proxy_name)
                 if service_proxy:
-                    if service_manager['status'] == 'running' or service_proxy['status'] == 'paused':
+                    if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                         initialise.stop_service(self,service_proxy_name,False)
                 if svrcmd.honCMD.check_proc(proxy_application):
                     svrcmd.honCMD.stop_proc(proxy_application)
@@ -2035,8 +2037,8 @@ if is_admin():
             tex.tag_config('warning', background="yellow", foreground="red")
             tex.tag_config('interest', background="green")
             tex.tag_configure("stderr", foreground="#b22222")
-            sys.stdout = TextRedirector(tex, "stdout")
-            sys.stderr = TextRedirector(tex, "stderr")
+            # sys.stdout = TextRedirector(tex, "stdout")
+            # sys.stderr = TextRedirector(tex, "stderr")
             """
             
             This is the advanced server setup tab
@@ -2664,15 +2666,17 @@ if is_admin():
                 global refresh_next
                 global update_counter
                 global update_delay
+                global first_check_complete
                 update_counter+=1
-                if refresh_next==True:
-                    if (tabgui.index("current")) == 0:
-                        if update_counter >= update_delay:
+                if (tabgui.index("current")) == 0:
+                        if update_counter >= update_delay or first_check_complete==False:
+                            first_check_complete=True
                             update_counter = 0
                             print("checking for honfigurator update")
                             self.update_repository(NULL,NULL,NULL)
                             print("checking for hon update")
                             Thread(target=self.forceupdate_hon,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                if refresh_next==True:
                     if (tabgui.index("current")) == 1:
                         viewButton.refresh(int(stretch.get())+3)
                 refresh_next=True
@@ -2687,7 +2691,8 @@ if is_admin():
             global refresh_next
             refresh_next = True
             auto_refresher()
-            app.protocol('WM_DELETE_WINDOW', hide_window)
+            # TODO: re-implement below for systray icon
+            #app.protocol('WM_DELETE_WINDOW', hide_window)
             app.mainloop()
     test = honfigurator()
     test.creategui()
