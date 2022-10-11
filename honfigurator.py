@@ -1290,7 +1290,7 @@ if is_admin():
                     #sp.call(["hon_update_x64.exe"])
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    sp.call(["hon_x64.exe","-update","-masterserver",master_server])
+                    sp.call(["hon_update_x64"])
                     try:
                         os.chdir(application_path)
                     except Exception as e:
