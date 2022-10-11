@@ -1639,6 +1639,7 @@ if is_admin():
                 return
         def stop_all_for_update(self):
             players=False
+            print("attempting to stop servers")
             for i in range (1,(int(self.dataDict['svr_total']) +1)):
                 try:
                     pcount=initialise.playerCountX(self,i)
