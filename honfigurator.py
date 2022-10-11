@@ -2153,7 +2153,7 @@ if is_admin():
                             list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                             latest_file = max(list_of_files, key=os.path.getctime)
                             info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
-                            warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected"]
+                            warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected","Connection to chat server terminated."]
                             with open(latest_file,'r',encoding='utf-16-le') as file:
                                 for line in file:
                                     tem=line.lower()

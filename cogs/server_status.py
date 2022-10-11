@@ -180,10 +180,10 @@ class honCMD():
         soft_data = os.stat(log).st_size # initial file size
         status={}
         # if (soft_data > hard_data) or 'first_check' not in status:
-        connection_errors = ['connection to chat server terminated',"session cookie request failed!","invalid session cookie"]
+        session_cookie_errors = ["session cookie request failed!","invalid session cookie"]
         with open (log, "r", encoding='utf-16-le') as f:
             for line in reversed(list(f)):
-                for item in connection_errors:
+                for item in session_cookie_errors:
                     if item in line.lower():
                         return False
                     elif "new session cookie " in line.lower():
