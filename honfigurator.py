@@ -1639,6 +1639,7 @@ if is_admin():
                 return
         def stop_all_for_update(self):
             players=False
+            print("attempting to stop servers")
             for i in range (1,(int(self.dataDict['svr_total']) +1)):
                 try:
                     pcount=initialise.playerCountX(self,i)
@@ -1661,7 +1662,9 @@ if is_admin():
                         players=True
                         initialise.schedule_shutdown(deployed_status)
                 except Exception as e:
+                    "ERROR OCCURED"
                     print(e)
+                    return False
             if players==True:
                 print("There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete.")
                 tex.insert(END,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
