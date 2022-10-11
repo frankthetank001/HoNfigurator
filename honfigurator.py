@@ -1292,9 +1292,9 @@ if is_admin():
                     #sp.call(["hon_update_x64.exe"])
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    if exists("hon_x64.exe"):
-                        shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
-                    sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
+                    # if exists("hon_x64.exe"):
+                    #     shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
+                    sp.call(["hon_x64.exe","-update","-masterserver",master_server])
                     while dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") != latest_version:
                         time.sleep(30)
                         print("still updating...")
@@ -1302,8 +1302,8 @@ if is_admin():
                         if timeout==6:
                             break
                     try:
-                        if exists("hon_x64_tmp.exe"):
-                            os.remove("hon_x64_tmp.exe")
+                        # if exists("hon_x64_tmp.exe"):
+                        #     os.remove("hon_x64_tmp.exe")
                         os.chdir(application_path)
                     except Exception as e:
                         print(e)
