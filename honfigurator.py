@@ -1263,6 +1263,8 @@ if is_admin():
         def forceupdate_hon(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global update_counter
             update_counter=0
+            timeout=0
+            patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
             if current_version != latest_version:
@@ -1290,12 +1292,28 @@ if is_admin():
                     #sp.call(["hon_update_x64.exe"])
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    sp.call(["hon_update_x64"])
+                    if exists("hon_x64.exe"):
+                        shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
+                    sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
+                    while dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") != latest_version:
+                        time.sleep(30)
+                        print("still updating...")
+                        timeout+=1
+                        if timeout==6:
+                            break
                     try:
+                        if exists("hon_x64_tmp.exe"):
+                            os.remove("hon_x64_tmp.exe")
                         os.chdir(application_path)
                     except Exception as e:
                         print(e)
-                    honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                    if dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") == latest_version:
+                        print("Patch successful!")
+                        tex.insert(END,"Patch successful!\n Relaunching servers")
+                    else:
+                        print("Patch successful!")
+                        tex.insert(END,"Patch failed!\n Relaunching servers")
+                    honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                 tex.see(tk.END)
