@@ -1661,7 +1661,9 @@ if is_admin():
                         players=True
                         initialise.schedule_shutdown(deployed_status)
                 except Exception as e:
+                    "ERROR OCCURED"
                     print(e)
+                    return False
             if players==True:
                 print("There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete.")
                 tex.insert(END,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
