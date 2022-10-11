@@ -1260,14 +1260,14 @@ if is_admin():
                 tex.see(tk.END)
                 self.git_branch.set(current_branch)
                 return False
-        def forceupdate_hon(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def forceupdate_hon(self,force,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global update_counter
             update_counter=0
             timeout=0
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            if current_version != latest_version:
+            if current_version != latest_version or force:
                 print(f"Update available. {current_version} --> {latest_version}")
                 tex.insert(END,f"Update available. {current_version} --> {latest_version}")
                 tex.see(tk.END)
@@ -1292,6 +1292,8 @@ if is_admin():
                     #sp.call(["hon_update_x64.exe"])
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
+                    if exists("hon_x64_tmp.exe"):
+                        os.remove("hon_x64_tmp.exe")
                     if exists("hon_x64.exe"):
                         shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
                     sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
@@ -1300,15 +1302,19 @@ if is_admin():
                         print("still updating...")
                         timeout+=1
                         if timeout==6:
+                            if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
+                                svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
                             break
                     try:
-                        if exists("hon_x64_tmp.exe"):
-                            os.remove("hon_x64_tmp.exe")
                         os.chdir(application_path)
                     except Exception as e:
                         print(e)
                     if dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") == latest_version:
                         print("Patch successful!")
+                        if force:
+                            time.sleep(60)
+                        if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
+                            svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
                     else:
                         print("Patch successful!")
@@ -2046,7 +2052,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2696,7 +2702,7 @@ if is_admin():
                             print("checking for honfigurator update")
                             self.update_repository(NULL,NULL,NULL)
                             print("checking for hon update")
-                            Thread(target=self.forceupdate_hon,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                            Thread(target=self.forceupdate_hon,args=(False,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                 if refresh_next==True:
                     if (tabgui.index("current")) == 1:
                         viewButton.refresh(int(stretch.get())+3)
