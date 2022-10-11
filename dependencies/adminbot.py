@@ -922,7 +922,7 @@ if is_admin():
                         #
                         #   Sends the restart server command
                         if (react.emoji.name == "🔁"):
-                            svr_cmd.restartSERVER()
+                            svr_cmd.restartSERVER(False)
                             heart = await ctx.invoke(bot.get_command('statusheart'))
                             if not heart:
                                 await ctx.invoke(bot.get_command('startheart'))
