@@ -6,6 +6,7 @@ import cogs.server_status as svrcmd
 import cogs.dataManager as dmgr
 from datetime import datetime
 import traceback
+import time
 
 svr_state = svrcmd.honCMD()
 #hard_reset = False
@@ -82,6 +83,8 @@ class heartbeat(commands.Cog):
         while alive == True:
             alive=True
             if alive_bkp==True:
+                print("switching to discord heartbeat - with bots.")
+                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"switching to discord heartbeat - with bots.","INFO")
                 alive_bkp=False
             counter_heartbeat+=1
             await asyncio.sleep(1)
@@ -225,7 +228,7 @@ class heartbeat(commands.Cog):
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
-                            svr_state.restartSELF(True)
+                            svr_state.restartSELF()
                         else: pass
                     else:
                         # await test.createEmbed(ctx,playercount)
@@ -241,7 +244,7 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
-                        svr_state.restartSELF(True)
+                        svr_state.restartSELF()
                 # check for or action a scheduled shutdown
                 if self.server_status['scheduled_shutdown']==False:
                     try:
@@ -519,7 +522,7 @@ class heartbeat(commands.Cog):
                 # if playercount < 0:
                 #     self.alive = False
 
-    async def startheart_bkp():
+    def startheart_bkp():
         global alive_bkp
         global alive
         alive_bkp='True'
@@ -554,7 +557,7 @@ class heartbeat(commands.Cog):
                 with open(bkup_heart_file,'r') as f:
                     alive_bkp = f.readline()
 
-            await asyncio.sleep(heartbeat_freq)
+            time.sleep(heartbeat_freq)
             try:
                 playercount = svrcmd.honCMD().playerCount()
                 print("players: " + str(playercount))
