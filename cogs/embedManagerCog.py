@@ -264,10 +264,7 @@ class embedManager(commands.Cog):
         else:
             created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}  |  รอผู้เล่นสร้างห้อง",description=default_description, color=stripColor_online)
         created_embed.set_author(name=self.server_status['discord_admin_name'])
-        if svr_dns is None:
-            #created_embed.add_field(name=f"Connect (ready):",value=f"```\nconnect {svr_ip}:{svr_port}\n```",inline=True)
-            created_embed.add_field(name=f"เซิฟเวอร์พร้อมใช้งาน!!",value=f"```\nnเชื่อมต่อผ่านเกมส์สาธารณะ.```",inline=True)
-        elif 'cookie' in self.server_status and self.server_status['cookie']==False:
+        if 'cookie' in self.server_status and self.server_status['cookie']==False:
             created_embed.add_field(name=f"Cookie error!",value=f"```\nnot currently connected to master server.```",inline=True)
             created_embed.set_footer(text=f"v{bot_version}  |  Games Played: {self.server_status['total_games_played']}  |  Last Restart: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
             created_embed.set_thumbnail(url=disconnected)

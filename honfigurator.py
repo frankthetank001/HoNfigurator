@@ -1350,11 +1350,11 @@ if is_admin():
                 checks=False
                 tex.insert(END,"FIXME: Please ensure there is a space in the HoN Directory path.\n",'warning')
                 tex.see(tk.END)
-            if bottoken=='':
+            if bottoken=='' and disable_bot == False:
                 checks=False
                 tex.insert(END,"FIXME: Please provide a bot token.\n",'warning')
                 tex.see(tk.END)
-            if discordadmin=='':
+            if discordadmin=='' and disable_bot == False:
                 checks=False
                 tex.insert(END,"FIXME: Please provide a discord user ID (10 digit number).\n",'warning')
                 tex.see(tk.END)
@@ -2580,7 +2580,7 @@ if is_admin():
                             if service_state is not None and deployed_status['use_console'] == 'False':
                                 if service_state == False or service_state['status'] == 'stopped':
                                     colour = 'OrangeRed4'
-                                    svc_or_con="svc"
+                                svc_or_con="svc"
                                     #LablString[1]=f"svc-Stopped"
                             elif deployed_status['use_console'] == 'True':
                                 #colour = 'OrangeRed4'
@@ -2591,7 +2591,7 @@ if is_admin():
                                 labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {self.dataDict['hon_version']}")
+                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Core: {deployed_status['svr_affinity']}\n{deployed_status['core_assignment']}")
                                 except: pass
                             elif index1==1:
                                 labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')

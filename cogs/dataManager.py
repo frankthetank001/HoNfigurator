@@ -211,6 +211,14 @@ class mData():
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
         self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyRemoteVoicePort":self.confDict_deployed['svr_proxyLocalVoicePort']+10000})
+        self.confDict_deployed.update({"svr_affinity":mData.check_affinity(svr_id,self.confDict_deployed['core_assignment'])})
+        if self.confDict_deployed['master_server'] == "honmasterserver.com":
+            self.confDict_deployed.update({"hon_file_name":f"HON_SERVER_{svr_id}.exe"})
+        else:
+            self.confDict_deployed.update({"hon_file_name":f"KONGOR_ARENA_{svr_id}.exe"})
+        #
+        self.confDict_deployed.update({"hon_exe":f"{self.confDict_deployed['hon_directory']}{self.confDict_deployed['hon_file_name']}"})
+        self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
 
         return self.confDict_deployed
         
@@ -300,7 +308,50 @@ class mData():
             return(version.decode('utf-16-le'))
         else:
             return ("pending version check")
-
+    def check_affinity(svr_id,core_assignment):
+        svr_id = int(svr_id)
+            #
+            #   Get total cores, logical included
+        total_cores = psutil.cpu_count(logical = True)
+        if core_assignment == 'two':
+            total_cores +=1
+            affinity = [total_cores - svr_id,total_cores - svr_id - 1]
+            #
+            #   Set affinity of the hon process to total cores - server ID
+            affinity[0] = affinity[0]-svr_id
+            affinity[1] = affinity[1]-svr_id
+        elif core_assignment == 'one':
+            affinity = [0,0]
+            affinity[0] = total_cores - svr_id
+            affinity[1] = total_cores - svr_id
+        elif core_assignment == 'two servers/core':
+            affinity = [0,0]
+            t = 0
+            for num in range(0, svr_id):
+                # checking condition
+                if num % 2 == 0:
+                    t +=1
+            affinity[0] = total_cores - t
+            affinity[1] = total_cores - t
+        elif core_assignment == 'three servers/core':
+                affinity = [0,0]
+                t = 0
+                for num in range(0, svr_id):
+                    # checking condition
+                    if num % 3 == 0:
+                        t +=1
+                affinity[0] = total_cores - t
+                affinity[1] = total_cores - t
+        elif core_assignment == 'four servers/core':
+            affinity = [0,0]
+            t = 0
+            for num in range(0, svr_id):
+                # checking condition
+                if num % 4 == 0:
+                    t +=1
+            affinity[0] = total_cores - t
+            affinity[1] = total_cores - t
+        return affinity
     def getData(self, dtype):
         if dtype == "hon":
             return "data"

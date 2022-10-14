@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from email import message
 import discord
 from discord.ext import commands
@@ -38,6 +39,11 @@ def is_admin():
     except:
         return False
 if is_admin():
+    def show_exception_and_exit(exc_type, exc_value, tb):
+        traceback.print_exception(exc_type, exc_value, tb)
+        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+        sys.exit(-1)
+    sys.excepthook = show_exception_and_exit
     bot = commands.Bot(command_prefix='!',case_insensitive=True)
     client = discord.Client(intents=discord.Intents.default())
     bot.remove_command("help")
@@ -113,68 +119,67 @@ if is_admin():
             discord_admin = await bot.fetch_user(processed_data_dict['discord_admin'])
             tempData = ({'discord_admin_name':f"@{discord_admin.name}"})
             svr_cmd.updateStatus(tempData)
-            if processed_data_dict['disable_bot'] == 'False':
-                for embed in embed_ids:
+            for embed in embed_ids:
+                try:
+                    #sleep(randint(1,5))
+                    #
+                    #   Loads guild
+                    tempGuild = bot.get_guild(embed[0])
+                    if tempGuild is None:
+                        tempGuild = await bot.fetch_guild(embed[0])
+                    #
+                    #   Loads channel
+                    tempChannel = tempGuild.get_channel(embed[1])
+                    if tempChannel is None:
+                        tempChannel = await bot.fetch_channel(embed[1])
+                    #
+                    #   fetches message
+                    tempEmbed = await tempChannel.fetch_message(embed[2])
+                    embed_obj.append(tempEmbed)
+                    ctx = await bot.get_context(embed_obj[0])
+                    if len(embed_log) == 0:
+                        temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :) " + "``"+hsl.time()+"``")
+                        try:
+                            embedObj = await discord_admin.send(embed=temp_log)
+                        except:
+                            print(traceback.format_exc())
+                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        embed_log.append(embedObj)
+                        #hsl.LastEmbedLog(embed_log)
+                    logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                     try:
-                        #sleep(randint(1,5))
-                        #
-                        #   Loads guild
-                        tempGuild = bot.get_guild(embed[0])
-                        if tempGuild is None:
-                            tempGuild = await bot.fetch_guild(embed[0])
-                        #
-                        #   Loads channel
-                        tempChannel = tempGuild.get_channel(embed[1])
-                        if tempChannel is None:
-                            tempChannel = await bot.fetch_channel(embed[1])
-                        #
-                        #   fetches message
-                        tempEmbed = await tempChannel.fetch_message(embed[2])
-                        embed_obj.append(tempEmbed)
-                        ctx = await bot.get_context(embed_obj[0])
-                        if len(embed_log) == 0:
-                            temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :) " + "``"+hsl.time()+"``")
-                            try:
-                                embedObj = await discord_admin.send(embed=temp_log)
-                            except:
-                                print(traceback.format_exc())
-                                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            embed_log.append(embedObj)
-                            #hsl.LastEmbedLog(embed_log)
-                        logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
-                        try:
-                            await embed_log[0].edit(embed=logEmbed)
-                            await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
-                        except:
-                            print(traceback.format_exc())
-                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                        # await user.send("hello")
-                    except discord.errors.Forbidden:
-                        print("No permissions to the previous message.. clearing it from message cache")
-                        try:
-                            embed_ids.remove(embed)
-                            embedFile = open(processed_data_dict['discord_temp'], 'w')
-                            for i in range(len(embed_ids)):
-                                embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
-                            embedFile.close()
-                        except:
-                            print(traceback.format_exc())
-                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    except discord.errors.NotFound:
-                        print("Previous message not found.. clearing it from message cache")
-                        try:
-                            embed_ids.remove(embed)
-                            embedFile = open(processed_data_dict['discord_temp'], 'w')
-                            for i in range(len(embed_ids)):
-                                embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
-                            embedFile.close()
-                        except:
-                            print(traceback.format_exc())
-                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                        print("No permissions to the previous message.. clearing message cache")
+                        await embed_log[0].edit(embed=logEmbed)
+                        await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
                     except:
-                            print(traceback.format_exc())
-                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        print(traceback.format_exc())
+                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    # await user.send("hello")
+                except discord.errors.Forbidden:
+                    print("No permissions to the previous message.. clearing it from message cache")
+                    try:
+                        embed_ids.remove(embed)
+                        embedFile = open(processed_data_dict['discord_temp'], 'w')
+                        for i in range(len(embed_ids)):
+                            embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
+                        embedFile.close()
+                    except:
+                        print(traceback.format_exc())
+                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                except discord.errors.NotFound:
+                    print("Previous message not found.. clearing it from message cache")
+                    try:
+                        embed_ids.remove(embed)
+                        embedFile = open(processed_data_dict['discord_temp'], 'w')
+                        for i in range(len(embed_ids)):
+                            embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
+                        embedFile.close()
+                    except:
+                        print(traceback.format_exc())
+                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    print("No permissions to the previous message.. clearing message cache")
+                except:
+                        print(traceback.format_exc())
+                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             # await ctx.invoke(bot.get_command('getStatus'))
             try:
                 result = srvcmd.honCMD().startSERVER(False)
@@ -270,30 +275,25 @@ if is_admin():
             except:
                 print(traceback.format_exc())
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            if processed_data_dict['disable_bot'] == 'False':
+            try:
+                await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
+                print("starting behemoth heart.")
+                await ctx.invoke(bot.get_command('startheart'))
+            except UnboundLocalError:
+                temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {processed_data_dict['svr_hoster']}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
                 try:
-                    await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
-                    print("starting behemoth heart.")
-                    await ctx.invoke(bot.get_command('startheart'))
-                except UnboundLocalError:
-                    temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {processed_data_dict['svr_hoster']}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
-                    try:
-                        await discord_admin.send(temp_log)
-                    except discord.errors.Forbidden:
-                        print("Owner is not reachable. We will message the person to send me a command then.")
-                        owner_reachable = False
-                    except:
-                        print(traceback.format_exc())
-                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    await discord_admin.send(temp_log)
+                except discord.errors.Forbidden:
+                    print("Owner is not reachable. We will message the person to send me a command then.")
+                    owner_reachable = False
+                except:
                     print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
-                    print("starting backup heart until discord !createinks command is run.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
-                    await heart.heartbeat.startheart_bkp()
-            else:
-                print("bot started in local mode.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
-                await heart.heartbeat.startheart_bkp()
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
+                print("starting backup heart until discord !createinks command is run.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
+                heart.heartbeat.startheart_bkp()
         #@bot.event
         # async def on_ready():
             
@@ -994,9 +994,31 @@ if is_admin():
                 await ctx.invoke(bot.get_command('portalhelp'))
 
     def run_bot():
-        hsl(bot)
-        hsl.wait_until_ready.start()
-        bot.run(processed_data_dict['token'])
+        if processed_data_dict['disable_bot'] == 'False':
+            hsl(bot)
+            hsl.wait_until_ready.start()
+            bot.run(processed_data_dict['token'])
+        else:
+            try:
+                print("bot started in local mode.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+                result = srvcmd.honCMD().startSERVER(False)
+                if result == True:
+                    print("server started successfully")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+                elif result == "ram":
+                    print("not enough free RAM to start the server.")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
+                elif result == "proxy":
+                    print("Proxy port is not online.")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
+                else:
+                    print("starting the server completely failed.")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
+            except:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            heart.heartbeat.startheart_bkp()
     if __name__ == '__main__':
         run_bot()
 else:
