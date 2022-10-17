@@ -1,3 +1,7 @@
+param (
+    [switch]$reset = $false
+)
+
 if (!
     #current role
     (New-Object Security.Principal.WindowsPrincipal(
@@ -90,23 +94,19 @@ function Write-Config ($api_key) {
 
 $local_config = Read-Config
 if ($local_config) {
-    $launcher="HoNfigurator"
-    if ($local_config['api_key']) {
-        $api_key = $local_config['api_key']
-        $launcher = "HoNfigurator"
-    } else {
-        $api_key = Read-Host("API Key")
-        Write-Config $api_key
-    }
     if ($local_config['hon_directory']) {
         $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
         $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
     } else {
         Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
     }
+    $hoster = $local_config['svr_hoster']
+    $region = $local_config['svr_region_short']
 } else {
     $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
     if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+    $hoster = ("Please enter server name. Make sure that this is accurate as what is in COMPEL")
+    $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
     if ($launcher -eq "COMPEL") {
         $logdir = Read-Host("Enter logs folder path")
         $path_slave = "$logdir\*.clog"
@@ -114,6 +114,14 @@ if ($local_config) {
     } else {
         Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
     }
+}
+# check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
+if ($reset) {
+    Stop-Service -Name 'filebeat'
+    Write-Host("Clearing registry data, so we can re-ingest from the start..")
+    $path_to_remove = (Join-Path $ENV:ProgramData 'filebeat\Registry')
+    #Write-Host(Join-Path $ENV:ProgramData 'filebeat\Registry')
+    $path_to_remove.remove
 }
 
 $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
@@ -131,7 +139,6 @@ Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
 
 $hoster = $local_config['svr_hoster']
 $region = $local_config['svr_region_short']
-
 
 $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
 $Services = [pscustomobject]@{
@@ -200,10 +207,8 @@ fields:
     Launcher: $launcher
     Region: $region
 setup.dashboards.enabled: false
-output.elasticsearch:
-  hosts: 'hon-elk.honfigurator.app:9200'
-  protocol: https
-  api_key: $api_key
+output.logstash:
+  hosts: 'hon-elk.honfigurator.app:5044'
   ssl.certificate_authorities: $metricbeat_chain
   ssl.certificate: $metricbeat_client_pem
   ssl.key: $metricbeat_client_key
@@ -285,7 +290,7 @@ $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $T
 
 $check = Test-Path -Path $filebeat_client_pem
 if ($check -eq $false) {
-    openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=Beats-Client"
+    openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
     Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
     Write-Host("Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank")
     Write-Host("You will then receive client.pem which needs to go into $filebeat_client_pem and $metricbeat_client_pem")
