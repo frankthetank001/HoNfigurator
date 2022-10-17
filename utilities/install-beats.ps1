@@ -119,9 +119,8 @@ if ($local_config) {
 if ($reset) {
     Stop-Service -Name 'filebeat'
     Write-Host("Clearing registry data, so we can re-ingest from the start..")
-    $path_to_remove = (Join-Path $ENV:ProgramData 'filebeat\Registry')
-    #Write-Host(Join-Path $ENV:ProgramData 'filebeat\Registry')
-    $path_to_remove.remove
+    $path_to_remove = "$ENV:ProgramData\filebeat\registry"
+    Remove-Item $path_to_remove -Recurse -Force
 }
 
 $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
@@ -292,10 +291,15 @@ $check = Test-Path -Path $filebeat_client_pem
 if ($check -eq $false) {
     openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
     Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
+    Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
+    Write-Host("============================================================================================================")
     Write-Host("Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank")
-    Write-Host("You will then receive client.pem which needs to go into $filebeat_client_pem and $metricbeat_client_pem")
+    Write-Host("You will then receive client.pem file which needs to go into $filebeat_client_pem and $metricbeat_client_pem")
     Write-Host("Once that is done you can run this script again.")
+    Write-Host("============================================================================================================")
 } else {
-    Start-Service -Name "filebeat"
-    Start-Service -Name "metricbeat"
+    Write-Host("Restarting Filebeat")
+    Restart-Service -Name "filebeat"
+    Write-Host("Restarting MetricBeat")
+    Restart-Service -Name "metricbeat"
 }
