@@ -481,8 +481,8 @@ class honCMD():
                 
     #
     #   Stop server
-    def stopSERVER(self):
-        if self.playerCount() == 0 or self.server_status['restart_required']==True:
+    def stopSERVER(self,force):
+        if self.playerCount() == 0 or force:
             if self.server_status['hon_exe'] == "empty":
                 for proc in psutil.process_iter():
                     if proc.name() == processed_data_dict['hon_file_name']:
@@ -518,14 +518,14 @@ class honCMD():
         return True
 
     def restartSERVER(self,force):
-        if self.playerCount() == 0 or force == True:
+        if self.playerCount() == 0 or force:
             hard_reset = honCMD().check_for_updates("pending_restart")
             if hard_reset:
                 self.server_status.update({'hard_reset':True})
                 honCMD().restartSELF()
             else: 
                 honCMD().append_line_to_file(processed_data_dict['app_log'],"Server about to restart.","INFO")
-                honCMD().stopSERVER()
+                honCMD().stopSERVER(force)
                 #
                 #   Code is stuck waiting for server to turn off
                 self.server_status.update({'server_restarting':True})
@@ -544,7 +544,7 @@ class honCMD():
 
     def restartSELF(self):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
-        honCMD().stopSERVER()
+        honCMD().stopSERVER(True)
         incoming_config = dmgr.mData().returnDict_temp()
         if len(incoming_config) > 0:
             if processed_data_dict['use_console'] == 'True':
@@ -571,7 +571,7 @@ class honCMD():
                 os._exit(1)
     def stopSELF(self):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping HARD - means we are intentionally stopping the service via server administrator.","INFO")
-        honCMD().stopSERVER()
+        honCMD().stopSERVER(True)
         if processed_data_dict['use_console'] == 'True':
             os._exit(0)
         else:
