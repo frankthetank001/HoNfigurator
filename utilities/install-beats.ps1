@@ -23,6 +23,12 @@ if (!
     exit
 }
 
+Write-Host("Current Directory: $PSScriptRoot")
+cd $PSScriptRoot
+## Install Chocolatey package manager ##
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
+cls
+
 choco install filebeat -y 2>&1 | Write-Verbose
 choco install metricbeat -y 2>&1 | Write-Verbose
 choco install yq -y 2>&1 | Write-Verbose
