@@ -99,6 +99,26 @@ function Write-Config ($api_key) {
     [void]$sb.Clear()
     "[OPTIONS]" | Insert-Content $file
 }
+function Verify-Start {
+    $check = Test-Path -Path $filebeat_client_pem
+    if ($check -eq $false) {
+        openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
+        Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
+        Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
+        Write-Host("============================================================================================================`n
+Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank
+
+You will then receive client.pem file. Please copy this file into the following directories:`n$filebeat_client_pem`n$metricbeat_client_pem
+============================================================================================================`n")
+        Read-Host("Press any key once the files have been copied")
+        Verify-Start
+    } else {
+        Write-Host("Restarting Filebeat")
+        Restart-Service -Name "filebeat"
+        Write-Host("Restarting MetricBeat")
+        Restart-Service -Name "metricbeat"
+    }
+}
 function Setup-Beats {
     $local_config = Read-Config
     if ($local_config) {
@@ -294,24 +314,7 @@ function Setup-Beats {
     metricsets:
         - uptime"
     $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
-
-    $check = Test-Path -Path $filebeat_client_pem
-    if ($check -eq $false) {
-        openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
-        Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
-        Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
-        Write-Host("============================================================================================================`n
-        Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank
-
-        You will then receive client.pem file. Please copy this file into the following directories:`n$filebeat_client_pem`n$metricbeat_client_pem
-        ============================================================================================================`n")
-        Read-Host("Press any key once the files have been copied")
-        Setup-Beats
-    } else {
-        Write-Host("Restarting Filebeat")
-        Restart-Service -Name "filebeat"
-        Write-Host("Restarting MetricBeat")
-        Restart-Service -Name "metricbeat"
-    }
+    Verify-Start
+    Read-Host("Success! Press any key to close.")
 }
-Read-Host("Success! Press any key to close.")
+Setup-Beats
