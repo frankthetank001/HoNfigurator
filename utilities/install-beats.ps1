@@ -29,6 +29,8 @@ cd $PSScriptRoot
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
 cls
 
+Write-Host("============================================================================================================`n
+Installing Filebeat and Metric beat using Official Chocolatey, please wait")
 choco install filebeat -y 2>&1 | Write-Verbose
 choco install metricbeat -y 2>&1 | Write-Verbose
 choco install yq -y 2>&1 | Write-Verbose
@@ -97,216 +99,219 @@ function Write-Config ($api_key) {
     [void]$sb.Clear()
     "[OPTIONS]" | Insert-Content $file
 }
-
-$local_config = Read-Config
-if ($local_config) {
-    if ($local_config['hon_directory']) {
-        $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
-        $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
+function Setup-Beats {
+    $local_config = Read-Config
+    if ($local_config) {
+        if ($local_config['hon_directory']) {
+            $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
+            $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
+        } else {
+            Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+        }
+        $hoster = $local_config['svr_hoster']
+        $region = $local_config['svr_region_short']
     } else {
-        Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+        $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
+        if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+        $hoster = ("Please enter server name. Make sure that this is accurate as what is in COMPEL")
+        $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
+        if ($launcher -eq "COMPEL") {
+            $logdir = Read-Host("Enter logs folder path")
+            $path_slave = "$logdir\*.clog"
+            $path_match = "$logdir\M*.log"
+        } else {
+            Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+        }
     }
+    # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
+    if ($reset) {
+        Stop-Service -Name 'filebeat'
+        Write-Host("Clearing registry data, so we can re-ingest from the start..")
+        $path_to_remove = "$ENV:ProgramData\filebeat\registry"
+        Remove-Item $path_to_remove -Recurse -Force
+    }
+
+    $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
+    $filebeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.pem')
+    $filebeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.key')
+    $metricbeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\honfigurator-chain.pem')
+    $metricbeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.pem')
+    $metricbeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.key')
+
+    New-Item (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs') -ItemType Directory -ErrorAction SilentlyContinue
+    New-Item (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs') -ItemType Directory -ErrorAction SilentlyContinue
+
+    Copy-Item -Path .\honfigurator-chain.pem -Destination $filebeat_chain
+    Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
+
     $hoster = $local_config['svr_hoster']
     $region = $local_config['svr_region_short']
-} else {
-    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
-    if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
-    $hoster = ("Please enter server name. Make sure that this is accurate as what is in COMPEL")
-    $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
-    if ($launcher -eq "COMPEL") {
-        $logdir = Read-Host("Enter logs folder path")
-        $path_slave = "$logdir\*.clog"
-        $path_match = "$logdir\M*.log"
-    } else {
-        Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
-    }
-}
-# check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
-if ($reset) {
-    Stop-Service -Name 'filebeat'
-    Write-Host("Clearing registry data, so we can re-ingest from the start..")
-    $path_to_remove = "$ENV:ProgramData\filebeat\registry"
-    Remove-Item $path_to_remove -Recurse -Force
-}
 
-$filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
-$filebeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.pem')
-$filebeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.key')
-$metricbeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\honfigurator-chain.pem')
-$metricbeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.pem')
-$metricbeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.key')
-
-New-Item (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs') -ItemType Directory -ErrorAction SilentlyContinue
-New-Item (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs') -ItemType Directory -ErrorAction SilentlyContinue
-
-Copy-Item -Path .\honfigurator-chain.pem -Destination $filebeat_chain
-Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
-
-$hoster = $local_config['svr_hoster']
-$region = $local_config['svr_region_short']
-
-$TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
-$Services = [pscustomobject]@{
-    'filebeat.inputs' = @(
-        [ordered]@{
-            'type' =  'filestream'
-            'id' = "hon-logs-$hoster"
-            'enabled' = $true
-            'paths' = @(
-                $path_slave
-                $path_match
-            )
-            'encoding' = 'utf-16le'
-            'exclude_files' = '[".gz$"]'
-            'multiline.pattern' = '^\d\d\'
-            'multiline.negate' = $true
-            'multiline.match' = 'after'
-            'fields_under_root' = $true
-            'fields' = [ordered]@{
-                'Server' = [ordered]@{
-                    'Name' = $hoster
-                    'Launcher' = $launcher
-                    'Region' = $region
+    $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
+    $Services = [pscustomobject]@{
+        'filebeat.inputs' = @(
+            [ordered]@{
+                'type' =  'filestream'
+                'id' = "hon-logs-$hoster"
+                'enabled' = $true
+                'paths' = @(
+                    $path_slave
+                    $path_match
+                )
+                'encoding' = 'utf-16le'
+                'exclude_files' = '[".gz$"]'
+                'multiline.pattern' = '^\d\d\'
+                'multiline.negate' = $true
+                'multiline.match' = 'after'
+                'fields_under_root' = $true
+                'fields' = [ordered]@{
+                    'Server' = [ordered]@{
+                        'Name' = $hoster
+                        'Launcher' = $launcher
+                        'Region' = $region
+                    }
                 }
             }
-        }
-    )
-    'filebeat.config.modules' =
-        [ordered]@{
-            'path' = '${path.config}/modules.d/*.yml'
-            'reload.enabled' = $false
-        }
-    'setup.template.settings' =
-        [ordered]@{
-            'index.number_of_shards' = '1'
-        }
-    'output.logstash' =
-        [ordered]@{
-            'hosts' = 'hon-elk.honfigurator.app:5044'
-            'ssl.certificate_authorities' = $filebeat_chain
-            'ssl.certificate' = $filebeat_client_pem
-            'ssl.key' = $filebeat_client_key
-        }
-    
-    'processors' = @(
-        [ordered]@{
-            'add_host_metadata' = [ordered]@{
-                'when.not.contains.tags' = 'forwarded'
+        )
+        'filebeat.config.modules' =
+            [ordered]@{
+                'path' = '${path.config}/modules.d/*.yml'
+                'reload.enabled' = $false
             }
-        }
-    )
+        'setup.template.settings' =
+            [ordered]@{
+                'index.number_of_shards' = '1'
+            }
+        'output.logstash' =
+            [ordered]@{
+                'hosts' = 'hon-elk.honfigurator.app:5044'
+                'ssl.certificate_authorities' = $filebeat_chain
+                'ssl.certificate' = $filebeat_client_pem
+                'ssl.key' = $filebeat_client_key
+            }
+        
+        'processors' = @(
+            [ordered]@{
+                'add_host_metadata' = [ordered]@{
+                    'when.not.contains.tags' = 'forwarded'
+                }
+            }
+        )
+    }
+    $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
+
+    $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
+    $services = "metricbeat.config.modules:
+    path: `${path.config}/modules.d/*.yml
+    reload.enabled: null
+    setup.template.settings:
+    index.number_of_shards: 1
+    index.codec: best_compression
+    fields_under_root: true
+    fields:
+    Server:
+        Name: $hoster
+        Launcher: $launcher
+        Region: $region
+    setup.dashboards.enabled: false
+    output.logstash:
+    hosts: 'hon-elk.honfigurator.app:5044'
+    ssl.certificate_authorities: $metricbeat_chain
+    ssl.certificate: $metricbeat_client_pem
+    ssl.key: $metricbeat_client_key
+    processors:
+    - add_host_metadata: ~"
+    # $Services = [pscustomobject]@{
+    #     'metricbeat.config.modules' =
+    #         [ordered]@{
+    #             'path' = '${path.config}/modules.d/*.yml'
+    #             'reload.enabled' = $false1
+    #         }
+    #     'setup.template.settings' =
+    #         [ordered]@{
+    #             'index.number_of_shards' = '1'
+    #             'index.codec' = 'best_compression'
+    #         }
+    #     'fields_under_root' = $true
+    #     'fields' = [ordered]@{
+    #         'Server' = [ordered]@{
+    #             'Name' = $local_config['svr_hoster']
+    #             'Launcher' = $launcher
+    #             'Region' = $local_config['svr_region_short']
+    #         }
+    #     }
+    #     'setup.dashboards.enabled' = $false
+    #     'output.elasticsearch' =
+    #         [ordered]@{
+    #             'hosts' = '[hon-elk.honfigurator.app:9200]'
+    #             'protocol' = 'https'
+    #             'api_key' = $api_key
+    #             'ssl.certificate_aurhotities' = '[C:\ProgramData\Elastic\Beats\filebeat\certs\client.pem,C:\ProgramData\Elastic\Beats\filebeat\certs\chain.pem]'
+    #             'ssl.certificate' = 'C:\ProgramData\Elastic\Beats\filebeat\certs\client.pem'
+    #             'ssl.key' = 'C:\ProgramData\Elastic\Beats\filebeat\certs\client.key'
+    #         }
+        
+    #     'processors' = @(
+    #         [ordered]@{
+    #             'add_host_metadata' = '~'
+    #         }
+    #     )
+    # }
+    $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
+
+    $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\modules.d\system.yml')
+    $Services = "# Module: system
+    # Docs: https://www.elastic.co/guide/en/beats/metricbeat/8.4/metricbeat-module-system.html
+    - module: system
+    period: 10s
+    metricsets:
+        - cpu
+        #- load
+        - memory
+        - network
+        - process
+        - process_summary
+        - socket_summary
+        #- entropy
+        - core
+        - diskio
+        #- socket
+        #- service
+        #- users
+    process.include_top_n:
+        by_cpu: 5      # include top 5 processes by CPU
+        by_memory: 5   # include top 5 processes by memory
+    - module: system
+    period: 1m
+    metricsets:
+        - filesystem
+        - fsstat
+    processors:
+    - drop_event.when.regexp:
+        system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib|snap)($|/)'
+    - module: system
+    period: 15m
+    metricsets:
+        - uptime"
+    $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
+
+    $check = Test-Path -Path $filebeat_client_pem
+    if ($check -eq $false) {
+        openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
+        Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
+        Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
+        Write-Host("============================================================================================================`n
+        Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank
+
+        You will then receive client.pem file. Please copy this file into the following directories:`n$filebeat_client_pem`n$metricbeat_client_pem
+        ============================================================================================================`n")
+        Read-Host("Press any key once the files have been copied")
+        Setup-Beats
+    } else {
+        Write-Host("Restarting Filebeat")
+        Restart-Service -Name "filebeat"
+        Write-Host("Restarting MetricBeat")
+        Restart-Service -Name "metricbeat"
+    }
 }
-$Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
-
-$TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
-$services = "metricbeat.config.modules:
-  path: `${path.config}/modules.d/*.yml
-  reload.enabled: null
-setup.template.settings:
-  index.number_of_shards: 1
-  index.codec: best_compression
-fields_under_root: true
-fields:
-  Server:
-    Name: $hoster
-    Launcher: $launcher
-    Region: $region
-setup.dashboards.enabled: false
-output.logstash:
-  hosts: 'hon-elk.honfigurator.app:5044'
-  ssl.certificate_authorities: $metricbeat_chain
-  ssl.certificate: $metricbeat_client_pem
-  ssl.key: $metricbeat_client_key
-processors:
-  - add_host_metadata: ~"
-# $Services = [pscustomobject]@{
-#     'metricbeat.config.modules' =
-#         [ordered]@{
-#             'path' = '${path.config}/modules.d/*.yml'
-#             'reload.enabled' = $false1
-#         }
-#     'setup.template.settings' =
-#         [ordered]@{
-#             'index.number_of_shards' = '1'
-#             'index.codec' = 'best_compression'
-#         }
-#     'fields_under_root' = $true
-#     'fields' = [ordered]@{
-#         'Server' = [ordered]@{
-#             'Name' = $local_config['svr_hoster']
-#             'Launcher' = $launcher
-#             'Region' = $local_config['svr_region_short']
-#         }
-#     }
-#     'setup.dashboards.enabled' = $false
-#     'output.elasticsearch' =
-#         [ordered]@{
-#             'hosts' = '[hon-elk.honfigurator.app:9200]'
-#             'protocol' = 'https'
-#             'api_key' = $api_key
-#             'ssl.certificate_aurhotities' = '[C:\ProgramData\Elastic\Beats\filebeat\certs\client.pem,C:\ProgramData\Elastic\Beats\filebeat\certs\chain.pem]'
-#             'ssl.certificate' = 'C:\ProgramData\Elastic\Beats\filebeat\certs\client.pem'
-#             'ssl.key' = 'C:\ProgramData\Elastic\Beats\filebeat\certs\client.key'
-#         }
-    
-#     'processors' = @(
-#         [ordered]@{
-#             'add_host_metadata' = '~'
-#         }
-#     )
-# }
-$Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
-
-$TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\modules.d\system.yml')
-$Services = "# Module: system
-# Docs: https://www.elastic.co/guide/en/beats/metricbeat/8.4/metricbeat-module-system.html
-- module: system
-  period: 10s
-  metricsets:
-    - cpu
-    #- load
-    - memory
-    - network
-    - process
-    - process_summary
-    - socket_summary
-    #- entropy
-    - core
-    - diskio
-    #- socket
-    #- service
-    #- users
-  process.include_top_n:
-    by_cpu: 5      # include top 5 processes by CPU
-    by_memory: 5   # include top 5 processes by memory
-- module: system
-  period: 1m
-  metricsets:
-    - filesystem
-    - fsstat
-  processors:
-  - drop_event.when.regexp:
-      system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib|snap)($|/)'
-- module: system
-  period: 15m
-  metricsets:
-    - uptime"
-$Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
-
-$check = Test-Path -Path $filebeat_client_pem
-if ($check -eq $false) {
-    openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
-    Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
-    Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
-    Write-Host("============================================================================================================")
-    Write-Host("Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank")
-    Write-Host("You will then receive client.pem file which needs to go into $filebeat_client_pem and $metricbeat_client_pem")
-    Write-Host("Once that is done you can run this script again.")
-    Write-Host("============================================================================================================")
-} else {
-    Write-Host("Restarting Filebeat")
-    Restart-Service -Name "filebeat"
-    Write-Host("Restarting MetricBeat")
-    Restart-Service -Name "metricbeat"
-}
-Read-Host("Press any key to continue")
+Read-Host("Success! Press any key to close.")
