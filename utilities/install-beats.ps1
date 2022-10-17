@@ -227,25 +227,25 @@ function Setup-Beats {
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
     $services = "metricbeat.config.modules:
-      path: `${path.config}/modules.d/*.yml
-      reload.enabled: null
-    setup.template.settings:
-      index.number_of_shards: 1
-      index.codec: best_compression
-    fields_under_root: true
-    fields:
+    path: `${path.config}/modules.d/*.yml
+    reload.enabled: null
+  setup.template.settings:
+    index.number_of_shards: 1
+    index.codec: best_compression
+  fields_under_root: true
+  fields:
     Server:
       Name: $hoster
       Launcher: $launcher
       Region: $region
-    setup.dashboards.enabled: false
-    output.logstash:
-      hosts: 'hon-elk.honfigurator.app:5044'
-      ssl.certificate_authorities: $metricbeat_chain
-      ssl.certificate: $metricbeat_client_pem
-      ssl.key: $metricbeat_client_key
-    processors:
-      - add_host_metadata: ~"
+  setup.dashboards.enabled: false
+  output.logstash:
+    hosts: 'hon-elk.honfigurator.app:5044'
+    ssl.certificate_authorities: $metricbeat_chain
+    ssl.certificate: $metricbeat_client_pem
+    ssl.key: $metricbeat_client_key
+  processors:
+    - add_host_metadata: ~"
     # $Services = [pscustomobject]@{
     #     'metricbeat.config.modules' =
     #         [ordered]@{
