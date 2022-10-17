@@ -117,6 +117,7 @@ You will then receive client.pem file. Please copy this file into the following 
         Read-Host("Press any key once the files have been copied")
         Check-Cert
     } else {
+        Copy-Item -Path $filebeat_client_pem -Destination $metricbeat_client_pem
         Write-Host("Restarting Filebeat")
         Restart-Service -Name "filebeat"
         Write-Host("Restarting MetricBeat")
