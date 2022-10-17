@@ -227,25 +227,25 @@ function Setup-Beats {
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
     $services = "metricbeat.config.modules:
-    path: `${path.config}/modules.d/*.yml
-    reload.enabled: null
+      path: `${path.config}/modules.d/*.yml
+      reload.enabled: null
     setup.template.settings:
-    index.number_of_shards: 1
-    index.codec: best_compression
+      index.number_of_shards: 1
+      index.codec: best_compression
     fields_under_root: true
     fields:
     Server:
-        Name: $hoster
-        Launcher: $launcher
-        Region: $region
+      Name: $hoster
+      Launcher: $launcher
+      Region: $region
     setup.dashboards.enabled: false
     output.logstash:
-    hosts: 'hon-elk.honfigurator.app:5044'
-    ssl.certificate_authorities: $metricbeat_chain
-    ssl.certificate: $metricbeat_client_pem
-    ssl.key: $metricbeat_client_key
+      hosts: 'hon-elk.honfigurator.app:5044'
+      ssl.certificate_authorities: $metricbeat_chain
+      ssl.certificate: $metricbeat_client_pem
+      ssl.key: $metricbeat_client_key
     processors:
-    - add_host_metadata: ~"
+      - add_host_metadata: ~"
     # $Services = [pscustomobject]@{
     #     'metricbeat.config.modules' =
     #         [ordered]@{
@@ -288,8 +288,8 @@ function Setup-Beats {
     $Services = "# Module: system
     # Docs: https://www.elastic.co/guide/en/beats/metricbeat/8.4/metricbeat-module-system.html
     - module: system
-    period: 10s
-    metricsets:
+      period: 10s
+      metricsets:
         - cpu
         #- load
         - memory
@@ -303,20 +303,20 @@ function Setup-Beats {
         #- socket
         #- service
         #- users
-    process.include_top_n:
+      process.include_top_n:
         by_cpu: 5      # include top 5 processes by CPU
         by_memory: 5   # include top 5 processes by memory
     - module: system
-    period: 1m
-    metricsets:
+      period: 1m
+      metricsets:
         - filesystem
         - fsstat
-    processors:
-    - drop_event.when.regexp:
-        system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib|snap)($|/)'
+      processors:
+      - drop_event.when.regexp:
+          system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib|snap)($|/)'
     - module: system
-    period: 15m
-    metricsets:
+      period: 15m
+      metricsets:
         - uptime"
     $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
     Check-Cert
