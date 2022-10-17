@@ -309,3 +309,4 @@ if ($check -eq $false) {
     Write-Host("Restarting MetricBeat")
     Restart-Service -Name "metricbeat"
 }
+Read-Host("Press any key to continue")
