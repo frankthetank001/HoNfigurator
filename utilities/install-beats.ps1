@@ -128,6 +128,7 @@ function Setup-Beats {
     $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
     if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
     if ($launcher -eq "HoNfigurator"){
+        Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
         if ($local_config) {
             if ($local_config['hon_directory']) {
@@ -162,16 +163,16 @@ function Setup-Beats {
         }
         if ($null -eq $confirm -or $confirm -eq $false) {
             $hoster = ((Read-Host 'Please enter server name. Make sure that this is accurate as what is in COMPEL') -replace '"')
-            $Env:BeatsHoster = $hoster
+            [System.Environment]::SetEnvironmentVariable('BeatsHoster',$hoster,[System.EnvironmentVariableTarget]::Machine)
             $region = ((Read-Host 'Please enter server region. Make sure that this is accurate as what is in COMPEL') -replace '"')
-            $Env:BeatsRegion = $region
+            [System.Environment]::SetEnvironmentVariable('BeatsRegion',$region,[System.EnvironmentVariableTarget]::Machine)
             $check = $false
             while ($check -eq $false) {
                 $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
                 $check = Test-Path -Path $logdir
                 if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
             }
-            $env:BeatsLogDir = $logdir
+            [System.Environment]::SetEnvironmentVariable('BeatsLogDir',$logdir,[System.EnvironmentVariableTarget]::Machine)
             $path_slave = "$logdir\*.clog"
             $path_match = "$logdir\M*.log"
         } else {
