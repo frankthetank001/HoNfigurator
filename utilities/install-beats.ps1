@@ -146,7 +146,7 @@ function Setup-Beats {
         $check = $false
         while ($check -eq $false) {
             $logdir = Read-Host("Enter logs folder path")
-            $check = Test-Path -Path $logdir
+            $check = Test-Path -Path "$logdir"
             $logdir = Read-Host("The directory entered does not exist. Please try again.")
         }
         $path_slave = "$logdir\*.clog"
