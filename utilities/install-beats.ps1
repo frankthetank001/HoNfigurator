@@ -105,12 +105,12 @@ function Check-Cert {
     if ($check -eq $false) {
         $key = Test-Path -Path $filebeat_client_key
         if ($key -eq $false) { 
-            openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out "$env:USERPROFILE\Desktop\client.csr" -nodes -subj "/CN=$hoster-Beats-Client"
+            openssl req -newkey rsa:2048 -keyout $filebeat_client_key -out $filebeat_client_csr -nodes -subj "/CN=$hoster-Beats-Client"
             Copy-Item -Path $filebeat_client_key -Destination $metricbeat_client_key
             Write-Host("Key created in: `n$filebeat_client_key`n$metricbeat_client_key")
         }
         Write-Host("============================================================================================================`n
-Please provide generated CSR file ($env:USERPROFILE\Desktop\client.csr) to @FrankTheGodDamnMotherFuckenTank
+Please provide generated CSR file ($filebeat_client_csr) to @FrankTheGodDamnMotherFuckenTank
 
 You will then receive client.pem file. Please copy this file into the following directories:`n$filebeat_client_pem`n$metricbeat_client_pem
 ============================================================================================================`n")
@@ -163,6 +163,7 @@ function Setup-Beats {
     $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
     $filebeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.pem')
     $filebeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.key')
+    $filebeat_client_csr = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.csr')
     $metricbeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\honfigurator-chain.pem')
     $metricbeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.pem')
     $metricbeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.key')
