@@ -236,9 +236,9 @@ setup.template.settings:
 fields_under_root: true
 fields:
   Server:
-    Name: T4NK
+    Name: $hoster
     Launcher: 
-    Region: AU
+    Region: $region
 setup.dashboards.enabled: false
 output.logstash:
   hosts: 'hon-elk.honfigurator.app:5044'
