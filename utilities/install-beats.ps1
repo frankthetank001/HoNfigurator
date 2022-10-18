@@ -125,7 +125,7 @@ You will then receive client.pem file. Please copy this file into the following 
     }
 }
 function Setup-Beats {
-    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
+    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
     if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
     if ($launcher -eq "HoNfigurator"){
         $local_config = Read-Config
@@ -145,9 +145,9 @@ function Setup-Beats {
         $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
         $check = $false
         while ($check -eq $false) {
-            $logdir = Read-Host("Enter logs folder path")
-            $check = Test-Path -Path "$logdir"
-            $logdir = Read-Host("The directory entered does not exist. Please try again.")
+            $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
+            $check = Test-Path -Path $logdir
+            if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
         }
         $path_slave = "$logdir\*.clog"
         $path_match = "$logdir\M*.log"
@@ -228,7 +228,7 @@ function Setup-Beats {
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
     $services = "metricbeat.config.modules:
-  path: ${path.config}/modules.d/*.yml
+  path: `${path.config}/modules.d/*.yml
   reload.enabled: null
 setup.template.settings:
   index.number_of_shards: 1
