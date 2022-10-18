@@ -237,7 +237,7 @@ fields_under_root: true
 fields:
   Server:
     Name: $hoster
-    Launcher: 
+    Launcher: $launcher
     Region: $region
 setup.dashboards.enabled: false
 output.logstash:
