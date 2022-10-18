@@ -141,8 +141,8 @@ function Setup-Beats {
             $region = $local_config['svr_region_short']
         }
     } else {
-        $hoster = ("Please enter server name. Make sure that this is accurate as what is in COMPEL")
-        $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
+        $hoster = ((Read-Host 'Please enter server name. Make sure that this is accurate as what is in COMPEL') -replace '"')
+        $region = ((Read-Host 'Please enter server region. Make sure that this is accurate as what is in COMPEL') -replace '"')
         $check = $false
         while ($check -eq $false) {
             $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
