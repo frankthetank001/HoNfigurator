@@ -125,28 +125,32 @@ You will then receive client.pem file. Please copy this file into the following 
     }
 }
 function Setup-Beats {
-    $local_config = Read-Config
-    if ($local_config) {
-        if ($local_config['hon_directory']) {
-            $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
-            $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
-        } else {
-            Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
+    if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+    if ($launcher -eq "HoNfigurator"){
+        $local_config = Read-Config
+        if ($local_config) {
+            if ($local_config['hon_directory']) {
+                $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
+                $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
+            } else {
+                Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+                return
+            }
+            $hoster = $local_config['svr_hoster']
+            $region = $local_config['svr_region_short']
         }
-        $hoster = $local_config['svr_hoster']
-        $region = $local_config['svr_region_short']
     } else {
-        $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL.")
-        if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
         $hoster = ("Please enter server name. Make sure that this is accurate as what is in COMPEL")
         $region = ("Please enter server region. Make sure that this is accurate as what is in COMPEL")
-        if ($launcher -eq "COMPEL") {
+        $check = $false
+        while ($check -eq $false) {
             $logdir = Read-Host("Enter logs folder path")
-            $path_slave = "$logdir\*.clog"
-            $path_match = "$logdir\M*.log"
-        } else {
-            Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+            $check = Test-Path -Path $logdir
+            $logdir = Read-Host("The directory entered does not exist. Please try again.")
         }
+        $path_slave = "$logdir\*.clog"
+        $path_match = "$logdir\M*.log"
     }
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
     if ($reset) {
@@ -168,9 +172,6 @@ function Setup-Beats {
 
     Copy-Item -Path .\honfigurator-chain.pem -Destination $filebeat_chain
     Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
-
-    $hoster = $local_config['svr_hoster']
-    $region = $local_config['svr_region_short']
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
     $Services = [pscustomobject]@{
