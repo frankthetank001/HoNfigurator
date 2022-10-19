@@ -173,13 +173,13 @@ function Setup-Beats {
                 if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
             }
             [System.Environment]::SetEnvironmentVariable('BeatsLogDir',$logdir,[System.EnvironmentVariableTarget]::Machine)
-            $path_slave = "$logdir\*.clog"
-            $path_match = "$logdir\M*.log"
         } else {
             $hoster = $env:BeatsHoster
             $region = $env:BeatsRegion
             $logdir = $env:BeatsLogDir
         }
+        $path_slave = "$logdir\*.clog"
+        $path_match = "$logdir\M*.log"
     }
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
     if ($reset) {
