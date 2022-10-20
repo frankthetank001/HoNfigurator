@@ -717,13 +717,11 @@ class heartbeat(commands.Cog):
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to attempt to crash server with false map.","INFO")
                         svr_state.restartSERVER(True)
                     elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
-                        try:
-                            svr_state.reportPlayer("botmatch")
-                        except:
-                            print(traceback.format_exc())
-                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        svr_state.reportPlayer("botmatch")
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to bot match (disallowed).","INFO")
                         svr_state.restartSERVER(True)
+                        print(traceback.format_exc())
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
