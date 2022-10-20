@@ -128,6 +128,7 @@ function Setup-Beats {
     $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
     if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
     if ($launcher -eq "HoNfigurator"){
+        Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
         if ($local_config) {
             if ($local_config['hon_directory']) {
@@ -141,13 +142,41 @@ function Setup-Beats {
             $region = $local_config['svr_region_short']
         }
     } else {
-        $hoster = ((Read-Host 'Please enter server name. Make sure that this is accurate as what is in COMPEL') -replace '"')
-        $region = ((Read-Host 'Please enter server region. Make sure that this is accurate as what is in COMPEL') -replace '"')
-        $check = $false
-        while ($check -eq $false) {
-            $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
-            $check = Test-Path -Path $logdir
-            if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
+        $confirm = $false
+        if ($env:BeatsHoster) {
+            Write-Host("Compel settings from last run are:
+            Server Name: $env:BeatsHoster
+            Server Region: $env:BeatsRegion
+            Log Directory: $env:BeatsLogDir")
+            $check_confirm = $false
+            while ($check_confirm -eq $false) {
+                $confirm = Read-Host("Is this correct? (y/n)")
+                if ($confirm -eq "y" -or $confirm -eq "Y") {
+                    $confirm = $true
+                    $check_confirm = $true
+                }
+                elseif ($confirm -eq "n" -or $confirm -eq "N") {
+                    $confirm = $false
+                    $check_confirm = $true}
+                else { Write-Host("Please enter Y or N. $confirm is not valid.") }
+            }
+        }
+        if ($null -eq $confirm -or $confirm -eq $false) {
+            $hoster = ((Read-Host 'Please enter server name. Make sure that this is accurate as what is in COMPEL') -replace '"')
+            [System.Environment]::SetEnvironmentVariable('BeatsHoster',$hoster,[System.EnvironmentVariableTarget]::Machine)
+            $region = ((Read-Host 'Please enter server region. Make sure that this is accurate as what is in COMPEL') -replace '"')
+            [System.Environment]::SetEnvironmentVariable('BeatsRegion',$region,[System.EnvironmentVariableTarget]::Machine)
+            $check = $false
+            while ($check -eq $false) {
+                $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
+                $check = Test-Path -Path $logdir
+                if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
+            }
+            [System.Environment]::SetEnvironmentVariable('BeatsLogDir',$logdir,[System.EnvironmentVariableTarget]::Machine)
+        } else {
+            $hoster = $env:BeatsHoster
+            $region = $env:BeatsRegion
+            $logdir = $env:BeatsLogDir
         }
         $path_slave = "$logdir\*.clog"
         $path_match = "$logdir\M*.log"
@@ -163,7 +192,6 @@ function Setup-Beats {
     $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
     $filebeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.pem')
     $filebeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.key')
-    $filebeat_client_csr = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.csr')
     $metricbeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\honfigurator-chain.pem')
     $metricbeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.pem')
     $metricbeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\certs\client.key')

@@ -488,7 +488,7 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
-            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping.","INFO")
+            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopped.","INFO")
             # if processed_data_dict['use_proxy'] == 'True':
             #     try:
             #         p = psutil.Process(self.server_status['proxy_pid'])
@@ -506,7 +506,7 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
-        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopping.","INFO")
+        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopped.","INFO")
         # if processed_data_dict['use_proxy'] == 'True':        
         #     try:
         #         p = psutil.Process(self.server_status['proxy_pid'])
@@ -525,7 +525,10 @@ class honCMD():
                 honCMD().restartSELF()
             else: 
                 honCMD().append_line_to_file(processed_data_dict['app_log'],"Server about to restart.","INFO")
-                honCMD().stopSERVER(force)
+                try:
+                    honCMD().stopSERVER(force)
+                except:
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
                 #   Code is stuck waiting for server to turn off
                 self.server_status.update({'server_restarting':True})
@@ -536,7 +539,10 @@ class honCMD():
                     playercount = self.playerCount()
                 #
                 #   Once detects server is offline with above code start the server
-                honCMD().startSERVER(False)
+                try:
+                    honCMD().startSERVER(False)
+                except:
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         else:
             self.server_status.update({'update_embeds':True})
             self.server_status.update({'tempcount':-5})
@@ -571,7 +577,11 @@ class honCMD():
                 os._exit(1)
     def stopSELF(self):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping HARD - means we are intentionally stopping the service via server administrator.","INFO")
-        honCMD().stopSERVER(True)
+        try:
+            honCMD().stopSERVER(True)
+        except:
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            return
         if processed_data_dict['use_console'] == 'True':
             os._exit(0)
         else:
