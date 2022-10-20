@@ -512,7 +512,7 @@ if is_admin():
             temFile = f"{self.sdc_home_dir}\\pending_restart"
             with open(temFile, "w") as f:
                 f.write("True")
-            remove_me=self.sdc_home_dir+"\\"+"pending_shutdown"
+            remove_me=f"{self.sdc_home_dir}\\pending_shutdown"
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
@@ -522,7 +522,7 @@ if is_admin():
             temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
             with open(temFile, "w") as f:
                 f.write("True")
-            remove_me=deployed_status+"\\"+"pending_restart"
+            remove_me=f"{deployed_status['sdc_home_dir']}\\pending_restart"
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
