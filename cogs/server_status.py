@@ -488,7 +488,7 @@ class honCMD():
                     if proc.name() == processed_data_dict['hon_file_name']:
                         proc.terminate()
             else: self.server_status['hon_exe'].terminate()
-            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping.","INFO")
+            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopped.","INFO")
             # if processed_data_dict['use_proxy'] == 'True':
             #     try:
             #         p = psutil.Process(self.server_status['proxy_pid'])
@@ -506,7 +506,7 @@ class honCMD():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
         else: self.server_status['hon_exe'].terminate()
-        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopping.","INFO")
+        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopped.","INFO")
         # if processed_data_dict['use_proxy'] == 'True':        
         #     try:
         #         p = psutil.Process(self.server_status['proxy_pid'])
