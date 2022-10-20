@@ -512,10 +512,22 @@ if is_admin():
             temFile = f"{self.sdc_home_dir}\\pending_restart"
             with open(temFile, "w") as f:
                 f.write("True")
+            remove_me=self.sdc_home_dir+"\\"+"pending_shutdown"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except:
+                    print(traceback.format_exc())
         def schedule_shutdown(deployed_status):
             temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
             with open(temFile, "w") as f:
                 f.write("True")
+            remove_me=deployed_status+"\\"+"pending_restart"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except:
+                    print(traceback.format_exc())
         def check_schd_restart(deployed_status):
             temFile = deployed_status['sdc_home_dir']+"\\pending_restart"
             if exists(temFile):
