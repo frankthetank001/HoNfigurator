@@ -508,29 +508,26 @@ if is_admin():
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
-        def schedule_restart(self,type):
-            temFile = f"{self.sdc_home_dir}\\{type}"
+        def schedule_restart(self):
+            temFile = f"{self.sdc_home_dir}\\pending_restart"
             with open(temFile, "w") as f:
                 f.write("True")
-            if exists(temFile):
-                if type == "pending_restart":
-                    remove_me=self.sdc_home_dir+"\\"+"pending_shutdown"
-                    if exists(remove_me):
-                        try:
-                            os.remove(remove_me)
-                        except:
-                            print(traceback.format_exc())
-                elif type == "pending_shutdown":
-                    remove_me=self.sdc_home_dir+"\\"+"pending_restart"
-                    if exists(remove_me):
-                        try:
-                            os.remove(remove_me)
-                        except:
-                            print(traceback.format_exc())
+            remove_me=self.sdc_home_dir+"\\"+"pending_shutdown"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except:
+                    print(traceback.format_exc())
         def schedule_shutdown(deployed_status):
             temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
             with open(temFile, "w") as f:
                 f.write("True")
+            remove_me=deployed_status+"\\"+"pending_restart"
+            if exists(remove_me):
+                try:
+                    os.remove(remove_me)
+                except:
+                    print(traceback.format_exc())
         def check_schd_restart(deployed_status):
             temFile = deployed_status['sdc_home_dir']+"\\pending_restart"
             if exists(temFile):
