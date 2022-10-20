@@ -1267,7 +1267,7 @@ if is_admin():
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            if current_version != latest_version or force:
+            if (current_version != latest_version and latest_version != "False") or force:
                 print(f"Update available. {current_version} --> {latest_version}")
                 tex.insert(END,f"Update available. {current_version} --> {latest_version}")
                 tex.see(tk.END)
