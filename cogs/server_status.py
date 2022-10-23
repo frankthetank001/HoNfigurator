@@ -366,7 +366,6 @@ class honCMD():
                 except:
                     print(traceback.format_exc())
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-
                 try:
                     files = os.listdir(processed_data_dict['hon_replays_dir'])
                     replays=[]
@@ -393,6 +392,22 @@ class honCMD():
                             except:
                                 print(traceback.format_exc())
                                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                #
+                # move stats files off into the manager directory. so manager can resubmit stats
+                stats_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\logs\\"
+                try:
+                    files = os.listdir(processed_data_dict['hon_logs_dir'])
+                    for file in files:
+                        if os.path.isfile(processed_data_dict['hon_logs_dir']+"\\"+file):
+                            if file.endswith(".stats"):
+                                try:
+                                    shutil.move(processed_data_dict['hon_logs_dir']+"\\"+file,stats_dest_dir)
+                                except:
+                                    print(traceback.format_exc())
+                                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 except:
                     print(traceback.format_exc())
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
