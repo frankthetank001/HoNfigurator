@@ -1324,6 +1324,7 @@ if is_admin():
                     if dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") == latest_version:
                         print("Patch successful!")
                         if force:
+                            print("Please wait 60 seconds..")
                             time.sleep(60)
                         if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
                             svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
