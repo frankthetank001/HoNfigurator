@@ -84,7 +84,9 @@ class heartbeat(commands.Cog):
         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
         while alive == True:
             alive=True
-            proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
+            try:
+                proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
+            except: pass
             if alive_bkp==True:
                 print("switching to discord heartbeat - with bots.")
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"switching to discord heartbeat - with bots.","INFO")
@@ -557,7 +559,9 @@ class heartbeat(commands.Cog):
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
         while alive_bkp == 'True':
-            proc_priority = svrcmd.honCMD.get_process_priority(processed_data_dict_bkp['hon_file_name'])
+            try:
+                proc_priority = svrcmd.honCMD.get_process_priority(processed_data_dict_bkp['hon_file_name'])
+            except: pass
             if exists(bkup_heart_file):
                 with open(bkup_heart_file,'r') as f:
                     alive_bkp = f.readline()
@@ -571,12 +575,11 @@ class heartbeat(commands.Cog):
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             
             if playercount >=2:
-                try:
-                    if proc_priority != process_priority:
+                if proc_priority != process_priority:
+                    try:
                         svr_state.changePriority(True)
-                except:
-                    print(traceback.format_exc())
-                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    except:
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             if playercount == -3:
                 if 'crash' in server_status_bkp:
                     if server_status_bkp['crash'] == True:
@@ -599,7 +602,10 @@ class heartbeat(commands.Cog):
                 if playercount == 0:
                     counter_ipcheck +=1
                     if proc_priority != "IDLE":
-                        svr_state.changePriority(False)
+                        try:
+                            svr_state.changePriority(False)
+                        except:
+                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     # check for or action a scheduled restart
                     if server_status_bkp['hard_reset'] == False:
                         try:

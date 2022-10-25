@@ -90,7 +90,8 @@ class honCMD():
         frame_size = 0
         frame_sizes = []
         try:
-            match_id = game_name = re.findall(r'"M([0-9]+)"', log)
+            match_id = re.search(r'M([0-9]+)', log)
+            match_id = match_id.group(0)
             simple_match_data.update({'match_id':match_id})
         except:
             simple_match_data.update({'match_id':'N/A'})
