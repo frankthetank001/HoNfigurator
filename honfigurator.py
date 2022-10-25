@@ -1815,6 +1815,7 @@ if is_admin():
             style.configure('TFrame', background=maincolor,padx=[10,10])
             style.configure('TEntry',insertcolor='white',insertwidth=1)
             gui = tk.Frame(app,bg=maincolor,padx=10,pady=10)
+            #app.geometry('1600x900')
             app.configure(bg=maincolor)
             gui.grid()
 
@@ -1830,7 +1831,8 @@ if is_admin():
             """
             creating tooltips
             """
-
+            tab1.rowconfigure(25, minsize=50)
+            tab1.columnconfigure(25, minsize=50)
             
             """
             simple server setup tab
