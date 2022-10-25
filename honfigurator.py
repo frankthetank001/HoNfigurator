@@ -2590,7 +2590,7 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     try:
-                                        LablString[1]=f"skips {match_status['skipped_frames']} {match_status['match_id']} ({pcount})"
+                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
                                     except:
                                         LablString[1]=f"In-game ({pcount})"
                                 if pcount >=0:
@@ -2609,7 +2609,7 @@ if is_admin():
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
                                     try:
-                                        LablString[1]=f"lags: {match_status['skipped_frames']} {match_status['match_id']} ({pcount}p)"
+                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
                                     except:
                                         LablString[1]=f"In-game ({pcount})"
                             # if service_state is not None and deployed_status['use_console'] == 'False':
@@ -2629,7 +2629,7 @@ if is_admin():
                                     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
                                 except: pass
                             elif index1==1:
-                                labl = Label(tab2,width=15,text=f"{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=16,text=f"{labl_name}", background=colour, foreground='white')
                                 if 'available' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
                                         f"Server is available and connected to the master server.")
