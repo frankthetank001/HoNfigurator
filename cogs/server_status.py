@@ -69,6 +69,18 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
+    def get_process_priority(proc_name):
+        pid = False
+        for proc in psutil.process_iter():
+            if proc.name() == proc_name:
+                pid = proc.pid
+        if pid:
+            p = next((proc for proc in psutil.process_iter() if proc.pid == pid),None)
+            prio = p.nice()
+            prio = (str(prio)).replace("Priority.","")
+            prio = prio.replace("_PRIORITY_CLASS","")
+            return prio
+        else: return "N/A"
     def simple_match_data(log,type):
         simple_match_data = {}
         simple_match_data.update({'match_time':'In-Lobby phase...'})
@@ -77,6 +89,12 @@ class honCMD():
         match_status.update({'skipped_frames_from_line':0})
         frame_size = 0
         frame_sizes = []
+        try:
+            match_id = re.search(r'M([0-9]+)', log)
+            match_id = match_id.group(0)
+            simple_match_data.update({'match_id':match_id})
+        except:
+            simple_match_data.update({'match_id':'N/A'})
         with open (log, "r", encoding='utf-16-le') as f:
             if type == "match":
                 #for num,line in reversed(list(f)):
@@ -749,6 +767,7 @@ class honCMD():
                 tempData = {}
                 if soft_data > hard_data or 'slave_log_checked' not in self.server_status:
                     self.server_status.update({'slave_log_checked':True})
+                    #TODO: check match_id actually works?
                     match_id = self.server_status['match_log_location']
                     match_id = match_id.replace(".log","")
                     with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:

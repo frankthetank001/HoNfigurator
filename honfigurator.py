@@ -2542,6 +2542,7 @@ if is_admin():
                         service_name = f"adminbot{x}"
                         deployed_status = dmgr.mData.returnDict_deployed(self,x)
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
+                        proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
                         file = "Slave*.log"
                         log = False
                         try:
@@ -2562,7 +2563,22 @@ if is_admin():
                         if i%mod_by==0:
                             c+=c_len
                             i=3
-                        LablString[0]=f"hon_server_{x}"
+                        if pcount > 0:
+                            logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                            log_File = f"Slave*{x}*.clog"
+                            list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                            latest_file = max(list_of_files, key=os.path.getctime)
+                            match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                        if service_state is not None and deployed_status['use_console'] == 'False':
+                            if service_state == False or service_state['status'] == 'stopped':
+                                colour = 'OrangeRed4'
+                            svc_or_con="svc"
+                                #LablString[1]=f"svc-Stopped"
+                        elif deployed_status['use_console'] == 'True':
+                            #colour = 'OrangeRed4'
+                            svc_or_con="con"
+                            #LablString[1]=f"con-Stopped"
+                        LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
                         for index1, labl_name in enumerate(LablString):
                             if cookie:
                                 if pcount < 0:
@@ -2573,7 +2589,10 @@ if is_admin():
                                     LablString[1]="Available"
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
-                                    LablString[1]=f"In-game ({pcount})"
+                                    try:
+                                        LablString[1]=f"skips {match_status['skipped_frames']} {match_status['match_id']} ({pcount})"
+                                    except:
+                                        LablString[1]=f"In-game ({pcount})"
                                 if pcount >=0:
                                     if schd_restart:
                                         colour='indian red'
@@ -2589,25 +2608,28 @@ if is_admin():
                                     LablString[1]="connect error"
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
-                                    LablString[1]=f"In-game ({pcount})"
-                            if service_state is not None and deployed_status['use_console'] == 'False':
-                                if service_state == False or service_state['status'] == 'stopped':
-                                    colour = 'OrangeRed4'
-                                svc_or_con="svc"
-                                    #LablString[1]=f"svc-Stopped"
-                            elif deployed_status['use_console'] == 'True':
-                                #colour = 'OrangeRed4'
-                                svc_or_con="con"
-                                #LablString[1]=f"con-Stopped"
+                                    try:
+                                        LablString[1]=f"lags: {match_status['skipped_frames']} {match_status['match_id']} ({pcount}p)"
+                                    except:
+                                        LablString[1]=f"In-game ({pcount})"
+                            # if service_state is not None and deployed_status['use_console'] == 'False':
+                            #     if service_state == False or service_state['status'] == 'stopped':
+                            #         colour = 'OrangeRed4'
+                            #     svc_or_con="svc"
+                            #         #LablString[1]=f"svc-Stopped"
+                            # elif deployed_status['use_console'] == 'True':
+                            #     #colour = 'OrangeRed4'
+                            #     svc_or_con="con"
+                            #     #LablString[1]=f"con-Stopped"
                             c_pos1 = index1 + c
                             if index1==0:
-                                labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Core: {deployed_status['svr_affinity']}\n{deployed_status['core_assignment']}")
+                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
                                 except: pass
                             elif index1==1:
-                                labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=15,text=f"{labl_name}", background=colour, foreground='white')
                                 if 'available' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
                                         f"Server is available and connected to the master server.")
@@ -2615,13 +2637,8 @@ if is_admin():
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
                                 if pcount > 0:
-                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                                    log_File = f"Slave*{x}*.clog"
-                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                                    latest_file = max(list_of_files, key=os.path.getctime)
-                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                        f"Game in progress,\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
                             labl.grid(row=i, column=c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
