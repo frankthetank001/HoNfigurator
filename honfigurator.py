@@ -2570,7 +2570,11 @@ if is_admin():
                             log_File = f"Slave*{x}*.clog"
                             list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                             latest_file = max(list_of_files, key=os.path.getctime)
-                            match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                            try:
+                                match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                            except:
+                                print(traceback.format_exc())
+                                
                         if service_state is not None and deployed_status['use_console'] == 'False':
                             if service_state == False or service_state['status'] == 'stopped':
                                 colour = 'OrangeRed4'
