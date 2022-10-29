@@ -798,6 +798,7 @@ class honCMD():
                                                 self.server_status.update({'tempcount':-5})
                                                 self.server_status.update({'update_embeds':True})
                                                 honCMD.updateStatus_GI(self,tempData)
+                                                print(f"Match in progress, elapsed duration: {match_time}")
                                                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_id}] Match in progress, elapsed duration: {match_time}","INFO")
                                             break
                                         except AttributeError as e:

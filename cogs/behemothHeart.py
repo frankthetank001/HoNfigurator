@@ -733,21 +733,19 @@ class heartbeat(commands.Cog):
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to bot match (disallowed).","INFO")
                         svr_state.restartSERVER(True)
                         print(traceback.format_exc())
-            except:
-                print(traceback.format_exc())
-                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-            try:
-                if 'game_started' in server_status_bkp:
-                    if server_status_bkp['game_started'] == True:
-                        match_time = match_status_bkp['match_time']
-                        if ":" in match_time:
-                            match_too_long = match_time.split(":")
-                            match_too_long_hrs = int(match_too_long[0])
-                            match_too_long_mins = int(match_too_long[1])
-                            if match_too_long_hrs > 1:
-                                print("Restarting the server. Last remaining player has not left yet.")
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
-                                svr_state.restartSERVER(True)
+
+                    if 'game_started' in server_status_bkp:
+                        if server_status_bkp['game_started'] == True:
+                            svr_state.getData("CheckInGame")
+                            match_time = match_status_bkp['match_time']
+                            if ":" in match_time:
+                                match_too_long = match_time.split(":")
+                                match_too_long_hrs = int(match_too_long[0])
+                                match_too_long_mins = int(match_too_long[1])
+                                if match_too_long_hrs > 1:
+                                    print("Restarting the server. Last remaining player has not left yet.")
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
+                                    svr_state.restartSERVER(True)
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
