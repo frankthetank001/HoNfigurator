@@ -798,6 +798,7 @@ class honCMD():
                                                 self.server_status.update({'tempcount':-5})
                                                 self.server_status.update({'update_embeds':True})
                                                 honCMD.updateStatus_GI(self,tempData)
+                                                print(f"Match in progress, elapsed duration: {match_time}")
                                                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_id}] Match in progress, elapsed duration: {match_time}","INFO")
                                             break
                                         except AttributeError as e:
@@ -939,6 +940,10 @@ class honCMD():
                 # get last item in list
                 gameLoc = files[-1]
                 self.server_status.update({"game_log_location":gameLoc})
+                match_id = re.search(r'M([0-9]+)', gameLoc)
+                match_id = match_id.group(0)
+                print(f"Lobby created: {match_id}")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Lobby created: {match_id}","INFO")
                 print("Most recent file matching {}: {}".format(pattern,gameLoc))
                 
                 # for item in os.listdir():
