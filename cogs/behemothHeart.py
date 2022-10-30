@@ -475,7 +475,7 @@ class heartbeat(commands.Cog):
                                 match_too_long = match_time.split(":")
                                 match_too_long_hrs = int(match_too_long[0])
                                 match_too_long_mins = int(match_too_long[1])
-                                if match_too_long_hrs > 1:
+                                if match_too_long_hrs >= 1:
                                     self.server_status.update({"server_restarting":True})
                                     await test.createEmbed(ctx,playercount)
                                     print("Restarting the server. Last remaining player has not left yet.")
@@ -744,7 +744,7 @@ class heartbeat(commands.Cog):
                                 match_too_long = match_time.split(":")
                                 match_too_long_hrs = int(match_too_long[0])
                                 match_too_long_mins = int(match_too_long[1])
-                                if match_too_long_hrs > 1:
+                                if match_too_long_hrs >= 1:
                                     print("Restarting the server. Last remaining player has not left yet.")
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
                                     svr_state.restartSERVER(True)

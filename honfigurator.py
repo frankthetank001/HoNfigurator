@@ -970,10 +970,9 @@ if is_admin():
                             # old_ip=self.dataDict['svr_ip']
                             # new_ip=dmgr.mData.getData(self,"svr_ip")
                             else:
-                                if use_console == False:
-                                    #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
-                                    initialise.schedule_restart(self)
-                                    players_connected=True
+                                #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                                initialise.schedule_restart(self)
+                                players_connected=True
                             # else:
                             #     # copy files to _old
                             #     players_connected=True
