@@ -85,7 +85,7 @@ class mData():
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"app_name":f"adminbot{self.confDict['svr_id']}"})
         if 'core_assignment' not in self.confDict:
-            self.confDict.update({'core_assignment':'one'})
+            self.confDict.update({'core_assignment':'one core/server'})
         if 'process_priority' not in self.confDict:
             self.confDict.update({'process_priority':'realtime'})
         if 'incr_port_by' not in self.confDict:
@@ -315,14 +315,14 @@ class mData():
             #
             #   Get total cores, logical included
         total_cores = psutil.cpu_count(logical = True)
-        if core_assignment == 'two':
+        if core_assignment == 'two cores/server':
             total_cores +=1
             affinity = [total_cores - svr_id,total_cores - svr_id - 1]
             #
             #   Set affinity of the hon process to total cores - server ID
             affinity[0] = affinity[0]-svr_id
             affinity[1] = affinity[1]-svr_id
-        elif core_assignment == 'one':
+        elif core_assignment == 'one core/server':
             affinity = [0,0]
             affinity[0] = total_cores - svr_id
             affinity[1] = total_cores - svr_id
@@ -368,14 +368,14 @@ class mData():
             #
             #   Get total cores, logical included
             total_cores = psutil.cpu_count(logical = True)
-            if self.confDict['core_assignment'] == 'two':
+            if self.confDict['core_assignment'] == 'two cores/server':
                 total_cores +=1
                 affinity = [total_cores - self.svr_id,total_cores - self.svr_id - 1]
                 #
                 #   Set affinity of the hon process to total cores - server ID
                 affinity[0] = affinity[0]-self.svr_id
                 affinity[1] = affinity[1]-self.svr_id
-            elif self.confDict['core_assignment'] == 'one':
+            elif self.confDict['core_assignment'] == 'one core/server':
                 affinity = [0,0]
                 affinity[0] = total_cores - self.svr_id
                 affinity[1] = total_cores - self.svr_id

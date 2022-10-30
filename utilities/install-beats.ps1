@@ -138,10 +138,12 @@ function Setup-Beats {
                 Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
                 return
             }
+            $cores = $local_config['core_assignment']
             $hoster = $local_config['svr_hoster']
             $region = $local_config['svr_region_short']
         }
     } else {
+        $cores = "one core/server"
         $confirm = $false
         if ($env:BeatsHoster) {
             Write-Host("Compel settings from last run are:
@@ -224,6 +226,7 @@ function Setup-Beats {
                         'Name' = $hoster
                         'Launcher' = $launcher
                         'Region' = $region
+                        'Affinity' = $cores
                     }
                 }
             }

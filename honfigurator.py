@@ -1094,7 +1094,7 @@ if is_admin():
                     repositories.append(repos)            
             return repositories
         def coreassign(self):
-            return ["one","two","two servers/core","three servers/core","four servers/core"]
+            return ["one core/server","two cores/server","two servers/core","three servers/core","four servers/core"]
         def incrementport(self):
             return["1","10","100","200","500","1000"]
         def priorityassign(self):
@@ -1109,7 +1109,7 @@ if is_admin():
             four_servers_core = total_cores * 4
             core_assignment = str(self.core_assign.get()).lower()
             selected_id = str(self.svr_id_var.get())
-            if core_assignment == "one":
+            if core_assignment == "one core/server":
                 if int(self.svr_total_var.get()) > total_cores:
                     self.svr_total_var.set(total_cores)
                 if int(selected_id) > int(self.svr_total_var.get()):
@@ -1119,7 +1119,7 @@ if is_admin():
                 self.tab1_servertd['values']=cores
                 self.tab1_serveridd['values']=cores
                 return
-            elif core_assignment == "two":
+            elif core_assignment == "two cores/server":
                 #if int(self.svr_total_var.get()) > half_core_count:
                 self.svr_total_var.set(half_core_count)
                 if int(selected_id) > int(self.svr_total_var.get()):
@@ -1164,7 +1164,7 @@ if is_admin():
             total_cores = psutil.cpu_count(logical = True) - 2
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
-            if self.dataDict['core_assignment'] == "two":
+            if self.dataDict['core_assignment'] == "two cores/server":
                 total_cores = half_core_count
                 #for i in range(half_core_count):
                     #cores.append(i+1)
