@@ -476,7 +476,7 @@ class honCMD():
                 honPID = psutil.Process(pid=self.honEXE.pid)
                 self.server_status.update({'hon_pid_hook':honPID})
 
-                if processed_data_dict['core_assignment'] not in ("one","two"):
+                if processed_data_dict['core_assignment'] not in ("one core/server","two cores/server"):
                     honPID.cpu_affinity([0,1])
                 else:
                     honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
