@@ -1413,10 +1413,12 @@ if is_admin():
                             distutils.dir_util.copy_tree(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays",f"{honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays",update=1)
                             tex.insert(END,"You have changed the hon replays directory. Please ensure you configure all servers.\n",'interest')
                             tex.insert(END,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.\n",'interest')
+                            tex.see(tk.END)
                             self.dataDict.update({'hon_manager_dir':honreplay})
                         except Exception as e:
                             print(e)
                             tex.insert(END,f"FIXME: Failed to migrate data from {self.dataDict['hon_manager_dir']} to {honreplay}\n",'warning')
+                            tex.see(tk.END)
                 # stop services that sit outside the total server range
                 if int(servertotal) < int(self.dataDict['svr_total']):
                     x=int(self.dataDict['svr_total']) - int(servertotal)
@@ -1436,6 +1438,13 @@ if is_admin():
                         elif playercount > 0:
                             print("scheduled shutdown of no longer required service as it sits outside the total servers range")
                             initialise.schedule_shutdown(temp_dict)
+                elif int(servertotal) > int(self.dataDict['svr_total']) and restart_proxy == False:
+                    print(f"Servers {self.dataDict['svr_total']} to {servertotal} are not configured to run under the proxy. The proxy was only configured for servers 0 to {servertotal}")
+                    print(f"Select 'restart proxy in next configure' to resolve this. This may disrupt games which are in progress.")
+                    tex.insert(END,f"Servers {int(self.dataDict['svr_total'])+1} to {servertotal} are not configured to run under the proxy. The proxy was only configured for servers 1 to {self.dataDict['svr_total']}\n",'warning')
+                    tex.insert(END,f"Select 'restart proxy in next configure' to resolve this. This may disrupt games which are in progress.\n",'warning')
+                    tex.see(tk.END)
+
                 
                 # write config to file
                 conf_local = configparser.ConfigParser()
@@ -1815,6 +1824,7 @@ if is_admin():
             style.configure('TFrame', background=maincolor,padx=[10,10])
             style.configure('TEntry',insertcolor='white',insertwidth=1)
             gui = tk.Frame(app,bg=maincolor,padx=10,pady=10)
+            #app.geometry('1600x900')
             app.configure(bg=maincolor)
             gui.grid()
 
@@ -1830,7 +1840,8 @@ if is_admin():
             """
             creating tooltips
             """
-
+            tab1.rowconfigure(25, minsize=50)
+            tab1.columnconfigure(25, minsize=50)
             
             """
             simple server setup tab
@@ -1970,13 +1981,8 @@ if is_admin():
                     f"The starting game port defaults to 10000.\nEach server is started on the starting game port + the nth server\nif using the proxy, the public ports will be an additional 10000 ontop of this.\nHoNfigurator will output the required ports to forward after configuring a server.")
             tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
             tab1_voice_port.grid(column=2,row = 8,sticky="w",pady=4)
-            #   force update
-            applet.Label(tab1, text="Force Update:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
-            self.forceupdate = tk.BooleanVar(app)
-            tab1_forceupdate_btn = applet.Checkbutton(tab1,variable=self.forceupdate)
-            tab1_forceupdate_btn.grid(column= 1, row = 10,sticky="w")
             #   console windows, for launching servers locally (not as windows services)
-            applet.Label(tab1, text="Launch as Console (BETA):",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
             self.console = tk.BooleanVar(app)
             if self.dataDict['use_console'] == 'True':
                 self.console.set(True)
@@ -1984,8 +1990,8 @@ if is_admin():
                 self.console.set(False)
             tab1_console_btn = applet.Checkbutton(tab1,variable=self.console)
             labl_ttp = honfigurator.CreateToolTip(tab1_console_btn, \
-                    f"Use this option to run servers in console app mode. This is more CPU intensive, and you must remain logged in.")
-            tab1_console_btn.grid(column= 1, row = 11,sticky="w",pady=2)
+                    f"Use this option to run servers in console app mode. This is more CPU intensive, and you must remain logged in.\nDefault mode runs servers as a windows service, and you don't need to remain logged in.")
+            tab1_console_btn.grid(column= 1, row = 10,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
             #
             
@@ -2047,17 +2053,16 @@ if is_admin():
             #   bot version
             applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=8,sticky="e",padx=[20,0])
             applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 8,sticky="w",pady=4)
-            print(self.forceupdate.get())
 
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
                     f"Configure the currently selected server ID only.")
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_allbutton, \
                     f"Configure ALL total servers.")
@@ -2065,7 +2070,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2542,6 +2547,7 @@ if is_admin():
                         service_name = f"adminbot{x}"
                         deployed_status = dmgr.mData.returnDict_deployed(self,x)
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
+                        proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
                         file = "Slave*.log"
                         log = False
                         try:
@@ -2562,7 +2568,26 @@ if is_admin():
                         if i%mod_by==0:
                             c+=c_len
                             i=3
-                        LablString[0]=f"hon_server_{x}"
+                        if pcount > 0:
+                            logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                            log_File = f"Slave*{x}*.clog"
+                            list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                            latest_file = max(list_of_files, key=os.path.getctime)
+                            try:
+                                match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                            except:
+                                print(traceback.format_exc())
+                                
+                        if service_state is not None and deployed_status['use_console'] == 'False':
+                            if service_state == False or service_state['status'] == 'stopped':
+                                colour = 'OrangeRed4'
+                            svc_or_con="svc"
+                                #LablString[1]=f"svc-Stopped"
+                        elif deployed_status['use_console'] == 'True':
+                            #colour = 'OrangeRed4'
+                            svc_or_con="con"
+                            #LablString[1]=f"con-Stopped"
+                        LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
                         for index1, labl_name in enumerate(LablString):
                             if cookie:
                                 if pcount < 0:
@@ -2573,7 +2598,10 @@ if is_admin():
                                     LablString[1]="Available"
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
-                                    LablString[1]=f"In-game ({pcount})"
+                                    try:
+                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                                    except:
+                                        LablString[1]=f"In-game ({pcount})"
                                 if pcount >=0:
                                     if schd_restart:
                                         colour='indian red'
@@ -2589,25 +2617,28 @@ if is_admin():
                                     LablString[1]="connect error"
                                 elif pcount >0:
                                     colour = 'SpringGreen4'
-                                    LablString[1]=f"In-game ({pcount})"
-                            if service_state is not None and deployed_status['use_console'] == 'False':
-                                if service_state == False or service_state['status'] == 'stopped':
-                                    colour = 'OrangeRed4'
-                                svc_or_con="svc"
-                                    #LablString[1]=f"svc-Stopped"
-                            elif deployed_status['use_console'] == 'True':
-                                #colour = 'OrangeRed4'
-                                svc_or_con="con"
-                                #LablString[1]=f"con-Stopped"
+                                    try:
+                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                                    except:
+                                        LablString[1]=f"In-game ({pcount})"
+                            # if service_state is not None and deployed_status['use_console'] == 'False':
+                            #     if service_state == False or service_state['status'] == 'stopped':
+                            #         colour = 'OrangeRed4'
+                            #     svc_or_con="svc"
+                            #         #LablString[1]=f"svc-Stopped"
+                            # elif deployed_status['use_console'] == 'True':
+                            #     #colour = 'OrangeRed4'
+                            #     svc_or_con="con"
+                            #     #LablString[1]=f"con-Stopped"
                             c_pos1 = index1 + c
                             if index1==0:
-                                labl = Label(tab2,width=12,text=f"{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Core: {deployed_status['svr_affinity']}\n{deployed_status['core_assignment']}")
+                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
                                 except: pass
                             elif index1==1:
-                                labl = Label(tab2,width=14,text=f"{svc_or_con}-{labl_name}", background=colour, foreground='white')
+                                labl = Label(tab2,width=16,text=f"{labl_name}", background=colour, foreground='white')
                                 if 'available' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
                                         f"Server is available and connected to the master server.")
@@ -2615,13 +2646,8 @@ if is_admin():
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
                                 if pcount > 0:
-                                    logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                                    log_File = f"Slave*{x}*.clog"
-                                    list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                                    latest_file = max(list_of_files, key=os.path.getctime)
-                                    match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
                                     labl_ttp = honfigurator.CreateToolTip(labl, \
-                                        f"Game in progress,\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
                             labl.grid(row=i, column=c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
@@ -2715,7 +2741,7 @@ if is_admin():
                             print("checking for honfigurator update")
                             self.update_repository(NULL,NULL,NULL)
                             print("checking for hon update")
-                            Thread(target=self.forceupdate_hon,args=(False,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),self.forceupdate.get(),self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                            Thread(target=self.forceupdate_hon,args=(False,"all",tab1_hosterd.get(),tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),tab1_hondird.get(),tab1_honreplay.get(),tab1_user.get(),tab1_pass.get(),tab1_ip.get(),tab1_bottokd.get(),tab1_discordadmin.get(),tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),tab1_game_port.get(),tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                 if refresh_next==True:
                     if (tabgui.index("current")) == 1:
                         viewButton.refresh(int(stretch.get())+3)
