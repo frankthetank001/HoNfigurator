@@ -940,6 +940,10 @@ class honCMD():
                 # get last item in list
                 gameLoc = files[-1]
                 self.server_status.update({"game_log_location":gameLoc})
+                match_id = re.search(r'M([0-9]+)', gameLoc)
+                match_id = match_id.group(0)
+                print(f"Lobby created: {match_id}")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Lobby created: {match_id}","INFO")
                 print("Most recent file matching {}: {}".format(pattern,gameLoc))
                 
                 # for item in os.listdir():

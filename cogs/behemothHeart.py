@@ -719,6 +719,9 @@ class heartbeat(commands.Cog):
                                 except:
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    if (server_status_bkp['game_started']) == True:
+                        # get the current elapsed time of the match
+                        svr_state.getData("CheckInGame")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -736,7 +739,6 @@ class heartbeat(commands.Cog):
 
                     if 'game_started' in server_status_bkp:
                         if server_status_bkp['game_started'] == True:
-                            svr_state.getData("CheckInGame")
                             match_time = match_status_bkp['match_time']
                             if ":" in match_time:
                                 match_too_long = match_time.split(":")
