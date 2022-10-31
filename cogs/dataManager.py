@@ -146,7 +146,7 @@ class mData():
         #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
         if exists(f"{self.confDict['hon_game_dir']}\\startup.cfg"):
             self.game_config = mData.parse_config(self,f"{self.confDict['hon_game_dir']}\\startup.cfg")
-        gameDllHash = mData.getData(self,"gameDllHash")
+        gameDllHash = mData.get_hash(self.confDict['svr_k2dll'])
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
             self.confDict.update({"player_count_exe_loc":f"{self.confDict['hon_directory']}pingplayerconnected-70.exe"})
             self.confDict.update({"player_count_exe":"pingplayerconnected-70.exe"})
@@ -188,6 +188,7 @@ class mData():
         self.confDict_deployed.update({"app_log":f"{self.confDict_deployed['sdc_home_dir']}\\{self.confDict_deployed['app_name']}.log"})
         self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
+        self.confDict_deployed.update({"svr_id":svr_id})
         self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
         self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
@@ -222,17 +223,37 @@ class mData():
         self.confDict_deployed.update({"hon_exe":f"{self.confDict_deployed['hon_directory']}{self.confDict_deployed['hon_file_name']}"})
         self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
 
+        self.confDict_deployed.update({"proxy_exe":f"{self.confDict_deployed['hon_directory']}proxy.exe"})
+        self.confDict_deployed.update({"proxy_manager_exe":f"{self.confDict_deployed['hon_directory']}proxymanager.exe"})
+        self.confDict_deployed.update({"svr_k2dll":f"{self.confDict_deployed['hon_directory']}k2_x64.dll"})
+        self.confDict_deployed.update({"svr_cgame_dll":f"{self.confDict_deployed['hon_directory']}game\\cgame_x64.dll"})
+        self.confDict_deployed.update({"svr_game_shared_dll":f"{self.confDict_deployed['hon_directory']}game\\game_shared_x64.dll"})
+        self.confDict_deployed.update({"svr_game_dll":f"{self.confDict_deployed['hon_directory']}game\\game_x64.dll"})
+        self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
+        gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
+        if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
+            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-70.exe"})
+            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
+        elif gameDllHash == "3D97C3FB6121219344CFABE8DFCC608FAC122DB4":
+            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-3D.exe"})
+            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-3D.exe"})
+        elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
+            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+        else:
+            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+
         return self.confDict_deployed
         
-    def returnDict_temp(self):
-        print(os.getcwd())
+    def returnDict_temp(baseDict):
         confDict_temp = {}
-        if exists(resource_path("config\\local_config.ini.incoming")):
-            conf_parse_temp_local.read(resource_path("config\\local_config.ini.incoming"))
+        if exists(f"{baseDict['sdc_home_dir']}\\config\\local_config.ini.incoming"):
+            conf_parse_temp_local.read(f"{baseDict['sdc_home_dir']}\\config\\local_config.ini.incoming")
             for option in conf_parse_temp_local.options("OPTIONS"):
                 confDict_temp.update({option:conf_parse_temp_local['OPTIONS'][option]})
-        if exists(resource_path("config\\global_config.ini.incoming")):
-            conf_parse_temp_global.read(resource_path("config\\global_config.ini.incoming"))
+        if exists(f"{baseDict['sdc_home_dir']}\\config\\global_config.ini.incoming"):
+            conf_parse_temp_global.read(f"{baseDict['sdc_home_dir']}\\config\\global_config.ini.incoming")
             for option in conf_parse_temp_global.options("OPTIONS"):
                 confDict_temp.update({option:conf_parse_temp_global['OPTIONS'][option]})
         return confDict_temp
@@ -309,20 +330,20 @@ class mData():
             version=hon_x64.read(16)
             return(version.decode('utf-16-le'))
         else:
-            return ("pending version check")
+            return ("pending version check") 
     def check_affinity(svr_id,core_assignment):
         svr_id = int(svr_id)
             #
             #   Get total cores, logical included
         total_cores = psutil.cpu_count(logical = True)
-        if core_assignment == 'two cores/server':
+        if core_assignment in ('two','two cores/server'):
             total_cores +=1
             affinity = [total_cores - svr_id,total_cores - svr_id - 1]
             #
             #   Set affinity of the hon process to total cores - server ID
             affinity[0] = affinity[0]-svr_id
             affinity[1] = affinity[1]-svr_id
-        elif core_assignment == 'one core/server':
+        elif core_assignment in ('one','one core/server'):
             affinity = [0,0]
             affinity[0] = total_cores - svr_id
             affinity[1] = total_cores - svr_id
@@ -368,14 +389,14 @@ class mData():
             #
             #   Get total cores, logical included
             total_cores = psutil.cpu_count(logical = True)
-            if self.confDict['core_assignment'] == 'two cores/server':
+            if self.confDict['core_assignment'] in ('two cores/server','two'):
                 total_cores +=1
                 affinity = [total_cores - self.svr_id,total_cores - self.svr_id - 1]
                 #
                 #   Set affinity of the hon process to total cores - server ID
                 affinity[0] = affinity[0]-self.svr_id
                 affinity[1] = affinity[1]-self.svr_id
-            elif self.confDict['core_assignment'] == 'one core/server':
+            elif self.confDict['core_assignment'] in ('one','one core/server'):
                 affinity = [0,0]
                 affinity[0] = total_cores - self.svr_id
                 affinity[1] = total_cores - self.svr_id
@@ -433,24 +454,6 @@ class mData():
         if dtype == "lastRestartLoc":
             tmp = f"{self.confDict['sdc_home_dir']}\\last_restart_time"
             return tmp
-        if dtype == "gameDllHash":
-            #
-            # 3d97c3fb6121219344cfabe8dfcc608fac122db4 = new DLL
-            # 70e841d98e59dfe9347e24260719e1b7b590ebb8 = old DLL
-            #
-            sha1 = hashlib.sha1()
-            if exists(self.confDict['svr_k2dll']):
-                with open(self.confDict['svr_k2dll'],'rb') as file:
-                #   loop till the end of the file
-                    chunk = 0
-                    while chunk != b'':
-                        #   read only 1024 bytes at a time
-                        chunk = file.read(1024)
-                        sha1.update(chunk)
-                hash = sha1.hexdigest()
-                hash = hash.upper()
-                gameDllHash = hash
-                return gameDllHash
     def get_hash(file):
         sha1 = hashlib.sha1()
         try:
