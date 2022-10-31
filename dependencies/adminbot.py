@@ -1007,35 +1007,37 @@ if is_admin():
                 #     if isinstance(error, commands.CommandNotFound):
                 #         await ctx.send("words i guess")
                 await ctx.invoke(bot.get_command('portalhelp'))
-
-    def run_bot():
+    async def run_bot_local():
+        try:
+            print("bot started in local mode.")
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+            result = srvcmd.honCMD().startSERVER(False)
+            if result == True:
+                print("server started successfully")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+            elif result == "ram":
+                print("not enough free RAM to start the server.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
+            elif result == "proxy":
+                print("Proxy port is not online.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
+            else:
+                print("starting the server completely failed.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
+        except:
+            print(traceback.format_exc())
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        await heart.heartbeat.startheart_bkp()
+    def run_bot_disc():
         if processed_data_dict['disable_bot'] == 'False':
             hsl(bot)
             hsl.wait_until_ready.start()
             bot.run(processed_data_dict['token'])
-        else:
-            try:
-                print("bot started in local mode.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
-                result = srvcmd.honCMD().startSERVER(False)
-                if result == True:
-                    print("server started successfully")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
-                elif result == "ram":
-                    print("not enough free RAM to start the server.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
-                elif result == "proxy":
-                    print("Proxy port is not online.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
-                else:
-                    print("starting the server completely failed.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
-            except:
-                print(traceback.format_exc())
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            heart.heartbeat.startheart_bkp()
     if __name__ == '__main__':
-        run_bot()
+        if processed_data_dict['disable_bot'] == 'True':
+            asyncio.run(run_bot_local())
+        else:
+            run_bot_disc()
 else:
     # Re-run the program with admin rights
     # os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)

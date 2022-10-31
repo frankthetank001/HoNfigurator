@@ -1973,17 +1973,17 @@ if is_admin():
             self.svr_id_var.trace_add('write', self.svr_num_link)
             
             #   HoN Directory
-            applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
             self.tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=70)
             self.tab1_hondird.insert(0,self.dataDict['hon_directory'])
-            self.tab1_hondird.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
+            self.tab1_hondird.grid(columnspan=3,column= 1, row = 11,sticky="w",pady=4)
             #   HoN Home
-            applet.Label(tab1, text="HoN Storage Folder\n(replays, long term storage):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="HoN Storage Folder\n(replays, long term storage):",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
             self.tab1_honreplay = applet.Entry(tab1,foreground=textcolor,width=70)
             labl_ttp = honfigurator.CreateToolTip(self.tab1_honreplay, \
                     f"Use to store HoN replays.")
             self.tab1_honreplay.insert(0,self.dataDict['hon_manager_dir'])
-            self.tab1_honreplay.grid(columnspan=3,column= 1, row = 13,sticky="w",pady=4)
+            self.tab1_honreplay.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
             # HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
@@ -2004,22 +2004,22 @@ if is_admin():
             tab1_increment_port.grid(column= 2, row = 6,sticky="w",pady=4)
             #
             #   use proxy
-            applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=10,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=9,sticky="e",padx=[20,0])
             self.useproxy = tk.BooleanVar(app)
             if self.dataDict['use_proxy'] == 'True':
                 self.useproxy.set(True)
             tab1_useproxy_btn = applet.Checkbutton(tab1,variable=self.useproxy)
             labl_ttp = honfigurator.CreateToolTip(tab1_useproxy_btn, \
                     f"Enable this option to use the HoN Proxy service.\nThis creates a layer of protection by ensuring all game server data is dealt with by the proxy first, eliminating malicious DoS attempts.\nIf using the proxy. Observe carefully the HoNfigurator output, and only port forward the Proxy ports on your router.")
-            tab1_useproxy_btn.grid(column= 2, row = 10,sticky="w",pady=4)
+            tab1_useproxy_btn.grid(column= 2, row = 9,sticky="w",pady=4)
             #
             #   force proxy restart
-            applet.Label(tab1, text="Restart Proxy (in next configure)",background=maincolor,foreground='white').grid(column=1, row=11,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Restart Proxy (in next configure)",background=maincolor,foreground='white').grid(column=1, row=10,sticky="e",padx=[20,0])
             self.restart_proxy = tk.BooleanVar(app)
             tab1_restart_proxy = applet.Checkbutton(tab1,variable=self.restart_proxy)
             labl_ttp = honfigurator.CreateToolTip(tab1_restart_proxy, \
                     f"Enable this option to ensure the proxy is restarted on the next configure. This may disrupt games in progress.")
-            tab1_restart_proxy.grid(column= 2, row = 11,sticky="w",pady=4)
+            tab1_restart_proxy.grid(column= 2, row = 10,sticky="w",pady=4)
             # self.useproxy.trace_add('write',self.change_to_proxy2)
             #  starting gameport
             applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
@@ -2037,7 +2037,7 @@ if is_admin():
             self.tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
             self.tab1_voice_port.grid(column=2,row = 8,sticky="w",pady=4)
             #   console windows, for launching servers locally (not as windows services)
-            applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=10,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
             self.console = tk.BooleanVar(app)
             if self.dataDict['use_console'] == 'True':
                 self.console.set(True)
@@ -2046,7 +2046,7 @@ if is_admin():
             tab1_console_btn = applet.Checkbutton(tab1,variable=self.console)
             labl_ttp = honfigurator.CreateToolTip(tab1_console_btn, \
                     f"Use this option to run servers in console app mode. This is more CPU intensive, and you must remain logged in.\nDefault mode runs servers as a windows service, and you don't need to remain logged in.")
-            tab1_console_btn.grid(column= 1, row = 10,sticky="w",pady=2)
+            tab1_console_btn.grid(column= 1, row = 9,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
             #
             
