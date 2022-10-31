@@ -584,7 +584,7 @@ class honCMD():
     def restartSELF(self):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
         honCMD().stopSERVER(True)
-        incoming_config = dmgr.mData().returnDict_temp()
+        incoming_config = dmgr.mData.returnDict_temp(processed_data_dict)
         if len(incoming_config) > 0:
             if processed_data_dict['use_console'] == 'True':
                 if incoming_config['use_console'] == 'True':
