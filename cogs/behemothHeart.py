@@ -526,8 +526,7 @@ class heartbeat(commands.Cog):
                 await test.createEmbed(ctx,playercount)
                 # if playercount < 0:
                 #     self.alive = False
-
-    def startheart_bkp():
+    async def startheart_bkp():
         global alive_bkp
         global alive
         alive_bkp='True'
@@ -566,7 +565,7 @@ class heartbeat(commands.Cog):
                 with open(bkup_heart_file,'r') as f:
                     alive_bkp = f.readline()
 
-            time.sleep(heartbeat_freq)
+            await asyncio.sleep(heartbeat_freq)
             try:
                 playercount = svrcmd.honCMD().playerCount()
                 print("players: " + str(playercount))
