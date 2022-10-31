@@ -1664,7 +1664,7 @@ if is_admin():
                     print("Selected option to configure ALL servers\n")
                     for i in range(0,int(servertotal)):
                         serverid = i + 1
-                        honfigurator.update_local_config(self,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        honfigurator.update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         self.dataDict = dmgr.mData().returnDict()
                         # #
                         # #   global values
@@ -1688,7 +1688,7 @@ if is_admin():
         def check_deployed_update(self):
             global ports_to_forward_game
             global ports_to_forward_voice
-            time.sleep(10)
+            time.sleep(5)
 
             ports_to_forward_game=[]
             ports_to_forward_voice=[]
@@ -1717,7 +1717,7 @@ if is_admin():
                     tex.insert(END,(f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest."))
                     tex.see(tk.END)
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
-                    honfigurator.update_local_config(self,temp['svr_hoster'],temp['svr_region_short'],temp['svr_id'],temp['svr_total'],temp['hon_directory'],temp['hon_manager_dir'],temp['svr_login'],temp['svr_password'],temp['svr_ip'],temp['token'],temp['discord_admin'],temp['master_server'],True,temp['disable_bot'],temp['auto_update'],temp['use_console'],False,temp['game_starting_port'],temp['voice_starting_port'],temp['core_assignment'],temp['process_priority'],temp['allow_botmatches'],temp['debug_mode'],temp['github_branch'],temp['incr_port_by'])
+                    honfigurator.update_local_config(self,temp['svr_hoster'],temp['svr_region_short'],temp['svr_id'],temp['svr_total'],temp['hon_directory'],temp['hon_manager_dir'],temp['svr_login'],temp['svr_password'],temp['svr_ip'],temp['token'],temp['discord_admin'],temp['master_server'],True,temp['disable_bot'],temp['auto_update'],temp['use_console'],temp['use_proxy'],False,temp['game_starting_port'],temp['voice_starting_port'],temp['core_assignment'],temp['process_priority'],temp['allow_botmatches'],temp['debug_mode'],temp['github_branch'],temp['incr_port_by'])
                     initialise(temp).configureEnvironment(True,use_console)
                     #honfigurator.sendData(self,"single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
