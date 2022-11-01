@@ -2630,7 +2630,9 @@ if is_admin():
                         service_name = f"adminbot{x}"
                         deployed_status = dmgr.mData.returnDict_deployed(self,x)
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
-                        proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
+                        try:
+                            proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
+                        except: pass
                         file = "Slave*.log"
                         log = False
                         try:
