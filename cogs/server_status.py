@@ -251,9 +251,13 @@ class honCMD():
             'os': 'was-crIac6LASwoafrl8FrOa',
             'arch' : 'x86_64'
             }
-        x = requests.post(url,data=payload)
-        data=x.text
-        data=re.split(';s:\d+:',data)
+        try:
+            x = requests.post(url,data=payload)
+            data=x.text
+            data=re.split(';s:\d+:',data)
+        except:
+            print("Error reading data from masterserver.")
+            return False
 
         for i in range(len(data)):
             if '"latest_version"' in data[i]:
