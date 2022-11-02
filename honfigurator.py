@@ -2085,7 +2085,7 @@ if is_admin():
                     f"Enhanced logging, specifically in eventlog sent to Discord DM by bot.")
             tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
             #  Run without bots 
-            applet.Label(tab1, text="Run without bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Run without discord bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
             self.disablebot = tk.BooleanVar(app)
             if self.dataDict['disable_bot'] == 'True':
                 self.disablebot.set(True)
