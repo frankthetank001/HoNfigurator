@@ -7,7 +7,6 @@ try:
     required = {'discord.py==1.7.3',
                 'GitPython==3.1.27',
                 'psutil==5.9.1',
-                'pygit2==1.10.0',
                 'python_hosts==1.0.3',
                 'WMI==1.5.1',
                 'requests',
@@ -48,7 +47,6 @@ import traceback
 #import win32com.client
 import datetime
 from threading import Thread
-from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
@@ -321,7 +319,9 @@ if is_admin():
         #             else:
         #                 return False
         def update_repository(self,selected_branch):
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             if selected_branch != current_branch:
                 checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
                 if checkout.returncode == 0:
@@ -1293,7 +1293,9 @@ if is_admin():
             except Exception as e:
                 print(e)
             selected_branch = self.git_branch.get()
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             # if selected_branch != current_branch:
             checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
             if checkout.returncode == 0:
