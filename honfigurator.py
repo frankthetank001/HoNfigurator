@@ -1133,7 +1133,9 @@ if is_admin():
                 os.chdir(application_path)
             except Exception as e:
                 print(e)
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             return current_branch
         def git_all_branches(self):
             repositories = []
