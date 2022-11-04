@@ -82,6 +82,7 @@ class heartbeat(commands.Cog):
         #   anything below is looping
 
         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
+        print(self.processed_data_dict)
         while alive == True:
             alive=True
             try:
@@ -557,6 +558,7 @@ class heartbeat(commands.Cog):
         replay_threshold = 300 / heartbeat_freq
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
+        print(processed_data_dict_bkp)
         while alive_bkp == 'True':
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(processed_data_dict_bkp['hon_file_name'])
