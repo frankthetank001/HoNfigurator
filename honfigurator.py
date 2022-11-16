@@ -71,7 +71,13 @@ if is_admin():
     def show_exception_and_exit(exc_type, exc_value, tb):
         traceback.print_exception(exc_type, exc_value, tb)
         print("Trying to attempt to update honfigurator to fix this...")
-        honfigurator.update_repository(NULL,NULL,NULL)
+        try:
+            os.chdir(application_path)
+        except Exception as e:
+            print(e)
+        output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+        tex.see(tk.END)
+        return output.returncode
         raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
         sys.exit(-1)
     sys.excepthook = show_exception_and_exit
