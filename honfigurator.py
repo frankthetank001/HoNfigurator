@@ -1018,12 +1018,14 @@ if is_admin():
                             print(f"waiting for service to start.. {o}/{threshold}secs remaining")
                             if service_bot['status'] == 'running':
                                 waiting=False
-                            if o == threshold:
+                            if o >= threshold:
                                 waiting=False
                         if service_bot['status'] == 'running' or service_bot['status'] == 'start_pending':
+                            print(f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                         else:
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                            print(f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
                         tex.see(tk.END)
                         print("==========================================")
                     print(self.service_name_bot)
