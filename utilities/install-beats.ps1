@@ -41,7 +41,7 @@ $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
 Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 refreshenv 2>&1 | Write-Verbose
 
-metricbeat --path.home (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools') modules enable system
+metricbeat --path.home (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools') modules enable system 2>&1 | Write-Verbose
 
 function Read-Config {
     $file = '..\config\local_config.ini'
@@ -151,7 +151,8 @@ function Setup-Beats {
             Write-Host("Compel settings from last run are:
             Server Name: $env:BeatsHoster
             Server Region: $env:BeatsRegion
-            Log Directory: $env:BeatsLogDir")
+            Log Directory: $env:BeatsLogDir
+            ")
             $check_confirm = $false
             while ($check_confirm -eq $false) {
                 $confirm = Read-Host("Is this correct? (y/n)")
@@ -185,6 +186,35 @@ function Setup-Beats {
         $path_slave = "$logdir\*.clog"
         $path_match = "$logdir\M*.log"
     }
+    $discord_name = $null
+    if ($env:BeatsAdmin) {
+        $confirm = $false
+        while ($confirm -notin ("y","n","yes","no")) {
+            $confirm = Read-Host("Is the server admin still $env:BeatsAdmin ? (y/n)")
+        }
+        if ($confirm -in ("y","yes")) {
+            $discord_name = $env:BeatsAdmin
+        }
+    }
+    if ($null -eq $discord_name) { 
+        $discord_name = Read-Host("Please enter your Discord username. This is so owners of servers are contactable") 
+        [System.Environment]::SetEnvironmentVariable('BeatsAdmin',$discord_name,[System.EnvironmentVariableTarget]::Machine)
+    }
+    $email = $null
+    if ($env:BeatsEmail) {
+        $confirm = $false
+        while ($confirm -notin ("y","n","yes","no")) {
+            $confirm = Read-Host("Is the alert email still $env:BeatsEmail ? (y/n)")
+        }
+        if ($confirm -in ("y","yes")) {
+            $email = $env:BeatsEmail
+        }
+    }
+    if ($null -eq $email) { 
+        $email = Read-Host("Enter your email if you want to be sent alerts in the future (optional)")
+        [System.Environment]::SetEnvironmentVariable('BeatsEmail',$email,[System.EnvironmentVariableTarget]::Machine)
+    }
+
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
     if ($reset) {
         Stop-Service -Name 'filebeat'
@@ -224,6 +254,8 @@ function Setup-Beats {
       Server:
         Name: $hoster
         Launcher: $launcher
+        Admin: $discord_name
+        Email: $email
         Region: $region
         Affinity: $cores
 filebeat.config.modules:
@@ -255,6 +287,8 @@ fields:
   Server:
     Name: $hoster
     Launcher: $launcher
+    Admin: $discord_name
+    Email: $email
     Region: $region
 setup.dashboards.enabled: false
 output.logstash:
