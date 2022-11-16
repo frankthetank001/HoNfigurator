@@ -125,8 +125,10 @@ You will then receive client.pem file. Please copy this file into the following 
     }
 }
 function Setup-Beats {
-    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
-    if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+    while ($launcher -notin ("HoNfigurator","COMPEL")) {
+        $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
+        if ($launcher -eq "1") { $launcher = "HoNfigurator"} elseif ($launcher -eq "2") { $launcher = "COMPEL"}
+    }
     if ($launcher -eq "HoNfigurator"){
         Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
@@ -205,57 +207,40 @@ function Setup-Beats {
     Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
-    $Services = [pscustomobject]@{
-        'filebeat.inputs' = @(
-            [ordered]@{
-                'type' =  'filestream'
-                'id' = "hon-logs-$hoster"
-                'enabled' = $true
-                'paths' = @(
-                    $path_slave
-                    $path_match
-                )
-                'encoding' = 'utf-16le'
-                'exclude_files' = '[".gz$"]'
-                'multiline.pattern' = '^\d\d\'
-                'multiline.negate' = $true
-                'multiline.match' = 'after'
-                'fields_under_root' = $true
-                'fields' = [ordered]@{
-                    'Server' = [ordered]@{
-                        'Name' = $hoster
-                        'Launcher' = $launcher
-                        'Region' = $region
-                        'Affinity' = $cores
-                    }
-                }
-            }
-        )
-        'filebeat.config.modules' =
-            [ordered]@{
-                'path' = '${path.config}/modules.d/*.yml'
-                'reload.enabled' = $false
-            }
-        'setup.template.settings' =
-            [ordered]@{
-                'index.number_of_shards' = '1'
-            }
-        'output.logstash' =
-            [ordered]@{
-                'hosts' = 'hon-elk.honfigurator.app:5044'
-                'ssl.certificate_authorities' = $filebeat_chain
-                'ssl.certificate' = $filebeat_client_pem
-                'ssl.key' = $filebeat_client_key
-            }
-        
-        'processors' = @(
-            [ordered]@{
-                'add_host_metadata' = [ordered]@{
-                    'when.not.contains.tags' = 'forwarded'
-                }
-            }
-        )
-    }
+    $Services = "filebeat.inputs:
+  - type: filestream
+    id: hon-logs-$hoster
+    enabled: true
+    paths:
+      - $path_slave
+      - $path_match
+    encoding: utf-16le
+    exclude_files: '[`".gz$`"]'
+    multiline.pattern: ^\d\d\
+    multiline.negate: true
+    multiline.match: after
+    fields_under_root: true
+    fields:
+      Server:
+        Name: $hoster
+        Launcher: $launcher
+        Region: $region
+        Affinity: $cores
+filebeat.config.modules:
+  path: `${path.config}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: `"1`"
+output.logstash:
+  hosts: hon-elk.honfigurator.app:5044
+  ssl.certificate_authorities: $filebeat_chain
+  ssl.certificate: $filebeat_client_pem
+  ssl.key: $filebeat_client_key
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_locale: ~
+"
     $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
@@ -279,6 +264,7 @@ output.logstash:
   ssl.key: $metricbeat_client_key
 processors:
   - add_host_metadata: ~
+  - add_locale: ~
 "
     # $Services = [pscustomobject]@{
     #     'metricbeat.config.modules' =

@@ -112,6 +112,8 @@ class mData():
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
         if 'disable_bot' not in self.confDict:
             self.confDict.update({'disable_bot':'False'})
+        if 'auto_update' not in self.confDict:
+            self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
         #   Kongor testing
         if self.confDict['master_server'] == "honmasterserver.com":
@@ -208,6 +210,8 @@ class mData():
             self.confDict_deployed.update({'game_starting_port':self.confDict_root['game_starting_port']})
         if 'voice_starting_port' not in self.confDict_deployed:
             self.confDict_deployed.update({'voice_starting_port':self.confDict_root['voice_starting_port']})
+        if 'auto_update' not in self.confDict_deployed:
+            self.confDict_deployed.update({'auto_update':'True'})
         self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
         self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
@@ -229,8 +233,11 @@ class mData():
         self.confDict_deployed.update({"svr_cgame_dll":f"{self.confDict_deployed['hon_directory']}game\\cgame_x64.dll"})
         self.confDict_deployed.update({"svr_game_shared_dll":f"{self.confDict_deployed['hon_directory']}game\\game_shared_x64.dll"})
         self.confDict_deployed.update({"svr_game_dll":f"{self.confDict_deployed['hon_directory']}game\\game_x64.dll"})
+        self.confDict_deployed.update({"svr_id":str(svr_id)})
         self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
-        gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
+        try:
+            gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
+        except: gameDllHash = "null"
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
             self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-70.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})

@@ -293,7 +293,7 @@ if is_admin():
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
                 print("starting backup heart until discord !createinks command is run.")
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
-                heart.heartbeat.startheart_bkp()
+                await heart.heartbeat.startheart_bkp()
         #@bot.event
         # async def on_ready():
             
@@ -303,6 +303,8 @@ if is_admin():
             await ctx.invoke(bot.get_command('getembedlog'),embed_log)
         @bot.command()
         async def showlinks(ctx,hoster):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global embed_ids
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
@@ -334,6 +336,8 @@ if is_admin():
         """
         @bot.command()
         async def createlinks(ctx,hoster):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             global sent_embed
             global embed_ids
@@ -440,6 +444,8 @@ if is_admin():
         """
         @bot.command()
         async def desync(ctx,hoster):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             #if hoster == svr_hoster:
             try:
@@ -450,6 +456,8 @@ if is_admin():
 
         @bot.command()
         async def sync(ctx,hoster):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             global embed_obj
             global sent_embed
@@ -619,7 +627,8 @@ if is_admin():
         """
         @bot.command()
         async def destroylinkshere(ctx,hoster):
-            
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
@@ -752,6 +761,8 @@ if is_admin():
 
         @bot.command()
         async def destroylinks(ctx,hoster):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             global embed_obj
             global embed_ids
@@ -888,6 +899,8 @@ if is_admin():
         
         @bot.command()
         async def portalhelp(ctx):
+            msg = ctx.message
+            print(f"received command: {msg.content}")
             global waited
             if svr_id == 1:
                 msg = ctx.message
@@ -938,7 +951,7 @@ if is_admin():
                         #
                         #   Sends the stop server command
                         elif (react.emoji.name == "🔽"):
-                            svr_cmd.stopSERVER()
+                            svr_cmd.stopSERVER(False)
                             # if svr_cmd.stopSERVER():
                             #     await ctx.invoke(bot.get_command('stopheart'))
                             
@@ -946,7 +959,7 @@ if is_admin():
                         #   only admins can force stop.
                         #elif (react.emoji.name == "🛑") and processed_data_dict['discord_admin'] in modRole:
                         elif (react.emoji.name == "🛑") and str(react.member.id) in processed_data_dict['discord_admin']:
-                            svr_cmd.forceSERVER()
+                            svr_cmd.stopSERVER(True)
                             # if svr_cmd.forceSERVER():
                             #     await ctx.invoke(bot.get_command('stopheart'))
                             if len(embed_log) == 0:
@@ -969,6 +982,7 @@ if is_admin():
         @bot.command()
         async def pruneall(ctx, hoster):
             msg = ctx.message
+            print(f"received command: {msg.content}")
             if msg.author.id == discord_admin.id:
                 if svr_id == 1:
                     if hoster == svr_hoster:
@@ -985,42 +999,45 @@ if is_admin():
                         await ctx.invoke(bot.get_command('portalhelp'))
         @bot.event
         async def on_command_error(ctx, error):
+            print(f"received unrecognised command: {ctx.message}")
             if svr_id == 1:
-                await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
                 msg = ctx.message
-                # if msg.author.id == discord_admin.id:
+                if msg.author.id == discord_admin.id:
+                    await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
                 #     if isinstance(error, commands.CommandNotFound):
                 #         await ctx.send("words i guess")
                 await ctx.invoke(bot.get_command('portalhelp'))
-
-    def run_bot():
+    async def run_bot_local():
+        try:
+            print("bot started in local mode.")
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+            result = srvcmd.honCMD().startSERVER(False)
+            if result == True:
+                print("server started successfully")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+            elif result == "ram":
+                print("not enough free RAM to start the server.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
+            elif result == "proxy":
+                print("Proxy port is not online.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
+            else:
+                print("starting the server completely failed.")
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
+        except:
+            print(traceback.format_exc())
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        await heart.heartbeat.startheart_bkp()
+    def run_bot_disc():
         if processed_data_dict['disable_bot'] == 'False':
             hsl(bot)
             hsl.wait_until_ready.start()
             bot.run(processed_data_dict['token'])
-        else:
-            try:
-                print("bot started in local mode.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
-                result = srvcmd.honCMD().startSERVER(False)
-                if result == True:
-                    print("server started successfully")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
-                elif result == "ram":
-                    print("not enough free RAM to start the server.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
-                elif result == "proxy":
-                    print("Proxy port is not online.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
-                else:
-                    print("starting the server completely failed.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
-            except:
-                print(traceback.format_exc())
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            heart.heartbeat.startheart_bkp()
     if __name__ == '__main__':
-        run_bot()
+        if processed_data_dict['disable_bot'] == 'True':
+            asyncio.run(run_bot_local())
+        else:
+            run_bot_disc()
 else:
     # Re-run the program with admin rights
     # os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)

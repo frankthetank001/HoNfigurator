@@ -251,9 +251,13 @@ class honCMD():
             'os': 'was-crIac6LASwoafrl8FrOa',
             'arch' : 'x86_64'
             }
-        x = requests.post(url,data=payload)
-        data=x.text
-        data=re.split(';s:\d+:',data)
+        try:
+            x = requests.post(url,data=payload)
+            data=x.text
+            data=re.split(';s:\d+:',data)
+        except:
+            print("Error reading data from masterserver.")
+            return False
 
         for i in range(len(data)):
             if '"latest_version"' in data[i]:
@@ -584,7 +588,7 @@ class honCMD():
     def restartSELF(self):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
         honCMD().stopSERVER(True)
-        incoming_config = dmgr.mData().returnDict_temp()
+        incoming_config = dmgr.mData.returnDict_temp(processed_data_dict)
         if len(incoming_config) > 0:
             if processed_data_dict['use_console'] == 'True':
                 if incoming_config['use_console'] == 'True':
