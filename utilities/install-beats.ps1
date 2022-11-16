@@ -125,8 +125,10 @@ You will then receive client.pem file. Please copy this file into the following 
     }
 }
 function Setup-Beats {
-    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
-    if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+    while ($launcher -notin ("HoNfigurator","COMPEL")) {
+        $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
+        if ($launcher -eq "1") { $launcher = "HoNfigurator"} elseif ($launcher -eq "2") { $launcher = "COMPEL"}
+    }
     if ($launcher -eq "HoNfigurator"){
         Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
@@ -262,6 +264,7 @@ output.logstash:
   ssl.key: $metricbeat_client_key
 processors:
   - add_host_metadata: ~
+  - add_locale: ~
 "
     # $Services = [pscustomobject]@{
     #     'metricbeat.config.modules' =
