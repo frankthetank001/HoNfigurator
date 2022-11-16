@@ -211,7 +211,7 @@ function Setup-Beats {
         }
     }
     if ($null -eq $email) { 
-        $email = Read-Host("Enter your email if you want to be sent alerts in the future")
+        $email = Read-Host("Enter your email if you want to be sent alerts in the future (optional)")
         [System.Environment]::SetEnvironmentVariable('BeatsEmail',$email,[System.EnvironmentVariableTarget]::Machine)
     }
 
