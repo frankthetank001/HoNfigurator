@@ -146,7 +146,7 @@ class honCMD():
         # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csv
         # latest_file = max(list_of_files, key=os.path.getctime)
         replay_wait +=1
-        if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
+        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
             time.sleep(1)
@@ -390,11 +390,9 @@ class honCMD():
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 try:
                     files = os.listdir(processed_data_dict['hon_replays_dir'])
-                    replays=[]
                     for file in files:
                         if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             if file.endswith(".honreplay"):
-                                replays.append
                                 try:
                                     shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
                                 except:

@@ -1455,7 +1455,7 @@ if is_admin():
                 ports_to_forward_voice=[]
                 initialise.add_hosts_entry(self)
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                     firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) - 1)
                 else:
                     firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) + 10000 - 1)
@@ -1691,12 +1691,12 @@ if is_admin():
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-                tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
-                tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
+                tex.insert(END,("\nUDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
+                tex.insert(END,("\nUDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                 else:
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
                 tex.see(tk.END)
                 return
         def check_deployed_update(self):
