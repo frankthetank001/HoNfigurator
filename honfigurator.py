@@ -2568,21 +2568,27 @@ if is_admin():
                             f = os.path.join(path, f)
                             if os.stat(f).st_mtime < now - 7 * 86400:
                                 if os.path.isfile(f):
-                                    os.remove(os.path.join(path, f))
-                                    count+=1
-                                    print("removed "+f)
+                                    try:
+                                        os.remove(os.path.join(path, f))
+                                        count+=1
+                                        print("removed "+f)
+                                    except Exception as e: print(e)
                     replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
                         if os.stat(f).st_mtime < now - 7 * 86400:
                             if os.path.isfile(f):
-                                os.remove(os.path.join(replays, f))
-                                count+=1
-                                print("removed "+f)
+                                try:
+                                    os.remove(os.path.join(replays, f))
+                                    count+=1
+                                    print("removed "+f)
+                                except Exception as e: print(e)
                             else:
-                                shutil.rmtree(f,onerror=honfigurator.onerror)
-                                count+=1
-                                print("removed "+f)
+                                try:
+                                    shutil.rmtree(f,onerror=honfigurator.onerror)
+                                    count+=1
+                                    print("removed "+f)
+                                except Exception as e: print(e)
                     print(f"DONE. Cleaned {count} files.")
                 def Uninstall(self,x):
                     global refresh_counter
