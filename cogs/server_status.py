@@ -79,6 +79,9 @@ class honCMD():
             prio = p.nice()
             prio = (str(prio)).replace("Priority.","")
             prio = prio.replace("_PRIORITY_CLASS","")
+            if prio == "64": prio = "IDLE"
+            elif prio == "128": prio = "HIGH"
+            elif prio == "256": prio = "REALTIME"
             return prio
         else: return "N/A"
     def simple_match_data(log,type):
@@ -219,11 +222,11 @@ class honCMD():
                 self.server_status['hon_pid_hook'].nice(psutil.HIGH_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "realtime":
                 self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
-            print("priority set to realtime")
+            print(f"priority set to {processed_data_dict['process_priority']}")
             self.server_status.update({'priority_realtime':priority_realtime})
         else:
             self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
-            print("priority set to normal")
+            print("priority set to idle")
             self.server_status.update({'priority_realtime':priority_realtime})
         return priority_realtime
 
