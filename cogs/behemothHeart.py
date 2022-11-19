@@ -82,6 +82,7 @@ class heartbeat(commands.Cog):
         #   anything below is looping
 
         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
+        print(self.processed_data_dict)
         while alive == True:
             alive=True
             try:
@@ -526,8 +527,7 @@ class heartbeat(commands.Cog):
                 await test.createEmbed(ctx,playercount)
                 # if playercount < 0:
                 #     self.alive = False
-
-    def startheart_bkp():
+    async def startheart_bkp():
         global alive_bkp
         global alive
         alive_bkp='True'
@@ -558,6 +558,7 @@ class heartbeat(commands.Cog):
         replay_threshold = 300 / heartbeat_freq
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
+        print(processed_data_dict_bkp)
         while alive_bkp == 'True':
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(processed_data_dict_bkp['hon_file_name'])
@@ -566,7 +567,7 @@ class heartbeat(commands.Cog):
                 with open(bkup_heart_file,'r') as f:
                     alive_bkp = f.readline()
 
-            time.sleep(heartbeat_freq)
+            await asyncio.sleep(heartbeat_freq)
             try:
                 playercount = svrcmd.honCMD().playerCount()
                 print("players: " + str(playercount))

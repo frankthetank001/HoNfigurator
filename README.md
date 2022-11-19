@@ -85,7 +85,7 @@ These are to be performed on game servers only.
 For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
 HoNfigurator should just open at the end.
 
-Installation script: [HoNfigurator-Installer](https://pub-d5c26fe9c34a469baf795a1e2dfeefc3.r2.dev/HoNfigurator-Installer.bat) (``Right click > save link as``)
+Installation script: [HoNfigurator-Installer](https://honfigurator.app/HoNfigurator-Installer.bat) (``Right click > save link as``)
 >If you are concerned about the above script, simply open it in any editor, copy the base64 from the script and decode it somewhere like https://www.base64encode.org/.
 1. Download the script above
 2. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
@@ -137,5 +137,5 @@ Once HoNfigurator is open:
 5. Example of full configuration below:
 ![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
 
-To launch HoNfigurator again in the future, simply run ``HoNfigurator-launcher.bat`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
+To launch HoNfigurator again in the future, simply run ``HoNfigurator.exe`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
 You may also create a shortcut to this on your desktop.

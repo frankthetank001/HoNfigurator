@@ -41,7 +41,7 @@ $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
 Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 refreshenv 2>&1 | Write-Verbose
 
-metricbeat --path.home (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools') modules enable system
+metricbeat --path.home (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools') modules enable system 2>&1 | Write-Verbose
 
 function Read-Config {
     $file = '..\config\local_config.ini'
@@ -125,8 +125,10 @@ You will then receive client.pem file. Please copy this file into the following 
     }
 }
 function Setup-Beats {
-    $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
-    if ($launcher -eq "1") { $launcher = "HoNfigurator"} else { $launcher = "COMPEL"}
+    while ($launcher -notin ("HoNfigurator","COMPEL")) {
+        $launcher=Read-Host("Enter 1 if using HoNfigurator. Enter 2 if using COMPEL")
+        if ($launcher -eq "1") { $launcher = "HoNfigurator"} elseif ($launcher -eq "2") { $launcher = "COMPEL"}
+    }
     if ($launcher -eq "HoNfigurator"){
         Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
@@ -149,7 +151,8 @@ function Setup-Beats {
             Write-Host("Compel settings from last run are:
             Server Name: $env:BeatsHoster
             Server Region: $env:BeatsRegion
-            Log Directory: $env:BeatsLogDir")
+            Log Directory: $env:BeatsLogDir
+            ")
             $check_confirm = $false
             while ($check_confirm -eq $false) {
                 $confirm = Read-Host("Is this correct? (y/n)")
@@ -183,6 +186,35 @@ function Setup-Beats {
         $path_slave = "$logdir\*.clog"
         $path_match = "$logdir\M*.log"
     }
+    $discord_name = $null
+    if ($env:BeatsAdmin) {
+        $confirm = $false
+        while ($confirm -notin ("y","n","yes","no")) {
+            $confirm = Read-Host("Is the server admin still $env:BeatsAdmin ? (y/n)")
+        }
+        if ($confirm -in ("y","yes")) {
+            $discord_name = $env:BeatsAdmin
+        }
+    }
+    if ($null -eq $discord_name) { 
+        $discord_name = Read-Host("Please enter your Discord username. This is so owners of servers are contactable") 
+        [System.Environment]::SetEnvironmentVariable('BeatsAdmin',$discord_name,[System.EnvironmentVariableTarget]::Machine)
+    }
+    $email = $null
+    if ($env:BeatsEmail) {
+        $confirm = $false
+        while ($confirm -notin ("y","n","yes","no")) {
+            $confirm = Read-Host("Is the alert email still $env:BeatsEmail ? (y/n)")
+        }
+        if ($confirm -in ("y","yes")) {
+            $email = $env:BeatsEmail
+        }
+    }
+    if ($null -eq $email) { 
+        $email = Read-Host("Enter your email if you want to be sent alerts in the future (optional)")
+        [System.Environment]::SetEnvironmentVariable('BeatsEmail',$email,[System.EnvironmentVariableTarget]::Machine)
+    }
+
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
     if ($reset) {
         Stop-Service -Name 'filebeat'
@@ -205,57 +237,42 @@ function Setup-Beats {
     Copy-Item -Path .\honfigurator-chain.pem -Destination $metricbeat_chain
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\filebeat.yml')
-    $Services = [pscustomobject]@{
-        'filebeat.inputs' = @(
-            [ordered]@{
-                'type' =  'filestream'
-                'id' = "hon-logs-$hoster"
-                'enabled' = $true
-                'paths' = @(
-                    $path_slave
-                    $path_match
-                )
-                'encoding' = 'utf-16le'
-                'exclude_files' = '[".gz$"]'
-                'multiline.pattern' = '^\d\d\'
-                'multiline.negate' = $true
-                'multiline.match' = 'after'
-                'fields_under_root' = $true
-                'fields' = [ordered]@{
-                    'Server' = [ordered]@{
-                        'Name' = $hoster
-                        'Launcher' = $launcher
-                        'Region' = $region
-                        'Affinity' = $cores
-                    }
-                }
-            }
-        )
-        'filebeat.config.modules' =
-            [ordered]@{
-                'path' = '${path.config}/modules.d/*.yml'
-                'reload.enabled' = $false
-            }
-        'setup.template.settings' =
-            [ordered]@{
-                'index.number_of_shards' = '1'
-            }
-        'output.logstash' =
-            [ordered]@{
-                'hosts' = 'hon-elk.honfigurator.app:5044'
-                'ssl.certificate_authorities' = $filebeat_chain
-                'ssl.certificate' = $filebeat_client_pem
-                'ssl.key' = $filebeat_client_key
-            }
-        
-        'processors' = @(
-            [ordered]@{
-                'add_host_metadata' = [ordered]@{
-                    'when.not.contains.tags' = 'forwarded'
-                }
-            }
-        )
-    }
+    $Services = "filebeat.inputs:
+  - type: filestream
+    id: hon-logs-$hoster
+    enabled: true
+    paths:
+      - $path_slave
+      - $path_match
+    encoding: utf-16le
+    exclude_files: '[`".gz$`"]'
+    multiline.pattern: ^\d\d\
+    multiline.negate: true
+    multiline.match: after
+    fields_under_root: true
+    fields:
+      Server:
+        Name: $hoster
+        Launcher: $launcher
+        Admin: $discord_name
+        Email: $email
+        Region: $region
+        Affinity: $cores
+filebeat.config.modules:
+  path: `${path.config}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: `"1`"
+output.logstash:
+  hosts: hon-elk.honfigurator.app:5044
+  ssl.certificate_authorities: $filebeat_chain
+  ssl.certificate: $filebeat_client_pem
+  ssl.key: $filebeat_client_key
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_locale: ~
+"
     $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
 
     $TargetConfig = (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools\metricbeat.yml')
@@ -270,6 +287,8 @@ fields:
   Server:
     Name: $hoster
     Launcher: $launcher
+    Admin: $discord_name
+    Email: $email
     Region: $region
 setup.dashboards.enabled: false
 output.logstash:
@@ -279,6 +298,7 @@ output.logstash:
   ssl.key: $metricbeat_client_key
 processors:
   - add_host_metadata: ~
+  - add_locale: ~
 "
     # $Services = [pscustomobject]@{
     #     'metricbeat.config.modules' =
