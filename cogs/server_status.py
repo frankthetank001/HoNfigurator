@@ -79,6 +79,9 @@ class honCMD():
             prio = p.nice()
             prio = (str(prio)).replace("Priority.","")
             prio = prio.replace("_PRIORITY_CLASS","")
+            if prio == "64": prio = "IDLE"
+            elif prio == "128": prio = "HIGH"
+            elif prio == "256": prio = "REALTIME"
             return prio
         else: return "N/A"
     def simple_match_data(log,type):
@@ -146,7 +149,7 @@ class honCMD():
         # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csv
         # latest_file = max(list_of_files, key=os.path.getctime)
         replay_wait +=1
-        if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
+        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             print("replay generated. closing server NOW")
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
             time.sleep(1)
@@ -219,11 +222,11 @@ class honCMD():
                 self.server_status['hon_pid_hook'].nice(psutil.HIGH_PRIORITY_CLASS)
             elif processed_data_dict['process_priority'] == "realtime":
                 self.server_status['hon_pid_hook'].nice(psutil.REALTIME_PRIORITY_CLASS)
-            print("priority set to realtime")
+            print(f"priority set to {processed_data_dict['process_priority']}")
             self.server_status.update({'priority_realtime':priority_realtime})
         else:
             self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
-            print("priority set to normal")
+            print("priority set to idle")
             self.server_status.update({'priority_realtime':priority_realtime})
         return priority_realtime
 
@@ -390,11 +393,9 @@ class honCMD():
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 try:
                     files = os.listdir(processed_data_dict['hon_replays_dir'])
-                    replays=[]
                     for file in files:
                         if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             if file.endswith(".honreplay"):
-                                replays.append
                                 try:
                                     shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
                                 except:

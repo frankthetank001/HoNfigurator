@@ -7,7 +7,6 @@ try:
     required = {'discord.py==1.7.3',
                 'GitPython==3.1.27',
                 'psutil==5.9.1',
-                'pygit2==1.10.0',
                 'python_hosts==1.0.3',
                 'WMI==1.5.1',
                 'requests',
@@ -48,7 +47,6 @@ import traceback
 #import win32com.client
 import datetime
 from threading import Thread
-from pygit2 import Repository
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
@@ -72,6 +70,14 @@ elif __file__:
 if is_admin():
     def show_exception_and_exit(exc_type, exc_value, tb):
         traceback.print_exception(exc_type, exc_value, tb)
+        print("Trying to attempt to update honfigurator to fix this...")
+        try:
+            os.chdir(application_path)
+        except Exception as e:
+            print(e)
+        output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+        tex.see(tk.END)
+        return output.returncode
         raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
         sys.exit(-1)
     sys.excepthook = show_exception_and_exit
@@ -321,7 +327,9 @@ if is_admin():
         #             else:
         #                 return False
         def update_repository(self,selected_branch):
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             if selected_branch != current_branch:
                 checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
                 if checkout.returncode == 0:
@@ -1010,12 +1018,14 @@ if is_admin():
                             print(f"waiting for service to start.. {o}/{threshold}secs remaining")
                             if service_bot['status'] == 'running':
                                 waiting=False
-                            if o == threshold:
+                            if o >= threshold:
                                 waiting=False
                         if service_bot['status'] == 'running' or service_bot['status'] == 'start_pending':
+                            print(f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                         else:
                             tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
+                            print(f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
                         tex.see(tk.END)
                         print("==========================================")
                     print(self.service_name_bot)
@@ -1133,7 +1143,9 @@ if is_admin():
                 os.chdir(application_path)
             except Exception as e:
                 print(e)
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             return current_branch
         def git_all_branches(self):
             repositories = []
@@ -1293,7 +1305,9 @@ if is_admin():
             except Exception as e:
                 print(e)
             selected_branch = self.git_branch.get()
-            current_branch = Repository('.').head.shorthand  # 'master'
+            repo = git.Repo(search_parent_directories=True)
+            current_branch = repo.active_branch  # 'master'
+            current_branch = current_branch.name
             # if selected_branch != current_branch:
             checkout = sp.run(["git","checkout",selected_branch],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
             if checkout.returncode == 0:
@@ -1389,6 +1403,7 @@ if is_admin():
                     honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
+                print(f"Server is already at the latest version ({latest_version}).")
                 tex.see(tk.END)
             
         def return_currentver(self):
@@ -1441,7 +1456,7 @@ if is_admin():
                 ports_to_forward_voice=[]
                 initialise.add_hosts_entry(self)
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                     firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) - 1)
                 else:
                     firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) + 10000 - 1)
@@ -1677,12 +1692,12 @@ if is_admin():
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-                tex.insert(END,("\nPORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
-                tex.insert(END,("\nPORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
+                tex.insert(END,("\nUDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
+                tex.insert(END,("\nUDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                 else:
-                    tex.insert(END,("\nPORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
+                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
                 tex.see(tk.END)
                 return
         def check_deployed_update(self):
@@ -2083,7 +2098,7 @@ if is_admin():
                     f"Enhanced logging, specifically in eventlog sent to Discord DM by bot.")
             tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
             #  Run without bots 
-            applet.Label(tab1, text="Run without bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Run without discord bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
             self.disablebot = tk.BooleanVar(app)
             if self.dataDict['disable_bot'] == 'True':
                 self.disablebot.set(True)
@@ -2134,7 +2149,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2553,21 +2568,27 @@ if is_admin():
                             f = os.path.join(path, f)
                             if os.stat(f).st_mtime < now - 7 * 86400:
                                 if os.path.isfile(f):
-                                    os.remove(os.path.join(path, f))
-                                    count+=1
-                                    print("removed "+f)
+                                    try:
+                                        os.remove(os.path.join(path, f))
+                                        count+=1
+                                        print("removed "+f)
+                                    except Exception as e: print(e)
                     replays = f"{deployed_status['hon_game_dir']}\\replays"
                     for f in os.listdir(replays):
                         f = os.path.join(replays, f)
                         if os.stat(f).st_mtime < now - 7 * 86400:
                             if os.path.isfile(f):
-                                os.remove(os.path.join(replays, f))
-                                count+=1
-                                print("removed "+f)
+                                try:
+                                    os.remove(os.path.join(replays, f))
+                                    count+=1
+                                    print("removed "+f)
+                                except Exception as e: print(e)
                             else:
-                                shutil.rmtree(f,onerror=honfigurator.onerror)
-                                count+=1
-                                print("removed "+f)
+                                try:
+                                    shutil.rmtree(f,onerror=honfigurator.onerror)
+                                    count+=1
+                                    print("removed "+f)
+                                except Exception as e: print(e)
                     print(f"DONE. Cleaned {count} files.")
                 def Uninstall(self,x):
                     global refresh_counter
@@ -2834,7 +2855,9 @@ if is_admin():
                     self.update_repository(NULL,NULL,NULL)
                     print("checking for hon update")
                     Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
-                    if self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True:
+                    current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
+                    latest_version=svrcmd.honCMD().check_upstream_patch()
+                    if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
                 if refresh_next==True:
                     if refresh_counter >= refresh_delay:
