@@ -179,6 +179,8 @@ if is_admin():
             #start_bot = sp.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
                 try:
+                    if {deployed_status['svr_id']} not in deployed_status['sdc_home_dir']:
+                        deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{deployed_status['svr_id']}"})
                     os.chdir(deployed_status['sdc_home_dir'])
                     os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
                     try:
