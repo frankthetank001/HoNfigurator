@@ -79,9 +79,9 @@ class honCMD():
             prio = p.nice()
             prio = (str(prio)).replace("Priority.","")
             prio = prio.replace("_PRIORITY_CLASS","")
-            if prio == 64: prio = "IDLE"
-            elif prio == 128: prio = "HIGH"
-            elif prio == 256: prio = "REALTIME"
+            if prio == "64": prio = "IDLE"
+            elif prio == "128": prio = "HIGH"
+            elif prio == "256": prio = "REALTIME"
             return prio
         else: return "N/A"
     def simple_match_data(log,type):
