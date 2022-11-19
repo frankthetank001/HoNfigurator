@@ -1403,6 +1403,7 @@ if is_admin():
                     honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
+                print(f"Server is already at the latest version ({latest_version}).")
                 tex.see(tk.END)
             
         def return_currentver(self):
