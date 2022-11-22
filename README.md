@@ -141,4 +141,6 @@ Simply answer (y/n) to the prompts.
 ![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
 
 To launch HoNfigurator again in the future, simply run ``HoNfigurator.exe`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
+
+
 You may also create a shortcut to this on your desktop.

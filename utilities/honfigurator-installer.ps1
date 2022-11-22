@@ -120,9 +120,9 @@ if ($confirmation -eq 'y') {
 # Install python pre-requisites
 Write-Output "Installing python dependencies"
 try {
-    python -m pip install -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
+    python -m pip install --prefer-binary -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
 } catch {
-    pip install -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
+    pip install --prefer-binary -r .\HoNfigurator\dependencies\requirements.txt 2>&1 | Write-Verbose
 }
 $hf = Get-Location
 $hf = "$hf\HoNfigurator"
