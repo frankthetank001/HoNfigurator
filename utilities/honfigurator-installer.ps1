@@ -135,7 +135,7 @@ try{
 	python honfigurator.py
 }
 $WshShell = New-Object -comObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut("%userprofile%\Desktop\HoNfigurator.lnk")
+$Shortcut = $WshShell.CreateShortcut("$env:UserProfile\Desktop\HoNfigurator.lnk")
 $Shortcut.TargetPath = "$pwd\honfigurator.exe"
 $Shortcut.Save()
 
