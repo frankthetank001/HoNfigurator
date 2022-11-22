@@ -12,7 +12,7 @@ HoNfigurator runs HoN servers as windows services, which means you do not need t
 
 ### Servers get deployed in the following mannner:
 ``INSTALLATION STEPS FURTHER DOWN``
-1. Open **HoNfigurator-launcher.bat**
+1. Open **HoNfigurator.exe**
 2. Fill in the basic information requirements (defaults will be remembered):
 3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
 4. Select to deploy single or all servers.
@@ -85,7 +85,7 @@ These are to be performed on game servers only.
 For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
 HoNfigurator should just open at the end.
 
-Installation script: [HoNfigurator-Installer](https://honfigurator.app/HoNfigurator-Installer.bat) (``Right click > save link as``)
+Installation script: [HoNfigurator-Installer](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat) (``Right click > save link as``)
 >If you are concerned about the above script, simply open it in any editor, copy the base64 from the script and decode it somewhere like https://www.base64encode.org/.
 1. Download the script above
 2. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
@@ -97,44 +97,47 @@ This should launcher an installer like below:
 It will take some time to install Chocolatey, and you may opt to install a clean HoN client.
 Simply answer (y/n) to the prompt.
 
-Once HoNfigurator is open:
-1. Obtain the following information:
-	- Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
-	- Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
-2. Fill in the server requirements (defaults will be remembered):
-	- Server host - ``(example: T4NK)``
-	- Location - ``(example: AUSTRALIA)``
-	- Region - ``(example: AU)``
-	- Total Servers  - ``Limited by total CPU cores``
-	- HoN Directory - ``Ensure you provide the correct path``
-		- You must also obtain required server binaries yourself.
-	- Discord Owner ID - ``obtained in step 1``
-	- Discord Bot Token - ``obtained in step 1``
-	- Masterserver host - ``selectable option between two different master servers``
-	- Core Assignment
-		- one logical core per server - ``Default``
-		- two logical cores per server
-		- two servers per logical core - ``for very strong CPUs only``
-	- Networking details
-		- Starting Game Port - ``Default 10000``
-		- Starting Voice Port - ``Default 10060``
-		- the value to increment the port number by for each subsequent server - ``Default 1``
-3. Running HoNfigurator
-	- ``Configure ALL servers`` button
-		- Configures all servers within the ``total servers range`` with the selected settings.
-	- ``Configure SINGLE server``
-		- Configures a single server by selected ``server ID`` with the selected settings.
-	- ``Update HoNfigurator``
-		- Updates HoNfigurator with the latest updates from GitHub.
-		- It's important to stay in the loop with the most recent updates, especially with a changing HoN environment, updates are frequently being pushed.
-			- Updates will occur automatically when launching.
-4. Post Configuration
-	- Observe the output of HoNfigurator, althought it will automatically configure windows firewall, it will advise which ports must be opened (port forward) in your network firewall.
-	- Updates
-		- It is safe to configure servers when there are games in progress. Restarts will be scheduled if HoNfigurator detects a server ``in-game``.
-	- Discord
-		- Invite your bot to your own discord channel. ``@FrankTheGodDamnMotherFuckenTank#8426`` can assist with this.
-5. Example of full configuration below:
+#### Once HoNfigurator is open, Obtain the following information:
+- Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
+- Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
+
+#### Fill in the server requirements (defaults will be remembered):
+- Server host - ``(example: T4NK)``
+- Location - ``(example: AUSTRALIA)``
+- Region - ``(example: AU)``
+- Total Servers  - ``Limited by total CPU cores``
+- HoN Directory - ``Ensure you provide the correct path``
+	- You must also obtain required server binaries yourself.
+- Discord Owner ID - ``obtained in step 1``
+- Discord Bot Token - ``obtained in step 1``
+- Masterserver host - ``selectable option between two different master servers``
+- Core Assignment
+	- one logical core per server - ``Default``
+	- two logical cores per server
+	- two servers per logical core - ``for very strong CPUs only``
+- Networking details
+	- Starting Game Port - ``Default 10000``
+	- Starting Voice Port - ``Default 10060``
+	- the value to increment the port number by for each subsequent server - ``Default 1``
+
+#### Running HoNfigurator
+- ``Configure ALL servers`` button
+	- Configures all servers within the ``total servers range`` with the selected settings.
+- ``Configure SINGLE server``
+	- Configures a single server by selected ``server ID`` with the selected settings.
+- ``Update HoNfigurator``
+	- Updates HoNfigurator with the latest updates from GitHub.
+	- It's important to stay in the loop with the most recent updates, especially with a changing HoN environment, updates are frequently being pushed.
+	- Updates will occur automatically when launching.
+
+#### Post Configuration
+- Observe the output of HoNfigurator, althought it will automatically configure windows firewall, it will advise which ports must be opened (port forward) in your network firewall.
+- Updates
+	- It is safe to configure servers when there are games in progress. Restarts will be scheduled if HoNfigurator detects a server ``in-game``.
+- Discord
+	- Invite your bot to your own discord channel. ``@FrankTheGodDamnMotherFuckenTank#8426`` can assist with this.
+
+#### Example of full configuration below:
 ![Config Options](https://user-images.githubusercontent.com/82205454/187016509-54870053-4eee-483e-86ec-d3bf31904c6d.png)
 
 To launch HoNfigurator again in the future, simply run ``HoNfigurator.exe`` from ``C:\Program Files\HoNfigurator`` or wherever you installed it to.
