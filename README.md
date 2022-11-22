@@ -85,17 +85,17 @@ These are to be performed on game servers only.
 For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
 HoNfigurator should just open at the end.
 
-Installation script: [HoNfigurator-Installer](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat) (``Right click > save link as``)
+Installation script: [HoNfigurator-Installer]([utilities/honfigurator-installer.bat](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat)) (``Right click > save link as``)
 >If you are concerned about the above script, simply open it in any editor, copy the base64 from the script and decode it somewhere like https://www.base64encode.org/.
 1. Download the script above
-2. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
-3. Double click ``HoNfigurator-Installer.bat``
+1. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
+1. Double click ``HoNfigurator-Installer.bat``
 
 This should launcher an installer like below:
 ![image](https://user-images.githubusercontent.com/82205454/187016190-3192a4be-b35f-48ee-992e-819db303a778.png)
 
 It will take some time to install Chocolatey, and you may opt to install a clean HoN client.
-Simply answer (y/n) to the prompt.
+Simply answer (y/n) to the prompts.
 
 #### Once HoNfigurator is open, Obtain the following information:
 - Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
