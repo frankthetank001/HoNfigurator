@@ -1,5 +1,7 @@
-discord.py==1.7.3
-GitPython==3.1.27
-psutil==5.9.1
+discord.py==1.7.3 --prefer-binary
+psutil==5.9.1 --prefer-binary
 python_hosts==1.0.3
 WMI==1.5.1
+pystray
+requests
+pillow

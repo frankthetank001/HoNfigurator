@@ -134,5 +134,10 @@ try{
 } catch {
 	python honfigurator.py
 }
+$WshShell = New-Object -comObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut("$env:UserProfile\Desktop\HoNfigurator.lnk")
+$Shortcut.TargetPath = "$pwd\honfigurator.exe"
+$Shortcut.Save()
+
 Write-Output "Launching HoNfigurator - you may now close this window"
 pause
