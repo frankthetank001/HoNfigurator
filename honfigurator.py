@@ -2203,7 +2203,7 @@ if is_admin():
                     scrollb.grid(row=16, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
-            ButtonString = ['View Log', 'Start/stop', 'Clean', 'Uninstall']
+            ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
             LablString = ['hon_server_','test','space']
             LablStringTop = ['Manager','test']
 
