@@ -2345,7 +2345,11 @@ if is_admin():
                 def refresh(*args):
                     global mod_by
                     global refresh_next
+                    global auto_refresh_var
+                    global auto_refresh
                     refresh_next=False
+                    first_swap=False
+                    update=True
                     if (tabgui.index("current")) == 0:
                         ver=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         status = Entry(app,background=maincolor,foreground='white',width="200")
@@ -2354,8 +2358,20 @@ if is_admin():
                     if (tabgui.index("current")) == 1:
                         if len(args) >= 1 and type(args[0]) is int:
                             mod_by = args[0]
-                        viewButton.clear_frame()
-                        viewButton.load_server_mgr(self)
+                        try: auto_refresh_setting = auto_refresh.get()
+                        except: 
+                            auto_refresh_setting = True
+                            first_swap = True
+                        if auto_refresh_setting:
+                            if first_swap == False:
+                                auto_refresh_var = True
+                        else:
+                            if first_swap == False:
+                                auto_refresh_var = False
+                        if update:
+                            viewButton.clear_frame()
+                            viewButton.load_server_mgr(self)
+                        
                         # else:
                         #     viewButton.clear_frame()
                         #     viewButton.load_server_mgr(self)
@@ -2868,10 +2884,7 @@ if is_admin():
                     if refresh_counter >= refresh_delay:
                         refresh_counter=0
                         if (tabgui.index("current")) == 1:
-                            if auto_refresh.get() == True:
-                                auto_refresh_var = True
-                                viewButton.refresh(int(stretch.get())+3)
-                            else: auto_refresh_var = False
+                            viewButton.refresh(int(stretch.get())+3)
                 refresh_next=True
                 app.after(1000,auto_refresher)
             # create a Scrollbar and associate it with txt
