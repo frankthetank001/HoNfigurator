@@ -1096,7 +1096,9 @@ class honCMD():
                                 referees = int(referees)
                                 tempData.update({'referees':referees})
                                 print("referees: "+ str(referees))
-                        total_slots = slots + spectators + referees
+                        try:
+                            total_slots = slots + spectators + referees
+                        except: total_slots = 10
                         # 
                         #   Set firstrunthrough to false so we don't accidentally come back here and waste IO.
                         #   Also set some other booleans for code logic later on
