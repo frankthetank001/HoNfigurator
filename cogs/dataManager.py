@@ -234,20 +234,24 @@ class mData():
         self.confDict_deployed.update({"svr_game_dll":f"{self.confDict_deployed['hon_directory']}game\\game_x64.dll"})
         self.confDict_deployed.update({"svr_id":str(svr_id)})
         self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
+        
+        try:
+            hon_dir = self.confDict_deployed['hon_directory']
+        except: hon_dir = self.confDict_root['hon_directory']
         try:
             gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
         except: gameDllHash = "null"
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-70.exe"})
+            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-70.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
         elif gameDllHash == "3D97C3FB6121219344CFABE8DFCC608FAC122DB4":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-3D.exe"})
+            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-3D.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-3D.exe"})
         elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         else:
-            self.confDict_deployed.update({"player_count_exe_loc":f"{self.confDict_deployed['hon_directory']}pingplayerconnected-DC.exe"})
+            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
 
         return self.confDict_deployed
