@@ -106,6 +106,7 @@ if is_admin():
     #   Otherwise taskbar icon will be python shell icon
     myappid = 'honfiguratoricon.1.0' # arbitrary string
     mod_by=13
+    auto_refresh_var = False
     bot_tab=0
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
@@ -1714,28 +1715,20 @@ if is_admin():
             for i in range (1,(int(t)+1)):
                 temp = dmgr.mData.returnDict_deployed(self,i)
                 temp_incoming = dmgr.mData.returnDict_temp(temp)
-                if len(temp_incoming) > 0:
-                    deployed_ver = float(temp_incoming['bot_version'])
-                else: 
-                    deployed_ver = float(temp['bot_version'])
+                deployed_server = temp | temp_incoming
+                deployed_ver = float(deployed_server['bot_version'])
                 if deployed_ver != current_ver:
-                    if len(temp_incoming) > 0:
-                        if temp_incoming['use_console'] == "True":
-                            use_console=True
-                        else:
-                            use_console=False
-                    else: 
-                        if self.dataDict['use_console'] == "True":
-                            use_console=True
-                        else:
-                            use_console=False
+                    if deployed_server['use_console'] == "True":
+                        use_console=True
+                    else:
+                        use_console=False
                     print(f"Server requires update (adminbot{i})")
                     print("==========================================")
                     tex.insert(END,(f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest."))
                     tex.see(tk.END)
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
-                    honfigurator.update_local_config(self,temp['svr_hoster'],temp['svr_region_short'],temp['svr_id'],temp['svr_total'],temp['hon_directory'],temp['hon_manager_dir'],temp['svr_login'],temp['svr_password'],temp['svr_ip'],temp['token'],temp['discord_admin'],temp['master_server'],True,temp['disable_bot'],temp['auto_update'],temp['use_console'],temp['use_proxy'],False,temp['game_starting_port'],temp['voice_starting_port'],temp['core_assignment'],temp['process_priority'],temp['allow_botmatches'],temp['debug_mode'],temp['github_branch'],temp['incr_port_by'])
-                    initialise(temp).configureEnvironment(True,use_console)
+                    honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
+                    initialise(deployed_server).configureEnvironment(True,use_console)
                     #honfigurator.sendData(self,"single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             players=False
@@ -2626,15 +2619,16 @@ if is_admin():
                 def load_server_mgr(self,*args):
                     global total_columns
                     global mod_by
+                    global auto_refresh_var
+                    global auto_refresh
                     global bot_tab
                     global logolabel_tab2
                     global tab2_cleanall
-                    global tab2_refresh
                     global tab2_stopall
                     global tab2_startall
                     global tabgui2
                     global stretch
-
+                    
                     app.lift()
                     i=2
                     c=0
@@ -2800,11 +2794,17 @@ if is_admin():
                         btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
                     labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
 
-                    stretch_lbl = Label(tab2,width=15,text="servers per row",background=maincolor,foreground='white')
+                    stretch_lbl = Label(tab2,width=15,text="servers per column",background=maincolor,foreground='white')
                     stretch_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[5,0],sticky='w',pady=[2,4])
                     stretch = Entry(tab2,width=5)
                     stretch.insert(0,mod_by-3)
                     stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
+                    auto_refresh_lbl = applet.Label(tab2,width=15,text="auto-refresh",background=maincolor,foreground='white')
+                    auto_refresh_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
+                    auto_refresh = tk.BooleanVar(app)
+                    auto_refresh.set(auto_refresh_var)
+                    auto_refresh_btn = applet.Checkbutton(tab2,variable=auto_refresh)
+                    auto_refresh_btn.grid(row=1, column=0,columnspan=total_columns,padx=[230,0],sticky='w',pady=[2,4])
                     
                     tabgui2 = ttk.Notebook(tab2)
                     tab11 = ttk.Frame(tabgui2)
@@ -2823,7 +2823,7 @@ if is_admin():
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
-                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[200,0],pady=[20,10])
+                    tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
                     tab2_cleanall_ttp = honfigurator.CreateToolTip(tab2_cleanall, \
                                     f"Remove ALL unnecessary files (7 days or older), such as old log files.")
                     # tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh(int(stretch.get())+3))
@@ -2831,17 +2831,22 @@ if is_admin():
                     # tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_refresh, \
                     #                 f"Refresh this page, reloads server status and shows the most recent data.")
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
-                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,0],pady=[20,10])
+                    tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
                     tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_stopall, \
                                     f"Schedule a shut down of all servers. Does NOT disconnect games in progress.")
                     tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
-                    tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,200],pady=[20,10])
+                    tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
                     tab2_startall_ttp = honfigurator.CreateToolTip(tab2_startall, \
+                                    f"Start all stopped servers with their current configuration.")
+                    tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
+                    tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
+                    tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_startall, \
                                     f"Start all stopped servers with their current configuration.")
                 def Tools():
                     pass
             def auto_refresher():
                 global refresh_next
+                global auto_refresh_var
                 global update_counter
                 global update_delay
                 global refresh_counter
@@ -2865,7 +2870,10 @@ if is_admin():
                     if refresh_counter >= refresh_delay:
                         refresh_counter=0
                         if (tabgui.index("current")) == 1:
-                            viewButton.refresh(int(stretch.get())+3)
+                            if auto_refresh.get() == True:
+                                auto_refresh_var = True
+                                viewButton.refresh(int(stretch.get())+3)
+                            else: auto_refresh_var = False
                 refresh_next=True
                 app.after(1000,auto_refresher)
             # create a Scrollbar and associate it with txt
