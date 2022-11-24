@@ -223,21 +223,21 @@ class mData():
         else:
             self.confDict_deployed.update({"hon_file_name":f"KONGOR_ARENA_{svr_id}.exe"})
         #
-        self.confDict_deployed.update({"hon_exe":f"{self.confDict_deployed['hon_directory']}{self.confDict_deployed['hon_file_name']}"})
-        self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
-
-        self.confDict_deployed.update({"proxy_exe":f"{self.confDict_deployed['hon_directory']}proxy.exe"})
-        self.confDict_deployed.update({"proxy_manager_exe":f"{self.confDict_deployed['hon_directory']}proxymanager.exe"})
-        self.confDict_deployed.update({"svr_k2dll":f"{self.confDict_deployed['hon_directory']}k2_x64.dll"})
-        self.confDict_deployed.update({"svr_cgame_dll":f"{self.confDict_deployed['hon_directory']}game\\cgame_x64.dll"})
-        self.confDict_deployed.update({"svr_game_shared_dll":f"{self.confDict_deployed['hon_directory']}game\\game_shared_x64.dll"})
-        self.confDict_deployed.update({"svr_game_dll":f"{self.confDict_deployed['hon_directory']}game\\game_x64.dll"})
-        self.confDict_deployed.update({"svr_id":str(svr_id)})
-        self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
-        
         try:
             hon_dir = self.confDict_deployed['hon_directory']
         except: hon_dir = self.confDict_root['hon_directory']
+        self.confDict_deployed.update({"hon_exe":f"{hon_dir}{self.confDict_deployed['hon_file_name']}"})
+        self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
+
+        self.confDict_deployed.update({"proxy_exe":f"{hon_dir}proxy.exe"})
+        self.confDict_deployed.update({"proxy_manager_exe":f"{hon_dir}proxymanager.exe"})
+        self.confDict_deployed.update({"svr_k2dll":f"{hon_dir}k2_x64.dll"})
+        self.confDict_deployed.update({"svr_cgame_dll":f"{hon_dir}game\\cgame_x64.dll"})
+        self.confDict_deployed.update({"svr_game_shared_dll":f"{hon_dir}game\\game_shared_x64.dll"})
+        self.confDict_deployed.update({"svr_game_dll":f"{hon_dir}game\\game_x64.dll"})
+        self.confDict_deployed.update({"svr_id":str(svr_id)})
+        self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
+        
         try:
             gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
         except: gameDllHash = "null"

@@ -2348,7 +2348,8 @@ if is_admin():
                     global auto_refresh_var
                     global auto_refresh
                     refresh_next=False
-                    first_swap = False
+                    first_swap=False
+                    update=True
                     if (tabgui.index("current")) == 0:
                         ver=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         status = Entry(app,background=maincolor,foreground='white',width="200")
@@ -2362,11 +2363,15 @@ if is_admin():
                             auto_refresh_setting = True
                             first_swap = True
                         if auto_refresh_setting:
-                            if first_swap != True:
+                            if first_swap == False:
                                 auto_refresh_var = True
+                        else:
+                            if first_swap == False:
+                                auto_refresh_var = False
+                        if update:
                             viewButton.clear_frame()
                             viewButton.load_server_mgr(self)
-                        else: auto_refresh_var = False
+                        
                         # else:
                         #     viewButton.clear_frame()
                         #     viewButton.load_server_mgr(self)
