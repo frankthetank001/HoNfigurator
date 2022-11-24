@@ -150,10 +150,10 @@ class honCMD():
         # latest_file = max(list_of_files, key=os.path.getctime)
         replay_wait +=1
         if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
-            print("replay generated. closing server NOW")
-            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
-            time.sleep(10)
-            return True
+            if os.stat(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay").st_size > 0:
+                print("replay generated. closing server NOW")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
+                return True
         else: 
             print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
             if 'replay_notif_in_log' not in match_status:
@@ -1096,7 +1096,9 @@ class honCMD():
                                 referees = int(referees)
                                 tempData.update({'referees':referees})
                                 print("referees: "+ str(referees))
-                        total_slots = slots + spectators + referees
+                        try:
+                            total_slots = slots + spectators + referees
+                        except: total_slots = 10
                         # 
                         #   Set firstrunthrough to false so we don't accidentally come back here and waste IO.
                         #   Also set some other booleans for code logic later on
