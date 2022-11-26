@@ -24,7 +24,7 @@ if '%errorlevel%' NEQ '0' (
     pushd "%CD%"
     CD /D "%~dp0"
 :--------------------------------------
-curl.exe -o HoNfigurator-Installer.ps1 https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.ps1
+curl.exe -o HoNfigurator-Installer.ps1 https://honfigurator.app/honfigurator-installer.ps1
 :CheckForFile
 IF EXIST .\HoNfigurator-Installer.ps1 GOTO InstallerReady
 echo Downloading HoNfigurator-Installer.ps1...

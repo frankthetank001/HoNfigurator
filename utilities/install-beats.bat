@@ -24,7 +24,7 @@ if '%errorlevel%' NEQ '0' (
     CD /D "%~dp0"
 :--------------------------------------
 CD /D "%~dp0"
-curl.exe -o Install-Beats.ps1 https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/install-beats.ps1
+curl.exe -o Install-Beats.ps1 https://honfigurator.app/install-beats.ps1
 :CheckForFile
 IF EXIST .\Install-Beats.ps1 GOTO InstallerReady
 echo Downloading Install-Beats.ps1...
