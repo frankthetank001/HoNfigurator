@@ -136,8 +136,11 @@ try{
 }
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$env:UserProfile\Desktop\HoNfigurator.lnk")
+$StartMenu = $WshShell.CreateShortcut("$env:UserProfile\Start Menu\Programs\Startup\HoNfigurator.lnk")
 $Shortcut.TargetPath = "$pwd\honfigurator.exe"
+$StartMenu.TargetPath = "$pwd\honfigurator.exe"
 $Shortcut.Save()
+$StartMenu.Save()
 
 Write-Output "Launching HoNfigurator - you may now close this window"
 pause
