@@ -10,7 +10,6 @@ try:
                 'python_hosts==1.0.3',
                 'WMI==1.5.1',
                 'requests',
-                'pystray',
                 'pillow'}
     installed = {pkg.key for pkg in pkg_resources.working_set}
     missing = required - installed
@@ -26,8 +25,8 @@ from asyncio.subprocess import DEVNULL
 import tkinter as tk
 from tkinter import Button,Label,Entry
 from tkinter import getboolean, ttk
-from pystray import MenuItem as item
-import pystray
+#from pystray import MenuItem as item
+#import pystray
 from PIL import Image, ImageTk
 import configparser
 import psutil
@@ -2348,8 +2347,7 @@ if is_admin():
                     global auto_refresh_var
                     global auto_refresh
                     refresh_next=False
-                    first_swap=False
-                    update=True
+                    swap_anyway=False
                     if (tabgui.index("current")) == 0:
                         ver=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         status = Entry(app,background=maincolor,foreground='white',width="200")
@@ -2358,17 +2356,12 @@ if is_admin():
                     if (tabgui.index("current")) == 1:
                         if len(args) >= 1 and type(args[0]) is int:
                             mod_by = args[0]
-                        try: auto_refresh_setting = auto_refresh.get()
+                        else: swap_anyway = True             
+                        try: 
+                            auto_refresh_var = auto_refresh.get()
                         except: 
-                            auto_refresh_setting = True
-                            first_swap = True
-                        if auto_refresh_setting:
-                            if first_swap == False:
-                                auto_refresh_var = True
-                        else:
-                            if first_swap == False:
-                                auto_refresh_var = False
-                        if update:
+                            swap_anyway = True
+                        if auto_refresh_var or swap_anyway:
                             viewButton.clear_frame()
                             viewButton.load_server_mgr(self)
                         
