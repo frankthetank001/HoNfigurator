@@ -86,7 +86,7 @@ The launcher will run once the install has completed
 
 ## Install required software with chocolatey - this will also install the dependencies for these programs ##
 Write-Output "Installing dependencies from Chocolatey"
-choco install python3 -y 2>&1 | Write-Verbose  ## Python 3 - to run the HoNfigurator launcher install
+choco install python --version=3.10.0 -y 2>&1 | Write-Verbose  ## Python 3 - to run the HoNfigurator launcher install
 choco install git -y 2>&1 | Write-Verbose ## Github Cli - clone the required repos
 choco install nssm -y 2>&1 | Write-Verbose ## Non-Sucking Service Manager - for automating server restarts
 
