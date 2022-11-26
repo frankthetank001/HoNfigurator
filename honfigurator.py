@@ -80,6 +80,8 @@ if is_admin():
         raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
         sys.exit(-1)
     sys.excepthook = show_exception_and_exit
+    exp = f'setx HONFIGURATOR_DIR {application_path}'
+    sp.Popen(exp, shell=True).wait()
 
     class TextRedirector(object):
         def __init__(self, widget, tag="stdout"):
@@ -2347,6 +2349,7 @@ if is_admin():
                     global mod_by
                     global refresh_next
                     global auto_refresh_var
+                    global stretch
                     global auto_refresh
                     refresh_next=False
                     swap_anyway=False
@@ -2358,9 +2361,10 @@ if is_admin():
                     if (tabgui.index("current")) == 1:
                         if len(args) >= 1 and type(args[0]) is int:
                             mod_by = args[0]
-                        else: swap_anyway = True             
+                        else: swap_anyway = True
                         try: 
                             auto_refresh_var = auto_refresh.get()
+                            mod_by = int(stretch.get())+3
                         except: 
                             swap_anyway = True
                         if auto_refresh_var or swap_anyway:
