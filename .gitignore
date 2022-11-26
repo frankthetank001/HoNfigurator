@@ -1,6 +1,4 @@
 config/local_config.ini
-utilities/honfigurator-installer.ps1
-utilities/install-beats.ps1
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
