@@ -44,7 +44,11 @@ refreshenv 2>&1 | Write-Verbose
 metricbeat --path.home (Join-Path $ENV:ProgramData 'chocolatey\lib\metricbeat\tools') modules enable system 2>&1 | Write-Verbose
 
 function Read-Config {
-    $file = '..\config\local_config.ini'
+    if ($env:HONFIGURATOR_DIR) {
+        $file = "$env:HONFIGURATOR_DIR\config\local_config.ini"
+    } else {
+        $file = '..\config\local_config.ini'
+    }
 	$check = Test-Path $file -PathType Leaf
 	if ($check -eq $false) {
         return $check
@@ -222,7 +226,10 @@ function Setup-Beats {
         $path_to_remove = "$ENV:ProgramData\filebeat\registry"
         Remove-Item $path_to_remove -Recurse -Force
     }
-
+    $check = Test-Path "honfigurator-chain.pem" -PathType Leaf
+    if ($check -eq $false) {
+	    curl.exe -o honfigurator-chain.pem https://honfigurator.app/honfigurator-chain.pem
+    }
     $filebeat_chain = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\honfigurator-chain.pem')
     $filebeat_client_pem = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.pem')
     $filebeat_client_key = (Join-Path $ENV:ProgramData 'chocolatey\lib\filebeat\tools\certs\client.key')
