@@ -1,4 +1,4 @@
-## HoNfigurator - Server Deployment
+## HoNfigurator - Server Deployment 
 
 The HoNFigurator is an application which allows for easy deployment of HON Servers.
 
