@@ -484,7 +484,7 @@ class honCMD():
                 if processed_data_dict['core_assignment'] not in ("one core/server","two cores/server","two servers/core","three servers/core","four servers/core"):
                     honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
                     print("THE CORE ASSIGNMENT IS SET UP INCORRECTLY. CHECK CONFIG.")
-                    os._exit(0)
+                    honCMD.stopSELF()
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
