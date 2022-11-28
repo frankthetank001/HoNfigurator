@@ -42,8 +42,6 @@ from tkinter import END
 import distutils
 from distutils import dir_util
 import traceback
-# task scheduler component, didn't quite work as I intended
-#import win32com.client
 import datetime
 from threading import Thread
 import git
@@ -1326,7 +1324,7 @@ if is_admin():
                         #if honfigurator.popup_bonus():
                         #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                         python = sys.executable
-                        os.execl(python, python, * sys.argv)
+                        os.execl(sys.executable, " ".join(sys.argv))
                 except Exception as e: print(e)
                 return True
             else:
