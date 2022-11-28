@@ -1324,7 +1324,7 @@ if is_admin():
                         #if honfigurator.popup_bonus():
                         #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
                         python = sys.executable
-                        os.execl(sys.executable, " ".join(sys.argv))
+                        os.execl(python, '"' + python + '"', *sys.argv)
                 except Exception as e: print(e)
                 return True
             else:
