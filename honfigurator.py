@@ -179,6 +179,8 @@ if is_admin():
             #start_bot = sp.Popen(['cmd',"python",f"{self.dataDict['sdc_home_dir']}\\sdc.py"])
             if deployed:
                 try:
+                    if deployed_status['svr_id'] not in deployed_status['sdc_home_dir']:
+                        deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{deployed_status['svr_id']}"})
                     os.chdir(deployed_status['sdc_home_dir'])
                     os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
                     try:
@@ -1224,7 +1226,12 @@ if is_admin():
                 return
         def corecount(self):
             cores = []
-            total_cores = psutil.cpu_count(logical = True) - 2
+            total_cores = psutil.cpu_count(logical = True)
+            if total_cores > 4:
+                total_cores = total_cores - 2
+            else:
+                total_cores = total_cores - 1
+                
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
             if self.dataDict['core_assignment'] == "two cores/server":
@@ -1725,7 +1732,8 @@ if is_admin():
                     tex.see(tk.END)
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
                     honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
-                    initialise(deployed_server).configureEnvironment(True,use_console)
+                    if initialise.playerCountX(self,i) >= 0:
+                        initialise(deployed_server).configureEnvironment(True,use_console)
                     #honfigurator.sendData(self,"single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             players=False
