@@ -1224,7 +1224,12 @@ if is_admin():
                 return
         def corecount(self):
             cores = []
-            total_cores = psutil.cpu_count(logical = True) - 2
+            total_cores = psutil.cpu_count(logical = True)
+            if total_cores > 4:
+                total_cores = total_cores - 2
+            else:
+                total_cores = total_cores - 1
+                
             half_core_count = total_cores / 2
             half_core_count = int(half_core_count)
             if self.dataDict['core_assignment'] == "two cores/server":
