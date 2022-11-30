@@ -30,5 +30,5 @@ IF EXIST .\Install-Beats.ps1 GOTO InstallerReady
 echo Downloading Install-Beats.ps1...
 TIMEOUT /T 1 >nul
 :InstallerReady
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File Install-Beats.ps1
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File Install-Beats.ps1 -launch
 pause
