@@ -24,4 +24,10 @@ if '%errorlevel%' NEQ '0' (
     CD /D "%~dp0"
 :--------------------------------------
 CD /D "%~dp0"
-powershell.exe -ExecutionPolicy Bypass -File Install-Beats.ps1 -reset
+curl.exe -o Install-Beats.ps1 https://honfigurator.app/install-beats.ps1
+:CheckForFile
+IF EXIST .\Install-Beats.ps1 GOTO InstallerReady
+echo Downloading Install-Beats.ps1...
+TIMEOUT /T 1 >nul
+:InstallerReady
+powershell.exe -ExecutionPolicy Bypass -File Install-Beats.ps1 -launch -reset
