@@ -1,5 +1,6 @@
 param (
-    [switch]$reset = $false
+    [switch]$reset = $false,
+    [switch]$launch = $false
 )
 
 if (!
@@ -24,6 +25,11 @@ if (!
 }
 
 Write-Host("Current Directory: $PSScriptRoot")
+if (-Not $PSBoundParameters.ContainsKey('launch')) {
+	Write-Host("Please only launch this script using the current 'Install-Beats.bat'. Otherwise this script may be an outdated version. Closing.")
+	Read-Host("press any key to exit")
+	Exit
+}
 cd $PSScriptRoot
 ## Install Chocolatey package manager ##
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
@@ -220,7 +226,7 @@ function Setup-Beats {
     }
 
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
-    if ($reset) {
+    if ($PSBoundParameters.ContainsKey('reset')) {
         Stop-Service -Name 'filebeat'
         Write-Host("Clearing registry data, so we can re-ingest from the start..")
         $path_to_remove = "$ENV:ProgramData\filebeat\registry"
@@ -250,7 +256,6 @@ function Setup-Beats {
     enabled: true
     paths:
       - $path_slave
-      - $path_match
     encoding: utf-16le
     exclude_files: '[`".gz$`"]'
     multiline.pattern: ^\d\d\

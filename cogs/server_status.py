@@ -488,6 +488,8 @@ class honCMD():
                     honCMD().append_line_to_file(processed_data_dict['app_log'],"THE CORE ASSIGNMENT IS SET UP INCORRECTLY. CHECK CONFIG.","WARNING")
                     honCMD().append_line_to_file(processed_data_dict['app_log'],f"Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'","WARNING")
                     honCMD().stopSELF()
+                if processed_data_dict['core_assignment'] != "one core/server":
+                    honPID.cpu_affinity([0,1])
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
