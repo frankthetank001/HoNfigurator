@@ -246,7 +246,7 @@ if is_admin():
                     if 'Address' in data:
                         ip_arr.append(data.replace('Address: ',''))
                 ip_arr.pop(0)
-                if len(ip_addr) == 0:
+                if len(ip_arr) == 0:
                     add_mserver=True
                 print (ip_arr)
             except Exception as e:
@@ -621,13 +621,15 @@ if is_admin():
             try:
                 check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
                 if check_rule == 0:
-                    add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    #add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    add_rule = os.system(f"netsh advfirewall firewall set rule name=\"{name}\" new dir=in action=allow protocol=UDP localport={port} remoteip=any")
                     print("firewall rule modified.")
                     tex.insert(END,f"Windows firewall configured for port: {port}\n")
                     tex.see(tk.END)
                     return True
                 elif check_rule == 1:
-                    add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    #add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip={ip_addr}")
+                    add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip=any")
                     print("firewall rule added.")
                     tex.insert(END,f"Windows firewall configured for port: {port}\n")
                     tex.see(tk.END)
