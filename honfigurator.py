@@ -78,7 +78,7 @@ if is_admin():
         raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
         sys.exit(-1)
     sys.excepthook = show_exception_and_exit
-    exp = f'setx HONFIGURATOR_DIR {application_path}'
+    exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
     sp.Popen(exp, shell=True).wait()
 
     class TextRedirector(object):
@@ -1408,6 +1408,8 @@ if is_admin():
                             time.sleep(60)
                         if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
                             svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
+                        if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
+                            svrcmd.honCMD.stop_proc("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
                         update_counter = update_delay
                     else:
@@ -2887,7 +2889,7 @@ if is_admin():
                     Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
-                    if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version != latest_version):
+                    if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
                 if refresh_next==True:
                     if refresh_counter >= refresh_delay:
