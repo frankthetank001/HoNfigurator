@@ -399,7 +399,7 @@ class mData():
             return "data"
         if dtype == "svr_ip":
             try:
-                external_ip = urllib.request.urlopen('https://api.ipify.org').read().decode('utf8')
+                external_ip = urllib.request.urlopen('http://api.ipify.org').read().decode('utf8')
             except:
                 external_ip = urllib.request.urlopen('http://api.ipify.org').read().decode('utf8')
             return external_ip
