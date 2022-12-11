@@ -342,7 +342,7 @@ class mData():
             hon_x64.seek(version_offset,1)
             version=hon_x64.read(18)
             version=version.decode('utf-16-le')
-            if "00" in version:
+            if version.find("00"):
                 version=hon_x64.read(16)
                 version=version.decode('utf-16-le')
             return(version)
