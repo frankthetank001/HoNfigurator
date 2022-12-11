@@ -1383,12 +1383,12 @@ if is_admin():
                         svrcmd.honCMD.stop_proc("hon_update_x64.exe")
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    if exists("hon_x64_tmp.exe"):
-                       os.remove("hon_x64_tmp.exe")
-                    if exists("hon_x64.exe"):
-                       shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
+                    # if exists("hon_x64_tmp.exe"):
+                    #    os.remove("hon_x64_tmp.exe")
+                    # if exists("hon_x64.exe"):
+                    #    shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
                     #sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
-                    sp.call(["hon_x64_tmp.exe", "-restartproxymanager", "-update", "-masterserver",master_server])
+                    sp.call(["hon_update_x64.exe"])
                     while dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") != latest_version:
                         time.sleep(30)
                         print("still updating...")
