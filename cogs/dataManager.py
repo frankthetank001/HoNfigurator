@@ -337,7 +337,9 @@ class mData():
             version_offset=88544
             hon_x64=open(file,'rb')
             hon_x64.seek(version_offset,1)
-            version=hon_x64.read(16)
+            version=hon_x64.read(18)
+            if "00" in version:
+                version=hon_x64.read(16)
             return(version.decode('utf-16-le'))
         else:
             return ("pending version check") 
