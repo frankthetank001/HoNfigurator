@@ -229,6 +229,7 @@ class honCMD():
                             print("removed "+f)
                         except Exception as e: print(e)
         print(f"DONE. Cleaned {count} files.")
+        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Cleaned {count} files","INFO")
     def changePriority(self,priority_realtime):
         if priority_realtime:
             if processed_data_dict['process_priority'] == "normal":
@@ -371,7 +372,7 @@ class honCMD():
                     thread.start()
                 except:
                     print(traceback.format_exc())
-                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}\nCouldn't start the UDP listener required for auto server selection",f"{traceback.format_exc()}","WARNING")
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Couldn't start the UDP listener required for auto server selection\n{traceback.format_exc()}","WARNING")
 
 
             free_mem = psutil.virtual_memory().free
@@ -451,7 +452,11 @@ class honCMD():
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
                 # Remove log files older than 7 days
-                honCMD().Clean()
+                try:
+                    honCMD().Clean()
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 
                 #
                 # gather networking details
