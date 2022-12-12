@@ -2380,8 +2380,8 @@ if is_admin():
                         except: 
                             swap_anyway = True
                         if auto_refresh_var or swap_anyway:
-                            viewButton.clear_frame()
-                            viewButton.load_server_mgr(self)
+                            Thread(target=viewButton.clear_frame).start()
+                            Thread(target=viewButton.load_server_mgr,args=[self]).start()
                         
                         # else:
                         #     viewButton.clear_frame()
@@ -2393,11 +2393,13 @@ if is_admin():
                         # except:pass
                 def load_log(self,*args):
                     global bot_tab
-                    if (tabgui.index("current")) == 1:
-                        if bot_tab !=tabgui2.index("current"):
-                            viewButton.ViewLog(self)
-                        bot_tab=tabgui2.index("current")
-                        #viewButton.ViewLog(self)
+                    try:
+                        if (tabgui.index("current")) == 1:
+                            if bot_tab !=tabgui2.index("current"):
+                                Thread(target=viewButton.ViewLog,args=[self]).start()
+                            bot_tab=tabgui2.index("current")
+                            #viewButton.ViewLog(self)
+                    except: pass
 
                 def ViewLog(self):
                     global latest_file
@@ -2410,16 +2412,44 @@ if is_admin():
                         return
                     #print(str(deployed_status))
                     # Server Log
-                    if (tabgui2.index("current")) == 0:
-                        if pcount <=0:
-                            log_File = f"Slave*.log"
-                        else:
-                            log_File = f"Slave*{id}*.clog"
-                        try:
+                    try:
+                        if (tabgui2.index("current")) == 0:
+                            if pcount <=0:
+                                log_File = f"Slave*.log"
+                            else:
+                                log_File = f"Slave*{id}*.clog"
+                            try:
+                                list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                                latest_file = max(list_of_files, key=os.path.getctime)
+                                info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
+                                warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected","Connection to chat server terminated."]
+                                with open(latest_file,'r',encoding='utf-16-le') as file:
+                                    for line in file:
+                                        tem=line.lower()
+                                        if any(x.lower() in tem for x in warnings):
+                                            tex.insert(tk.END,line,'warning')
+                                        elif any(x.lower() in tem for x in info):
+                                            tex.insert(tk.END,line,'interest')
+                                        else:
+                                            tex.insert(tk.END,line)
+                                tex.see(tk.END)
+                            except ValueError:
+                                print("This service has most likely yet to be configured.")
+                                tex.insert(END,"This service has most likely yet to be configured.",'WARNING')
+                                tex.see(tk.END)
+
+                        if (tabgui2.index("current")) == 1:
+                            if pcount > 0:
+                                logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                                log_File = "M*.log"
+                            else:
+                                tex.insert(END,'No match in progress.')
+                                tex.see(tk.END)
+                                return
                             list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                             latest_file = max(list_of_files, key=os.path.getctime)
-                            info=["New session cookie "," Connected","[ALL]","lag","spike","ddos"]
-                            warnings=["Skipped","Session cookie request failed!","No session cookie returned!","Timeout","Disconnected","Connection to chat server terminated."]
+                            info=["[ALL]","chat","lag","spike","ddos"]
+                            warnings=["Skipped","Session cookie request failed!","No session cookie returned!"]
                             with open(latest_file,'r',encoding='utf-16-le') as file:
                                 for line in file:
                                     tem=line.lower()
@@ -2430,65 +2460,39 @@ if is_admin():
                                     else:
                                         tex.insert(tk.END,line)
                             tex.see(tk.END)
-                        except ValueError:
-                            print("This service has most likely yet to be configured.")
-                            tex.insert(END,"This service has most likely yet to be configured.",'WARNING')
-                            tex.see(tk.END)
-
-                    if (tabgui2.index("current")) == 1:
-                        if pcount > 0:
-                            logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                            log_File = "M*.log"
-                        else:
-                            tex.insert(END,'No match in progress.')
-                            tex.see(tk.END)
-                            return
-                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                        latest_file = max(list_of_files, key=os.path.getctime)
-                        info=["[ALL]","chat","lag","spike","ddos"]
-                        warnings=["Skipped","Session cookie request failed!","No session cookie returned!"]
-                        with open(latest_file,'r',encoding='utf-16-le') as file:
-                            for line in file:
-                                tem=line.lower()
-                                if any(x.lower() in tem for x in warnings):
-                                    tex.insert(tk.END,line,'warning')
-                                elif any(x.lower() in tem for x in info):
-                                    tex.insert(tk.END,line,'interest')
-                                else:
+                        if (tabgui2.index("current")) == 2:
+                            logs_dir = f"{deployed_status['sdc_home_dir']}\\"
+                            log_File = f"adminbot{id}.log"
+                            list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                            latest_file = max(list_of_files, key=os.path.getctime)
+                            with open(latest_file,'r') as file:
+                                for line in file:
+                                    tem=line.lower()
                                     tex.insert(tk.END,line)
+                            tex.see(tk.END)
+                        if (tabgui2.index("current")) == 3:
+                            logs_dir1 = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
+                            #logs_dir2 = f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager\\"
+                            log_File = f"proxy_{20000 + int(id) - 1}*.log"
+                            list_of_files1 = glob.glob(logs_dir1 + log_File) # * means all if need specific format then *.csv
+                            #list_of_files2 = glob.glob(logs_dir2 + log_File)
+                            #list_of_files = list_of_files1 + list_of_files2
+                            latest_file = max(list_of_files1, key=os.path.getctime)
+                            warnings=["BANNED","BLOCKED","CLOSED","UNDER ATTACK"]
+                            with open(latest_file,'r') as file:
+                                for line in file:
+                                    tem=line.lower()
+                                    if any(x.lower() in tem for x in warnings):
+                                        tex.insert(tk.END,line,'warning')
+                                    else:
+                                        tex.insert(tk.END,line)
+                            tex.see(tk.END)
+                        status = Entry(app,background=maincolor,foreground='white',width="200")
+                        status.insert(0,f"Viewing hon_server_{id}: {latest_file}")
+                        status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
+                        print(latest_file)                   
                         tex.see(tk.END)
-                    if (tabgui2.index("current")) == 2:
-                        logs_dir = f"{deployed_status['sdc_home_dir']}\\"
-                        log_File = f"adminbot{id}.log"
-                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                        latest_file = max(list_of_files, key=os.path.getctime)
-                        with open(latest_file,'r') as file:
-                            for line in file:
-                                tem=line.lower()
-                                tex.insert(tk.END,line)
-                        tex.see(tk.END)
-                    if (tabgui2.index("current")) == 3:
-                        logs_dir1 = f"{deployed_status['hon_root_dir']}\\HoNProxyManager\\"
-                        #logs_dir2 = f"C:\\Windows\\SysWOW64\\config\\systemprofile\\AppData\\Roaming\\HonProxyManager\\"
-                        log_File = f"proxy_{20000 + int(id) - 1}*.log"
-                        list_of_files1 = glob.glob(logs_dir1 + log_File) # * means all if need specific format then *.csv
-                        #list_of_files2 = glob.glob(logs_dir2 + log_File)
-                        #list_of_files = list_of_files1 + list_of_files2
-                        latest_file = max(list_of_files1, key=os.path.getctime)
-                        warnings=["BANNED","BLOCKED","CLOSED","UNDER ATTACK"]
-                        with open(latest_file,'r') as file:
-                            for line in file:
-                                tem=line.lower()
-                                if any(x.lower() in tem for x in warnings):
-                                    tex.insert(tk.END,line,'warning')
-                                else:
-                                    tex.insert(tk.END,line)
-                        tex.see(tk.END)
-                    status = Entry(app,background=maincolor,foreground='white',width="200")
-                    status.insert(0,f"Viewing hon_server_{id}: {latest_file}")
-                    status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
-                    print(latest_file)                   
-                    tex.see(tk.END)
+                    except: pass
 
                 def Start(self):
                     global refresh_counter
@@ -2842,7 +2846,7 @@ if is_admin():
                     tabgui2.add(tab24,text="Proxy Log")
                     tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
                     tabgui2.select(bot_tab)
-                    tabgui2.bind('<<NotebookTabChanged>>',viewButton.load_log)
+                    Thread(target=tabgui2.bind,args=('<<NotebookTabChanged>>',viewButton.load_log)).start()
 
                     #tab2.grid_rowconfigure(1,weight=1)
                     logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
@@ -2895,7 +2899,9 @@ if is_admin():
                     if refresh_counter >= refresh_delay:
                         refresh_counter=0
                         if (tabgui.index("current")) == 1:
-                            viewButton.refresh(int(stretch.get())+3)
+                            try:
+                                viewButton.refresh(int(stretch.get())+3)
+                            except: pass
                 refresh_next=True
                 app.after(1000,auto_refresher)
             # create a Scrollbar and associate it with txt
