@@ -198,7 +198,6 @@ class mData():
             conf_parse_deployed_global.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
             for option in conf_parse_deployed_global.options("OPTIONS"):
                 self.confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
-            time.sleep(1)
         if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
             conf_parse_deployed_local.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
             for option in conf_parse_deployed_local.options("OPTIONS"):
