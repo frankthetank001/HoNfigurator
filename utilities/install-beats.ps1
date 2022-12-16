@@ -257,6 +257,7 @@ function Setup-Beats {
     paths:
       - $path_slave
     encoding: utf-16le
+    close_inactive: 5m
     exclude_files: '[`".gz$`"]'
     multiline.pattern: ^\d\d\
     multiline.negate: true
