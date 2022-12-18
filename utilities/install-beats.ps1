@@ -25,11 +25,11 @@ if (!
 }
 
 Write-Host("Current Directory: $PSScriptRoot")
-if (-Not $PSBoundParameters.ContainsKey('launch')) {
-	Write-Host("Please only launch this script using the current 'Install-Beats.bat'. Otherwise this script may be an outdated version. Closing.")
-	Read-Host("press any key to exit")
-	Exit
-}
+# if (-Not $PSBoundParameters.ContainsKey('launch')) {
+# 	Write-Host("Please only launch this script using the current 'Install-Beats.bat'. Otherwise this script may be an outdated version. Closing.")
+# 	Read-Host("press any key to exit")
+# 	Exit
+# }
 cd $PSScriptRoot
 ## Install Chocolatey package manager ##
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
@@ -143,17 +143,14 @@ function Setup-Beats {
         Write-Host("Reading data from existing HoNfigurator config file")
         $local_config = Read-Config
         if ($local_config) {
-            if ($local_config['hon_directory']) {
-                $path_slave = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
-                $path_match = $local_config['hon_directory']+"..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\M*.log"
-            } else {
-                Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
-                return
-            }
-            $cores = $local_config['core_assignment']
-            $hoster = $local_config['svr_hoster']
-            $region = $local_config['svr_region_short']
+                $log_paths = "$($local_config['hon_directory'])..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\*.clog"
+        } else {
+            Write-Host("Make sure you have at least configured some servers and are running this script from the HoNfigurator\Utilities folder.")
+            return
         }
+        $cores = $local_config['core_assignment']
+        $hoster = $local_config['svr_hoster']
+        $region = $local_config['svr_region_short']
     } else {
         $cores = "one core/server"
         $confirm = $false
@@ -183,7 +180,7 @@ function Setup-Beats {
             [System.Environment]::SetEnvironmentVariable('BeatsRegion',$region,[System.EnvironmentVariableTarget]::Machine)
             $check = $false
             while ($check -eq $false) {
-                $logdir = ((Read-Host 'Enter logs folder path') -replace '"')
+                $logdir = ((Read-Host 'Enter logs folder path (Example: C:\Users\honserver4\AppData\Local\Temp\HON\DOCUMENTS\HEROES OF NEWERTH x64\GAME\logs') -replace '"')
                 $check = Test-Path -Path $logdir
                 if ($check -eq $false) {Write-Host("The directory entered does not exist. Please try again.")}
             }
@@ -193,8 +190,8 @@ function Setup-Beats {
             $region = $env:BeatsRegion
             $logdir = $env:BeatsLogDir
         }
-        $path_slave = "$logdir\*.clog"
-        $path_match = "$logdir\M*.log"
+        $log_paths = "$logdir\*.clog
+      - $logdir\..\console.log"
     }
     $discord_name = $null
     if ($env:BeatsAdmin) {
@@ -206,24 +203,24 @@ function Setup-Beats {
             $discord_name = $env:BeatsAdmin
         }
     }
-    if ($null -eq $discord_name) { 
-        $discord_name = Read-Host("Please enter your Discord username. This is so owners of servers are contactable") 
+    if ($null -eq $discord_name) {
+        $discord_name = Read-Host("Please enter your Discord username. This is so owners of servers are contactable. Example: kladze#0589") 
         [System.Environment]::SetEnvironmentVariable('BeatsAdmin',$discord_name,[System.EnvironmentVariableTarget]::Machine)
     }
-    $email = $null
-    if ($env:BeatsEmail) {
-        $confirm = $false
-        while ($confirm -notin ("y","n","yes","no")) {
-            $confirm = Read-Host("Is the alert email still $env:BeatsEmail ? (y/n)")
-        }
-        if ($confirm -in ("y","yes")) {
-            $email = $env:BeatsEmail
-        }
-    }
-    if ($null -eq $email) { 
-        $email = Read-Host("Enter your email if you want to be sent alerts in the future (optional)")
-        [System.Environment]::SetEnvironmentVariable('BeatsEmail',$email,[System.EnvironmentVariableTarget]::Machine)
-    }
+    # $email = $null
+    # if ($env:BeatsEmail) {
+    #     $confirm = $false
+    #     while ($confirm -notin ("y","n","yes","no")) {
+    #         $confirm = Read-Host("Is the alert email still $env:BeatsEmail ? (y/n)")
+    #     }
+    #     if ($confirm -in ("y","yes")) {
+    #         $email = $env:BeatsEmail
+    #     }
+    # }
+    # if ($null -eq $email) { 
+    #     $email = Read-Host("Enter your email if you want to be sent alerts in the future (optional)")
+    #     [System.Environment]::SetEnvironmentVariable('BeatsEmail',$email,[System.EnvironmentVariableTarget]::Machine)
+    # }
 
     # check if -reset parameter has been passed. If so, clear the filebeat registry to re-ingest data
     if ($PSBoundParameters.ContainsKey('reset')) {
@@ -255,23 +252,47 @@ function Setup-Beats {
     id: hon-logs-$hoster
     enabled: true
     paths:
-      - $path_slave
+      - $log_paths
     encoding: utf-16le
-    close_inactive: 5m
+    close_inactive: 15m
     exclude_files: '[`".gz$`"]'
-    multiline.pattern: ^\d\d\
-    multiline.negate: true
-    multiline.match: after
     fields_under_root: true
     fields:
       Server:
         Name: $hoster
         Launcher: $launcher
         Admin: $discord_name
-        Email: $email
         Region: $region
         Affinity: $cores
-filebeat.config.modules:
+"
+    if ($launcher -eq "HoNfigurator") {
+        $services = $services + 
+"  - type: filestream
+    id: honfigurator-logs-$hoster
+    enabled: true
+    paths:
+      - $($local_config['hon_directory'])\..\hon_server_instances\Hon_Server_*\Documents\Heroes of Newerth x64\game\logs\adminbot*\adminbot*.log
+    close_inactive: 15m
+    exclude_files: '[`".gz$`"]'
+    parsers:
+    - multiline:
+        type: pattern
+        pattern: '.*Traceback|^\s'
+        negate: false
+        match: after
+        multiline.flush_pattern: '\['
+    fields_under_root: true
+    fields:
+      Server:
+        Name: $hoster
+        Launcher: $launcher
+        Admin: $discord_name
+        Region: $region
+        Affinity: $cores
+"
+}
+    $services = $services +
+"filebeat.config.modules:
   path: `${path.config}/modules.d/*.yml
   reload.enabled: false
 setup.template.settings:
@@ -301,7 +322,6 @@ fields:
     Name: $hoster
     Launcher: $launcher
     Admin: $discord_name
-    Email: $email
     Region: $region
 setup.dashboards.enabled: false
 output.logstash:
@@ -387,6 +407,6 @@ processors:
         - uptime"
     $Services | ConvertTo-Json -Depth 100 | &'yq' eval - --prettyPrint | Out-File $TargetConfig -Encoding UTF8
     Check-Cert
-    Read-Host("Success! Press any key to close.")
+    Write-Host("success!")
 }
 Setup-Beats
