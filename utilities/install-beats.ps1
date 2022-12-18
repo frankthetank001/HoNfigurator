@@ -25,11 +25,11 @@ if (!
 }
 
 Write-Host("Current Directory: $PSScriptRoot")
-# if (-Not $PSBoundParameters.ContainsKey('launch')) {
-# 	Write-Host("Please only launch this script using the current 'Install-Beats.bat'. Otherwise this script may be an outdated version. Closing.")
-# 	Read-Host("press any key to exit")
-# 	Exit
-# }
+if (-Not $PSBoundParameters.ContainsKey('launch')) {
+	Write-Host("Please only launch this script using the current 'Install-Beats.bat'. Otherwise this script may be an outdated version. Closing.")
+	Read-Host("press any key to exit")
+	Exit
+}
 cd $PSScriptRoot
 ## Install Chocolatey package manager ##
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 2>&1 | Write-Verbose
