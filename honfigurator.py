@@ -1594,8 +1594,7 @@ if is_admin():
                     udp_listener_port = int(self.dataDict['game_starting_port']) - 1
                 else:
                     udp_listener_port = int(self.dataDict['game_starting_port']) + 10000 - 1
-                manager_arguments=f"-manager -noconfig -execute \"Set svr_port {udp_listener_port}; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set upd_checkForUpdates False;Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}\" -masterserver {master_server}"
-                manager_arguments_console=f"Set svr_port {udp_listener_port}; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set upd_checkForUpdates False;Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+                manager_arguments=f"Set svr_port {udp_listener_port}; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set upd_checkForUpdates False;Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
                 os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
 
                 manager_running=svrcmd.honCMD.check_proc(manager_application)
@@ -1612,7 +1611,7 @@ if is_admin():
                 if force_update or manager_running==False:
                     if service_manager:
                         if use_console == False:
-                            initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.stop_service(self,service_manager_name,False)
                         else:
@@ -1623,16 +1622,16 @@ if is_admin():
                         if use_console == False:
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
                     else:
                         if svrcmd.honCMD.check_proc(manager_application):
                             svrcmd.honCMD.stop_proc(manager_application)
                         if use_console == False:
                             initialise.create_service_generic(self,service_manager_name,manager_application)
-                            initialise.configure_service_generic(self,service_manager_name,manager_application,manager_arguments)
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments_console,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
                 if use_proxy:
                     proxy_running=False
                     os.environ["APPDATA"] = self.dataDict['hon_root_dir']
