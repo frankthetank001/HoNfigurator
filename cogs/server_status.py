@@ -680,13 +680,17 @@ class honCMD():
             f.write(f"[{timenow}] [{level}] {text}")
     def compare_filesizes(self,file,name):
         last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{name}_mtime"
+        lastmodData = 0
         #
         #   This reads the data if it exists
         if (exists(last_modified_time_file)):
             with open(last_modified_time_file, 'r') as last_modified:
                 lastmodData = last_modified.readline()
             last_modified.close()
-            lastmodData = int(lastmodData)
+            try:
+                lastmodData = int(lastmodData)
+            except ValueError:
+                os.remove(last_modified_time_file)
             #
             #   Gets the current byte size of the log
             fileSize = os.stat(file).st_size
