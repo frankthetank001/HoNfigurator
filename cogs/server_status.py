@@ -516,7 +516,7 @@ class honCMD():
                     total_cores = psutil.cpu_count(logical = True)
                     if total_cores > 4 and total_cores < 60:
                         honPID.cpu_affinity([0,1])
-                    elif total_cores > 60:
+                    elif total_cores >= 60:
                         honPID.cpu_affinity([0,1,2,3])
                     else:
                         honPID.cpu_affinity([0,0])
