@@ -1231,7 +1231,7 @@ if is_admin():
             total_cores = psutil.cpu_count(logical = True)
             if total_cores > 4:
                 total_cores = total_cores - 2
-            elif total_cores >= 60:
+            elif total_cores >= 30:
                 total_cores = total_cores - 4
             else:
                 total_cores = total_cores - 1
