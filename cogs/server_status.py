@@ -520,7 +520,11 @@ class honCMD():
                         honPID.cpu_affinity([0,1,2,3])
                     else:
                         honPID.cpu_affinity([0,0])
-                    
+                if processed_data_dict['svr_id'] == "1":
+                    try:
+                        subprocess.run(f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe",stdout=subprocess.DEVNULL)
+                    except:
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Failed to execute keeper.exe","WARNING")
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
