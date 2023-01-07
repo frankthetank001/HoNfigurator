@@ -513,7 +513,14 @@ class honCMD():
                     honCMD().append_line_to_file(processed_data_dict['app_log'],f"Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'","WARNING")
                     honCMD().stopSELF()
                 if processed_data_dict['core_assignment'] != "one core/server":
-                    honPID.cpu_affinity([0,1])
+                    total_cores = psutil.cpu_count(logical = True)
+                    if total_cores > 4 and total_cores < 30:
+                        honPID.cpu_affinity([0,1])
+                    elif total_cores >= 30:
+                        honPID.cpu_affinity([0,1,2,3])
+                    else:
+                        honPID.cpu_affinity([0,0])
+                    
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
