@@ -520,7 +520,7 @@ class honCMD():
                         honPID.cpu_affinity([0,1,2,3])
                     else:
                         honPID.cpu_affinity([0,0])
-                if processed_data_dict['svr_id'] == "1":
+                if processed_data_dict['svr_id'] == "1" and "TH" in processed_data_dict['github_branch']:
                     try:
                         subprocess.run(f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe",stdout=subprocess.DEVNULL)
                     except:
