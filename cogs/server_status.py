@@ -522,7 +522,7 @@ class honCMD():
                         honPID.cpu_affinity([0,0])
                 if processed_data_dict['svr_id'] == "1" and "TH" in processed_data_dict['github_branch']:
                     try:
-                        subprocess.run(f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe",stdout=subprocess.DEVNULL)
+                        subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
                     except:
                         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Failed to execute keeper.exe","WARNING")
 
