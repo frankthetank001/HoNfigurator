@@ -24,6 +24,7 @@ pip/
 .installed.cfg
 *.egg
 *.spec
+git_sha
 
 # Installer logs
 pip-log.txt
