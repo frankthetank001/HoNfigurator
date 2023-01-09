@@ -151,7 +151,8 @@ class heartbeat(commands.Cog):
                                     self.server_status.update({'proxy_online':proxy_online})
                                     self.server_status.update({'update_embeds':True})
                                     self.server_status.update({'tempcount':-5})
-                        cookie=svrcmd.honCMD.check_cookie(self.processed_data_dict,self.server_status['slave_log_location'],'slave_cookie_check')
+                        if self.server_status['slave_log_location'] != 'empty':
+                            cookie=svrcmd.honCMD.check_cookie(self.processed_data_dict,self.server_status['slave_log_location'],'slave_cookie_check')
                         if cookie != self.server_status['cookie']:
                             self.server_status.update({'cookie':cookie})
                             self.server_status.update({'update_embeds':True})
@@ -178,9 +179,13 @@ class heartbeat(commands.Cog):
             #   Check if the server is ready yet
             try:
                 if self.server_status['server_ready'] == False:
-                    if svr_state.getData("ServerReadyCheck"):
+                    if svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyLocalVoicePort'])):
+                        self.server_status.update({'server_ready':True})
+                    #if svr_state.getData("ServerReadyCheck"):
                         self.server_status.update({'server_starting':False})
                         self.server_status.update({'server_restarting':False})
+                        self.server_status.update({'update_embeds':True})
+                        self.server_status.update({'tempcount':-5})
                         if self.processed_data_dict['core_assignment'] not in ("one","two"):
                             svr_state.assign_cpu()
                         if self.processed_data_dict['debug_mode'] == 'True':
@@ -191,10 +196,15 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     else:
-                        if self.server_status['server_restarting'] == False:
-                            self.server_status.update({'server_starting':True})
-                        elif self.server_status['server_restarting'] == True:
-                            self.server_status.update({'server_starting':False})
+                        if self.server_status['bot_first_run'] == True:
+                            self.server_status.update({'bot_first_run':False})
+                            self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
+                            self.server_status.update({'update_embeds':False})
+                        else:
+                            if self.server_status['server_restarting'] == False:
+                                self.server_status.update({'server_starting':True})
+                            elif self.server_status['server_restarting'] == True:
+                                self.server_status.update({'server_starting':False})
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -688,7 +698,7 @@ class heartbeat(commands.Cog):
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if server_status_bkp['server_ready'] == False:
-                    if svr_state.getData("ServerReadyCheck"):
+                    if svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyLocalVoicePort'])):
                         if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
                             svr_state.assign_cpu()
             except:
