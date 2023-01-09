@@ -698,7 +698,7 @@ class heartbeat(commands.Cog):
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if server_status_bkp['server_ready'] == False:
-                    if svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyLocalVoicePort'])):
+                    if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyLocalVoicePort'])):
                         if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
                             svr_state.assign_cpu()
             except:
