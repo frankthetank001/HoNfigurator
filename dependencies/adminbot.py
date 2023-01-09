@@ -117,7 +117,7 @@ if is_admin():
             global embed_obj
             global discord_admin
             discord_admin = await bot.fetch_user(processed_data_dict['discord_admin'])
-            tempData = ({'discord_admin_name':f"@{discord_admin.name}"})
+            tempData = ({'discord_admin_name':f"@{discord_admin.name}",'bot_first_run':True})
             svr_cmd.updateStatus(tempData)
             for embed in embed_ids:
                 try:
