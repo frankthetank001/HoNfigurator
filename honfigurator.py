@@ -1772,6 +1772,9 @@ if is_admin():
                             initialise.stop_bot(self,f"{service_name}.exe")
                             initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                        else:
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
                     else:
                         players=True
                         initialise.schedule_shutdown(deployed_status)
@@ -2309,6 +2312,9 @@ if is_admin():
                                 initialise.stop_bot(self,f"{service_name}.exe")
                                 initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                                 initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                        else:
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
                             #viewButton.refresh()
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
