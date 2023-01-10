@@ -180,6 +180,7 @@ class honCMD():
                         honCMD.updateStatus(self,tempData)
                         honCMD.updateStatus_GI(self,tempData)
                         match_status.update({'match_info_obtained':True})
+                        print(f"Match Started: {match_status}")
     def get_lobby_information(self):
         tempData = {}
         if self.server_status['slave_log_location'] == "empty":
