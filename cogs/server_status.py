@@ -870,7 +870,7 @@ class honCMD():
                     else:
                         honPID.cpu_affinity([0,0])
                 else:
-                    honPID.cpu_affinity([0,0])
+                    honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
                 try:
                     subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
                 except:
