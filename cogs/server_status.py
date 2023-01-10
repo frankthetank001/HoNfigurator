@@ -64,6 +64,351 @@ class honCMD():
             else:
                 print(f"Port {int(port)} is not open")
                 return False
+    """
+    Game server updates
+    """
+    def check_current_match_id(self):
+        try:
+            # get list of files that matches pattern
+            pattern="M*.log"
+            #pattern="M*log"
+
+            files = list(filter(os.path.isfile,glob.glob(pattern)))
+
+            # sort by modified time
+            files.sort(key=lambda x: os.path.getmtime(x))
+
+            # get last item in list
+            matchLoc = files[-1]
+            matchID = matchLoc.replace(".log","")
+            if 'match_id' in match_status:
+                if matchID != match_status['match_id']:
+                    honCMD().initialise_variables()
+                    print(f"Lobby created. Match ID: {matchID}")
+                    match_status.update({'match_id':matchID})
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Lobby created: {matchID}","INFO")
+                    match_status.update({'now':"in lobby"})
+                    return True
+            else: match_status.update({'match_id':matchID})
+        except:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            pass
+        return False
+    def count_total_games_played():
+        print()
+    def check_current_game_time(self):
+        tempData = {}
+        #
+        if self.server_status["game_log_location"] == "empty":
+            honCMD().get_current_game_log()
+        #print("checking for game started now")
+        
+        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
+        soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
+
+        tempData = {}
+        if soft_data > hard_data:
+            self.server_status.update({'slave_log_checked':True})
+            with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
+                for line in reversed(list(f)):
+                    if "Server Status" in line:
+                        #Match Time(00:07:00)
+                        if "Match Time" in line:
+                            pattern="(Match Time\()(.*)(\))"
+                            try:
+                                match_time=re.search(pattern,line)
+                                match_time = match_time.group(2)
+                                if match_time != match_status['match_time']:
+                                    tempData.update({'match_time':match_time})
+                                    #tempData.update({'match_log_last_line':num})
+                                    print("match_time: "+ match_time)
+                                    self.server_status.update({'tempcount':-5})
+                                    self.server_status.update({'update_embeds':True})
+                                    honCMD.updateStatus_GI(self,tempData)
+                                    print(f"Match in progress, elapsed duration: {match_time}")
+                                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] Match in progress, elapsed duration: {match_time}","INFO")
+                                break
+                            except AttributeError as e:
+                                print(e)
+                            #if "Server Skipped" in line:
+            f.close()             
+    def get_match_information(self):
+        tempData = {}
+        #if honCMD().compare_num_matches_played():
+        #
+        honCMD().get_current_match_log()
+
+        hard_data = honCMD.compare_filesizes(self,self.server_status["match_log_location"],"match")
+        soft_data = os.stat(self.server_status['match_log_location']).st_size # initial file size
+
+        if soft_data > hard_data:
+            print("checking match information")
+            self.server_status.update({'match_log_checked':True})
+            with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
+                for line in f:
+                    if "INFO_MATCH name:" in line:
+                        game_name = re.findall(r'"([^"]*)"', line)
+                        game_name = game_name[0]
+                        tempData.update({'game_name':game_name})
+                        honCMD.updateStatus(self,tempData)
+                        honCMD.updateStatus_GI(self,tempData)
+                        print("game_name: "+ game_name)
+                        if 'TMM' in game_name:
+                            tempData.update({'game_type':'Ranked TMM'})
+                            honCMD.updateStatus(self,tempData)
+                            honCMD.updateStatus_GI(self,tempData)
+                        else:
+                            tempData.update({'game_type':'Public Games'})
+                            honCMD.updateStatus(self,tempData)
+                            honCMD.updateStatus_GI(self,tempData)
+                    if "INFO_MAP name:" in line:
+                        game_map = re.findall(r'"([^"]*)"', line)
+                        game_map = game_map[0]
+                        tempData.update({'game_map':game_map})
+                        honCMD.updateStatus(self,tempData)
+                        honCMD.updateStatus_GI(self,tempData)
+                        print("map: "+ game_map)
+                    if "INFO_SETTINGS mode:" in line:
+                        game_mode = re.findall(r'"([^"]*)"', line)
+                        game_mode = game_mode[0]
+                        game_mode = game_mode.replace('Mode_','')
+                        tempData.update({'game_mode':game_mode})
+                        honCMD.updateStatus(self,tempData)
+                        honCMD.updateStatus_GI(self,tempData)
+                        print("game_mode: "+ game_mode)
+                        honCMD.updateStatus(self,tempData)
+                        honCMD.updateStatus_GI(self,tempData)
+                        match_status.update({'match_info_obtained':True})
+    def get_lobby_information(self):
+        tempData = {}
+        if self.server_status['slave_log_location'] == "empty":
+            honCMD().get_current_game_log()
+        #softSlave = mData.getData(self,"loadSoftSlave")
+        #hardSlave = mData.getData(self,"loadHardSlave")
+
+        #if softSlave is not hardSlave: #and check_lobby is True:
+        #
+        #   Commenting below 3 lines due to an error with encoding. Trying to be consistent
+        # dataL = open(self.server_status['slave_log_location'],encoding='utf-16-le')
+        # data = dataL.readlines()
+        # dataL.close()
+        with open (self.server_status['slave_log_location'], "r", encoding='utf-16-le') as f:
+            #
+            #   Someone has connected to the server and is about to host a game
+            for line in f:
+                if "Name: " in line:
+                    host = line.split(": ")
+                    host = host[2].replace('\n','')
+                    tempData.update({'game_host':host})
+                    honCMD.updateStatus(self,tempData)
+                    print ("host: "+host)
+                if "Version: " in line:
+                    version = line.split(": ")
+                    version = version[2].replace('\n','')
+                    tempData.update({'game_version':version})
+                    honCMD.updateStatus(self,tempData)
+                    print("version: "+version)
+                if "] IP: " in line:
+                    client_ip = line.split(": ")
+                    client_ip = client_ip[2].replace('\n','')
+                    tempData.update({'client_ip':client_ip})
+                    honCMD.updateStatus(self,tempData)
+                    print(client_ip)
+                #
+                #   Arguments passed to server, and lobby starting
+                if "GAME_CMD_CREATE_GAME" in line:
+                    print("lobby starting....")
+                    test = line.split(' ')
+                    for parameter in test:
+                        if "map:" in parameter:
+                            map = parameter.split(":")
+                            map = map[1]
+                            tempData.update({'game_map':map})
+                            print("map: "+ map)
+                        if "mode:" in parameter:
+                            mode = parameter.split(":")
+                            mode = mode[1]
+                            tempData.update({'game_mode':mode})
+                            print("mode: "+ mode)
+                        if "teamsize:" in parameter:
+                            teamsize = parameter.split(":")
+                            teamsize = teamsize[1]
+                            slots = int(teamsize)
+                            slots *= 2
+                            tempData.update({'slots':slots})
+                            print("teamsize: "+ teamsize)
+                            print("slots: "+ str(slots))
+                        if "spectators:" in parameter:
+                            spectators = parameter.split(":")
+                            spectators = spectators[1]
+                            spectators = int(spectators)
+                            tempData.update({'spectators':spectators})
+                            print("spectators: "+ str(spectators))
+                        if "referees:" in parameter:
+                            referees = parameter.split(":")
+                            referees = referees[1]
+                            referees = int(referees)
+                            tempData.update({'referees':referees})
+                            print("referees: "+ str(referees))
+                    try:
+                        total_slots = slots + spectators + referees
+                    except: total_slots = 10
+                    # 
+                    #   Set firstrunthrough to false so we don't accidentally come back here and waste IO.
+                    #   Also set some other booleans for code logic later on
+                    self.first_run = False
+                    self.just_collected = True
+                    self.lobby_created = True
+
+                    tempData.update({'first_run':self.first_run})
+                    tempData.update({'just_collected':self.just_collected})
+                    tempData.update({'lobby_created':self.lobby_created})
+                    tempData.update({'total_slots':total_slots})
+                    tempData.update({'update_embeds':True})
+                    tempData.update({'tempcount':-5})
+
+                    honCMD.updateStatus(self,tempData)
+                    match_status.update({'lobby_info_obtained':True})
+                    #self.server_status.update[{"first_run":"true"}]
+                    #self.server_status.update[{'just_collected':self.just_collected}]
+                    #self.server_status.update[{'lobby_created':self.lobby_created}]
+                elif "Successfully got a match ID" in line:
+                    self.first_run = False
+                    self.just_collected = True
+                    self.lobby_created = True
+
+                    tempData.update({'first_run':self.first_run})
+                    tempData.update({'just_collected':self.just_collected})
+                    tempData.update({'lobby_created':self.lobby_created})
+                    honCMD.updateStatus(self,tempData)
+        f.close()
+        return tempData
+    def check_game_started(self):
+        tempData = {}
+        #
+        if self.server_status["game_log_location"] == "empty":
+            honCMD().get_current_game_log()
+        #print("checking for game started now")
+        
+        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
+        soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
+
+        tempData = {}
+        if soft_data > hard_data:
+            self.server_status.update({'slave_log_checked':True})
+            with open (self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
+                #if self.server_status['game_started'] == False:
+                for line in f:
+                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                        tempData.update({'game_started':True})
+                        tempData.update({'tempcount':-5})
+                        tempData.update({'update_embeds':True})
+                        match_status.update({'now':'in game'})
+                        honCMD.updateStatus(self,tempData)
+                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Match started. {match_status['match_id']}","INFO")
+                        return True
+            f.close()                   
+        return
+    def compare_num_matches_played(self):
+        tempList = []
+        total_games_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\total_games_played"
+        if (exists(total_games_file)):
+            #
+            #   Read last value for total games played
+            with open(total_games_file, 'r') as f:
+                total_games_from_file = f.read().splitlines()
+            f.close()
+        #
+        #   Add new values to file
+        for item in os.listdir(processed_data_dict['hon_logs_dir']):
+            if "game" in item or (item.startswith("M") and item.endswith(".log")):
+                tempList.append(item)
+        if not tempList:
+            print("NO GAME FILE EITHER, we should make one")
+            with open(processed_data_dict['hon_logs_dir']+'\\M0000.log', 'w'): pass
+            tempList.append("M0000.log")
+        
+        
+        try:
+            resulting_list = sorted(list(set(total_games_from_file + tempList)))
+        except UnboundLocalError:
+            resulting_list = sorted(tempList)
+
+        games_played_now = len(resulting_list)
+        games_played_then = len(total_games_from_file)
+
+        if games_played_now > games_played_then:
+            with open(total_games_file, 'wt') as f:
+                f.write('\n'.join(resulting_list))
+            f.close()
+            return games_played_now
+        else:
+            return False
+    def get_current_match_log(self):
+        try:
+            # get list of files that matches pattern
+            #pattern="M*.log"
+            pattern=f"{match_status['match_id']}.log"
+            #pattern="M*log"
+
+            files = list(filter(os.path.isfile,glob.glob(pattern)))
+
+            # sort by modified time
+            files.sort(key=lambda x: os.path.getmtime(x))
+
+            # get last item in list
+            matchLoc = files[-1]
+
+            self.server_status.update({"match_log_location":matchLoc})
+            print("Most recent match, matching {}: {}".format(pattern,matchLoc))
+            
+            # for item in os.listdir():
+            #     if "game" in item or (item.startswith("M") and item.endswith(".log")):
+            #         tempList.append(item)
+            # gameLoc = tempList[len(tempList)-1]
+        except:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            pass
+        return True
+    def get_current_game_log(self):
+        gameLoc = None
+        try:
+            # get list of files that matches pattern
+            pattern=f"Slave{processed_data_dict['svr_id']}_{match_status['match_id']}_console.clog"
+
+            files = list(filter(os.path.isfile,glob.glob(pattern)))
+
+            # sort by modified time
+            files.sort(key=lambda x: os.path.getmtime(x))
+
+            # get last item in list
+            gameLoc = files[-1]
+            self.server_status.update({"game_log_location":gameLoc})
+            print("Most recent file matching {}: {}".format(pattern,gameLoc))
+            return gameLoc
+        except:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            pass
+    def reset_log_mtime_files(self):
+        match_mtime = f"{processed_data_dict['sdc_home_dir']}\\cogs\\slave_mtime"
+        slave_mtime = f"{processed_data_dict['sdc_home_dir']}\\cogs\\match_mtime"
+        try:
+            if exists(match_mtime):
+                os.remove(f"{processed_data_dict['sdc_home_dir']}\\cogs\\slave_mtime")
+        except: 
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        try:
+            if exists(slave_mtime):
+                os.remove(f"{processed_data_dict['sdc_home_dir']}\\cogs\\match_mtime")
+        except: 
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+    """
+    """
     def playerCount(self):
         check = subprocess.Popen([processed_data_dict['player_count_exe_loc'],processed_data_dict['hon_file_name']],stdout=subprocess.PIPE, text=True)
         i = int(check.stdout.read())
@@ -347,16 +692,20 @@ class honCMD():
         self.server_status.update({"hard_reset":False})
         self.server_status.update({'crash':True})
         self.server_status.update({'server_start_attempts':0})
+        honCMD().reset_log_mtime_files()
         #self.server_status.update({'restarting_server':False})
 
         #
         # Match info dictionary
         match_status.update({'match_log_last_line':0})
-        match_status.update({'match_id':'empty'})
+        #match_status.update({'match_id':'empty'})
         match_status.update({'match_time':'Preparation phase..'})
+        match_status.update({'match_info_obtained':False})
+        match_status.update({'lobby_info_obtained':False})
+        match_status.update({'now':'idle'})
     def assign_cpu(self):
         self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
-        print()
+        print(f"Server assigned to CPU cores: {processed_data_dict['svr_affinity']}")
     def startSERVER(self,from_react):
         #playercount = playercount()
         if self.playerCount() < 0:
@@ -520,6 +869,8 @@ class honCMD():
                         honPID.cpu_affinity([0,1,2,3])
                     else:
                         honPID.cpu_affinity([0,0])
+                else:
+                    honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
                 try:
                     subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
                 except:
@@ -796,6 +1147,41 @@ class honCMD():
             f.close()
             total_games_played = len(resulting_list)
             return total_games_played
+        if dtype == "CompareTotalGames":
+            tempList = []
+            total_games_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\total_games_played"
+            if (exists(total_games_file)):
+                #
+                #   Read last value for total games played
+                with open(total_games_file, 'r') as f:
+                    total_games_from_file = f.read().splitlines()
+                f.close()
+            #
+            #   Add new values to file
+            for item in os.listdir(processed_data_dict['hon_logs_dir']):
+                if "game" in item or (item.startswith("M") and item.endswith(".log")):
+                    tempList.append(item)
+            if not tempList:
+                print("NO GAME FILE EITHER, we should make one")
+                with open(processed_data_dict['hon_logs_dir']+'\\M0000.log', 'w'): pass
+                tempList.append("M0000.log")
+            
+            
+            try:
+                resulting_list = sorted(list(set(total_games_from_file + tempList)))
+            except UnboundLocalError:
+                resulting_list = sorted(tempList)
+
+            games_played_now = len(resulting_list)
+            games_played_then = len(total_games_from_file)
+
+            if games_played_now > games_played_then:
+                with open(total_games_file, 'wt') as f:
+                    f.write('\n'.join(resulting_list))
+                f.close()
+                return games_played_now
+            else:
+                return False
 
         elif dtype == "CheckInGame":
             tempData = {}
