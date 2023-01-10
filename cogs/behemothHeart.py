@@ -734,6 +734,8 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    elif match_status_bkp['now'] == "in game":
+                        svr_state.check_current_game_time()
                     else: svr_state.check_current_match_id()
             except:
                 print(traceback.format_exc())
