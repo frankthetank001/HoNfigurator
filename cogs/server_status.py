@@ -376,6 +376,11 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             pass
         return True
+    def launch_keeper():
+        try:
+            subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
+        except:
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Failed to execute keeper.exe","WARNING")
     def get_current_game_log(self):
         gameLoc = None
         try:
@@ -887,10 +892,6 @@ class honCMD():
                 #         honPID.cpu_affinity([0,0])
                 # else:
                 honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
-                try:
-                    subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
-                except:
-                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Failed to execute keeper.exe","WARNING")
 
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
                 
