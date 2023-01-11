@@ -748,11 +748,6 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-            except:
-                print(traceback.format_exc())
-                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-            try:
-                if playercount == 1:
                     if (server_status_bkp['game_map'] != "empty" and server_status_bkp['game_map'] not in available_maps_bkp):
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to attempt to crash server with false map.","INFO")
                         svr_state.restartSERVER(True)
@@ -761,10 +756,12 @@ class heartbeat(commands.Cog):
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Server restarting due to bot match (disallowed).","INFO")
                         svr_state.restartSERVER(True)
-                        print(traceback.format_exc())
-
+            except:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+            try:
+                if playercount == 1:
                     if match_status_bkp['now'] == "in game":
-                        svr_state.check_current_game_time()
                         match_time = match_status_bkp['match_time']
                         if ":" in match_time:
                             match_too_long = match_time.split(":")
