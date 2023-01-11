@@ -58,6 +58,7 @@ class heartbeat(commands.Cog):
         with open(bkup_heart_file, 'w') as f:
             f.write("False")
 
+        heartbeat_freq = 1
         restart_timer = 10
         counter_heartbeat = 0
         counter_heartbeat_attempts = 0
@@ -74,7 +75,7 @@ class heartbeat(commands.Cog):
         threshold_lobbycheck = 5 # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 30
         counter_ipcheck_threshold = 1800
-        replay_threshold = 300
+        replay_threshold = 330 / heartbeat_freq
         process_priority = self.processed_data_dict['process_priority']
         process_priority = process_priority.upper()
         x = 0
@@ -93,7 +94,7 @@ class heartbeat(commands.Cog):
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"switching to discord heartbeat - with bots.","INFO")
                 alive_bkp=False
             counter_heartbeat+=1
-            await asyncio.sleep(1)
+            await asyncio.sleep(heartbeat_freq)
             try:
                 playercount = svrcmd.honCMD.playerCount(self)
                 #print(playercount)
@@ -134,10 +135,10 @@ class heartbeat(commands.Cog):
                             if 'svr_proxyport' in self.server_status:
                                 proxy_online=svrcmd.honCMD.check_port(int(self.server_status['svr_proxyport']))
                                 if proxy_online:
-                                    print("port healthy")
+                                    print("Health check: port healthy")
                                 else:
                                     proxy_online=False
-                                    print(f"proxy port: {self.server_status['svr_proxyport']} not online")
+                                    print(f"Health check: proxy port: {self.server_status['svr_proxyport']} not online")
                                     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] Proxy port {self.server_status['svr_proxyport']} offline.")
                                     try:
                                         await embed_log.edit(embed=logEmbed)
@@ -180,6 +181,7 @@ class heartbeat(commands.Cog):
             try:
                 if self.server_status['server_ready'] == False:
                     if svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyLocalVoicePort'])):
+                        print(f"Port {self.processed_data_dict['svr_proxyLocalVoicePort']} is open")
                         self.server_status.update({'server_ready':True})
                     #if svr_state.getData("ServerReadyCheck"):
                         self.server_status.update({'server_starting':False})
@@ -188,6 +190,7 @@ class heartbeat(commands.Cog):
                         self.server_status.update({'tempcount':-5})
                         if self.processed_data_dict['core_assignment'] not in ("one","two"):
                             svr_state.assign_cpu()
+                            print("Server ready.")
                         if self.processed_data_dict['debug_mode'] == 'True':
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
                             try:
@@ -196,6 +199,9 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     else:
+                        if not waiting:
+                            waiting = True
+                            print(f"Port {self.processed_data_dict['svr_proxyLocalVoicePort']} is not open. Waiting for server to start")
                         if self.server_status['bot_first_run'] == True:
                             self.server_status.update({'bot_first_run':False})
                             self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
@@ -541,6 +547,7 @@ class heartbeat(commands.Cog):
         global alive_bkp
         global alive
         alive_bkp='True'
+        waiting = False
         processed_data_dict_bkp = svr_state.getDataDict()
         server_status_bkp = svr_state.getStatus()
         match_status_bkp = svr_state.getMatchInfo()
@@ -567,7 +574,7 @@ class heartbeat(commands.Cog):
         threshold_lobbycheck = 5  / heartbeat_freq # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 30 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
-        replay_threshold = 300 / heartbeat_freq
+        replay_threshold = 330 / heartbeat_freq
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
         print(processed_data_dict_bkp)
@@ -585,7 +592,6 @@ class heartbeat(commands.Cog):
                 # if match_status_bkp['now'] == "in lobby":
                 #     playercount = 0
                 # else: playercount = 1
-                print("players: " + str(playercount))
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -658,11 +664,9 @@ class heartbeat(commands.Cog):
                     # check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
                         if match_status_bkp['now'] == "in game":
-                            if svr_state.wait_for_replay(replay_threshold):
-                                print()
-                            else: break
-                        else: pass
-                        #svr_state.initialise_variables()
+                            svr_state.wait_for_replay(replay_threshold)
+                        else:
+                            svr_state.initialise_variables("soft")
                     # else:
                     #     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"[{match_status_bkp['match_id']}] Server restarting inbetween games","INFO")
                     #     svr_state.restartSERVER(False)
@@ -684,10 +688,10 @@ class heartbeat(commands.Cog):
                                 if 'svr_proxyport' in server_status_bkp:
                                     proxy_online=svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyport']))
                                     if proxy_online:
-                                        print("port healthy")
+                                        print("Health check: port healthy")
                                     else:
                                         proxy_online=False
-                                        print(f"proxy port: {server_status_bkp['svr_proxyport']} not online")
+                                        print(f"Health check: proxy port: {server_status_bkp['svr_proxyport']} not online")
                                         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
                                         # svr_state.stopSELF()
             except:
@@ -703,9 +707,16 @@ class heartbeat(commands.Cog):
             try:
                 if server_status_bkp['server_ready'] == False:
                     if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyLocalVoicePort'])):
+                        waiting = False
+                        print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is open")
                         server_status_bkp.update({'server_ready':True})
                         if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
                             svr_state.assign_cpu()
+                            print("Server ready.")
+                    else:
+                        if not waiting:
+                            waiting = True
+                            print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is not open. Waiting for server to start")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -722,19 +733,21 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                             try:
-                                if not match_status_bkp['match_info_obtained']:
-                                    svr_state.get_match_information()
-                            except:
-                                print(traceback.format_exc())
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            try:
                                 if not match_status_bkp['lobby_info_obtained']:
                                     #svr_state.get_lobby_information()
-                                    print()
+                                    pass
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     else: svr_state.check_current_match_id()
+                    if match_status_bkp['now'] != "idle":
+                        if not match_status_bkp['match_info_obtained']:
+                            #print("checking for match information....")
+                            try:
+                                svr_state.get_match_information()
+                            except:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -764,6 +777,10 @@ class heartbeat(commands.Cog):
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+            
+            if 'tempcount_bkp' not in server_status_bkp or playercount != server_status_bkp["tempcount_bkp"]:
+                server_status_bkp.update({'tempcount_bkp':playercount})
+                print(f"players: {playercount}")
 
     @bot.command()
     async def stopheart(self,ctx):
