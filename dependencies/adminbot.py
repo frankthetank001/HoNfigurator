@@ -1011,6 +1011,8 @@ if is_admin():
         try:
             print("bot started in local mode.")
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+            tempData = {'bot_first_run':True}
+            svr_cmd.updateStatus(tempData)
             result = srvcmd.honCMD().startSERVER(False)
             if result == True:
                 print("server started successfully")
