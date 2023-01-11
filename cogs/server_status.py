@@ -877,16 +877,16 @@ class honCMD():
                     honCMD().append_line_to_file(processed_data_dict['app_log'],"THE CORE ASSIGNMENT IS SET UP INCORRECTLY. CHECK CONFIG.","WARNING")
                     honCMD().append_line_to_file(processed_data_dict['app_log'],f"Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'","WARNING")
                     honCMD().stopSELF()
-                if processed_data_dict['core_assignment'] != "one core/server":
-                    total_cores = psutil.cpu_count(logical = True)
-                    if total_cores > 4 and total_cores < 30:
-                        honPID.cpu_affinity([0,1])
-                    elif total_cores >= 30:
-                        honPID.cpu_affinity([0,1,2,3])
-                    else:
-                        honPID.cpu_affinity([0,0])
-                else:
-                    honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+                # if processed_data_dict['core_assignment'] != "one core/server":
+                #     total_cores = psutil.cpu_count(logical = True)
+                #     if total_cores > 4 and total_cores < 30:
+                #         honPID.cpu_affinity([0,1])
+                #     elif total_cores >= 30:
+                #         honPID.cpu_affinity([0,1,2,3])
+                #     else:
+                #         honPID.cpu_affinity([0,0])
+                # else:
+                honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
                 try:
                     subprocess.run([f"{processed_data_dict['sdc_home_dir']}\\cogs\\keeper.exe","ban"],stdout=subprocess.DEVNULL)
                 except:
