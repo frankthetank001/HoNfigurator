@@ -188,9 +188,9 @@ class heartbeat(commands.Cog):
                         self.server_status.update({'server_restarting':False})
                         self.server_status.update({'update_embeds':True})
                         self.server_status.update({'tempcount':-5})
-                        if self.processed_data_dict['core_assignment'] not in ("one","two"):
-                            svr_state.assign_cpu()
-                            print("Server ready.")
+                        # if self.processed_data_dict['core_assignment'] not in ("one","two"):
+                        #     svr_state.assign_cpu()
+                        #     print("Server ready.")
                         if self.processed_data_dict['debug_mode'] == 'True':
                             logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] Server Ready.")
                             try:
@@ -710,9 +710,9 @@ class heartbeat(commands.Cog):
                         waiting = False
                         print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is open")
                         server_status_bkp.update({'server_ready':True})
-                        if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
-                            svr_state.assign_cpu()
-                            print("Server ready.")
+                        # if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
+                        #     svr_state.assign_cpu()
+                        #     print("Server ready.")
                     else:
                         if not waiting:
                             waiting = True
