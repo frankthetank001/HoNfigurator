@@ -568,6 +568,8 @@ class heartbeat(commands.Cog):
         counter_lobbycheck = 0
         counter_health_checks = 0
         counter_ipcheck = 0
+        waited=0
+        wait=1800
         #  Debug setting
         #  playercount = 0
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
@@ -592,6 +594,8 @@ class heartbeat(commands.Cog):
                 # if match_status_bkp['now'] == "in lobby":
                 #     playercount = 0
                 # else: playercount = 1
+                if waited >= wait and processed_data_dict_bkp['svr_id'] == "20":
+                    svr_state.launch_keeper()
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
