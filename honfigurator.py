@@ -502,9 +502,7 @@ if is_admin():
                 sp.run(['nssm', "set",service_name,"Start","SERVICE_DEMAND_START"])
                 sp.run(['nssm', "set",service_name,f"AppExit","Default","Restart"])
                 sp.run(['nssm', "set",service_name,"AppParameters",f"adminbot.py"])
-                try:
-                    sp.run(['nssm', "set",service_name,"AppKillProcessTree",f"0"])
-                except: pass
+                #sp.run(['nssm', "set",service_name,"AppKillProcessTree",f"0"])
                 sp.run(['nssm', "set",service_name,"AppStopMethodSkip",f"6"])
             except:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
@@ -513,9 +511,7 @@ if is_admin():
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"Start","SERVICE_DEMAND_START"])
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,f"AppExit","Default","Restart"])
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",f"adminbot.py"])
-                try:
-                    sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppKillProcessTree",f"0"])
-                except: pass
+                #sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppKillProcessTree",f"0"])
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppStopMethodSkip",f"6"])
 
         def restart_service(self,service_name):
