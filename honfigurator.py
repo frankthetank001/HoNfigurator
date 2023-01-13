@@ -1540,31 +1540,25 @@ if is_admin():
             checks=True
             if " " in hoster:
                 checks=False
-                tex.insert(END,"FIXME: Please ensure there are no spaces in the server name field.\n",'warning')
-                tex.see(tk.END)
+                initialise.print_and_tex(self,"FIXME: Please ensure there are no spaces in the server name field.\n",'warning')
             if " " not in hondirectory:
                 checks=False
-                tex.insert(END,"FIXME: Please ensure there is a space in the HoN Directory path.\n",'warning')
-                tex.see(tk.END)
+                initialise.print_and_tex(self,"FIXME: Please ensure there is a space in the HoN Directory path.\n",'warning')
             if bottoken=='' and disable_bot == False:
                 checks=False
-                tex.insert(END,"FIXME: Please provide a bot token.\n",'warning')
-                tex.see(tk.END)
+                initialise.print_and_tex(self,"FIXME: Please provide a bot token.\n",'warning')
             if discordadmin=='' and disable_bot == False:
                 checks=False
-                tex.insert(END,"FIXME: Please provide a discord user ID (10 digit number).\n",'warning')
-                tex.see(tk.END)
+                initialise.print_and_tex(self,"FIXME: Please provide a discord user ID (10 digit number).\n",'warning')
             if static_ip != '':
                 try:
                     # legal
                     socket.inet_aton(static_ip)
-                    tex.insert(END,f"{static_ip} will be used to start your servers.\n")
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,f"{static_ip} will be used to start your servers.\n")
                 except socket.error:
                     # Not legal
                     checks=False
-                    tex.insert(END,"FIXME: Please provide a valid IPv4 address.\n",'warning')
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,"FIXME: Please provide a valid IPv4 address.\n",'warning')
             if checks==True:
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
@@ -1579,10 +1573,10 @@ if is_admin():
                     if not exists(honreplay):
                         try:
                             os.makedirs(honreplay)
-                            tex.insert(END,f"CHECKME: Base directory {honreplay} has been created. Continuing on\n",'warning')
+                            initialise.print_and_tex(self,f"CHECKME: Base directory {honreplay} has been created. Continuing on\n",'warning')
                         except Exception as e:
                             print(e)
-                            tex.insert(END,f"FIXME: Unable to create directory: {honreplay} is it a valid path?\n",'warning')
+                            initialise.print_and_tex(self,f"FIXME: Unable to create directory: {honreplay} is it a valid path?\n",'warning')
                             return
                     if exists(honreplay):
                         print("migrating data")
@@ -1591,17 +1585,15 @@ if is_admin():
                                 os.makedirs(honreplay+"\\Documents\\Heroes of Newerth x64\\game\\replays")
                             except Exception as e:
                                 print(e)
-                            tex.insert(END,f"FIXME: Failed to create directory {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays\nIs it a valid path?\n",'warning')    
+                            initialise.print_and_tex(self,f"FIXME: Failed to create directory {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays\nIs it a valid path?\n",'warning')    
                         try:
                             distutils.dir_util.copy_tree(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays",f"{honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays",update=1)
-                            tex.insert(END,"You have changed the hon replays directory. Please ensure you configure all servers.\n",'interest')
-                            tex.insert(END,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.\n",'interest')
-                            tex.see(tk.END)
+                            initialise.print_and_tex(self,"You have changed the hon replays directory. Please ensure you configure all servers.\n",'interest')
+                            initialise.print_and_tex(self,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.\n",'interest')
                             self.dataDict.update({'hon_manager_dir':honreplay})
                         except Exception as e:
                             print(e)
-                            tex.insert(END,f"FIXME: Failed to migrate data from {self.dataDict['hon_manager_dir']} to {honreplay}\n",'warning')
-                            tex.see(tk.END)
+                            initialise.print_and_tex(self,f"FIXME: Failed to migrate data from {self.dataDict['hon_manager_dir']} to {honreplay}\n",'warning')
                 # stop services that sit outside the total server range
                 if int(servertotal) < int(self.dataDict['svr_total']):
                     x=int(self.dataDict['svr_total']) - int(servertotal)
@@ -1622,11 +1614,8 @@ if is_admin():
                             print("scheduled shutdown of no longer required service as it sits outside the total servers range")
                             initialise.schedule_shutdown(temp_dict)
                 elif int(servertotal) > int(self.dataDict['svr_total']) and restart_proxy == False:
-                    print(f"Servers {self.dataDict['svr_total']} to {servertotal} are not configured to run under the proxy. The proxy was only configured for servers 0 to {servertotal}")
-                    print(f"Select 'restart proxy in next configure' to resolve this. This may disrupt games which are in progress.")
-                    tex.insert(END,f"Servers {int(self.dataDict['svr_total'])+1} to {servertotal} are not configured to run under the proxy. The proxy was only configured for servers 1 to {self.dataDict['svr_total']}\n",'warning')
-                    tex.insert(END,f"Select 'restart proxy in next configure' to resolve this. This may disrupt games which are in progress.\n",'warning')
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,f"Servers {int(self.dataDict['svr_total'])+1} to {servertotal} are not configured to run under the proxy. The proxy was only configured for servers 1 to {self.dataDict['svr_total']}\n",'warning')
+                    initialise.print_and_tex(self,f"Select 'restart proxy in next configure' to resolve this. This may disrupt games which are in progress.\n",'warning')
 
                 
                 # write config to file
@@ -1676,10 +1665,10 @@ if is_admin():
 
                 if use_proxy:
                     if not exists(hondirectory+'proxy.exe'):
-                        tex.insert(END,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
+                        initialise.print_and_tex(self,f"FIXME: NO PROXY.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
                         use_proxy=False
                     if not exists(hondirectory+'proxymanager.exe'):
-                        tex.insert(END,f"FIXME: NO PROXYMANAGER.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
+                        initialise.print_and_tex(self,f"FIXME: NO PROXYMANAGER.EXE FOUND. Please obtain this and place it into {hondirectory} and try again.\nContinuing with proxy disabled..\n",'warning')
                         use_proxy=False
                     else:
                         firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
@@ -1766,7 +1755,7 @@ if is_admin():
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
-                        print("waiting 30 seconds for proxy to finish setting up ports...")
+                        print(initialise.print_and_tex(self,"waiting 30 seconds for proxy to finish setting up ports...","warning"))
                         time.sleep(30)
                         # else:
                         #     if service_proxy:
@@ -1805,13 +1794,12 @@ if is_admin():
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-                tex.insert(END,("\nUDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
-                tex.insert(END,("\nUDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
+                initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
+                initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
+                    initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                 else:
-                    tex.insert(END,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
-                tex.see(tk.END)
+                    initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))+'\"\n'))
                 return
         def check_deployed_update(self):
             global ports_to_forward_game
@@ -1832,9 +1820,9 @@ if is_admin():
                         use_console=True
                     else:
                         use_console=False
-                    initialise.print_and_tex(self,f"Server requires update (adminbot{i})")
-                    initialise.print_and_tex(self,"==========================================")
-                    initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
+                    initialise.print_and_tex(self,f"\nServer requires update (adminbot{i})")
+                    initialise.print_and_tex(self,"\n==========================================\n")
+                    initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.\n")
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
                     honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     if initialise.playerCountX(self,i) >= 0:
@@ -1853,9 +1841,9 @@ if is_admin():
                         if service_check:
                             if service_check['status'] == 'running':
                                 if initialise.stop_service(self,service_name,True):
-                                    tex.insert(END,f"{service_name} stopped successfully.\n")
+                                    initialise.print_and_tex(self,f"{service_name} stopped successfully.\n")
                                 else:
-                                    tex.insert(END,f"{service_name} failed to stop.\n")
+                                    initialise.print_and_tex(self,f"{service_name} failed to stop.\n")
                         bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe") # if there is still an adminbot process - the app is running in console mode, stop it
                         if bot_running:
                             initialise.stop_bot(self,f"{service_name}.exe")
@@ -1872,9 +1860,7 @@ if is_admin():
                     print(e)
                     return False
             if players==True:
-                print("There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete.")
-                tex.insert(END,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
-                tex.see(tk.END)
+                initialise.print_and_tex(self,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
                 return False
             else:
                 service_manager_name = "HoN Server Manager"
