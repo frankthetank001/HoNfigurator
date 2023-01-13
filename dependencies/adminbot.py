@@ -15,6 +15,8 @@ import traceback
 from discord.ext import tasks
 import ctypes, sys
 from typing import Optional
+import psutil
+import signal
 import shutil
 
 def resource_path(relative_path):
@@ -68,6 +70,18 @@ if is_admin():
     svr_identifier = processed_data_dict['svr_identifier']
     svr_hoster = processed_data_dict['svr_hoster']
     ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
+
+    for p in psutil.process_iter():
+        if processed_data_dict['app_name'] in p.name():
+            current_pid = os.getpid()
+            other_pid = p.pid
+            if other_pid != current_pid:
+                p.kill()
+    def handler(signum, frame):
+        svr_cmd.stopSERVER(True)
+        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Received SIGNUM: {signum} , frame: {frame}","INFO")
+        exit(1)
+    signal.signal(signal.SIGINT, handler)
     #os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
 
     # clean up previous instance, import pending configurations

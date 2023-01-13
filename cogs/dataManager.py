@@ -59,7 +59,7 @@ class mData():
             try:
                 shutil.move(resource_path("config\\global_config.ini.incoming"),resource_path("config\\global_config.ini"))
             except Exception as e: print(e)
-
+        
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
@@ -174,13 +174,14 @@ class mData():
         # for option in conf_parse_local.options("OPTIONS"):
         #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
-            self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+                self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
         #if 'hon_root_dir' not in self.confDict_root:
             #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
         #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
             #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
         # else:
         #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
+        self.confDict_deployed = {k:v[0] for k,v in self.confDict_deployed.items()}
         self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
@@ -211,6 +212,10 @@ class mData():
             self.confDict_deployed.update({'voice_starting_port':self.confDict_root['voice_starting_port']})
         if 'auto_update' not in self.confDict_deployed:
             self.confDict_deployed.update({'auto_update':'True'})
+        # for k,v in self.confDict_deployed.items():
+        #     if type(v) == list:
+        #         v = v[0]
+        #         self.confDict_deployed.update({k:v})
         self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
         self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
@@ -327,6 +332,8 @@ class mData():
     def incr_port(svr_id,incr_port_by):
             incr_port = 0
             for i in range(0,svr_id):
+                if type(incr_port_by) == list:
+                    incr_port_by = int(incr_port_by[0])
                 incr_val = int(incr_port_by)
                 incr_port = incr_val * i
             #print("port iteration: " +str(incr_port))

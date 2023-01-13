@@ -594,8 +594,9 @@ class heartbeat(commands.Cog):
                 # if match_status_bkp['now'] == "in lobby":
                 #     playercount = 0
                 # else: playercount = 1
-                if waited >= wait and processed_data_dict_bkp['svr_id'] == "20":
-                    svr_state.launch_keeper()
+                if (waited >= wait or server_status_bkp['bot_first_run'] == True) and processed_data_dict_bkp['svr_id'] == "1":
+                    server_status_bkp.update({'bot_first_run':False})
+                    svrcmd.honCMD.launch_keeper()
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -684,20 +685,27 @@ class heartbeat(commands.Cog):
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update.","INFO")
                                 svr_state.restartSERVER(False)
                     # every x seconds, check if the proxy port is still listening. If it isn't shutdown the server.
-                    if playercount >=0:
-                        counter_health_checks +=1
-                        if counter_health_checks>=threshold_health_checks:
-                            counter_health_checks=0
-                            if processed_data_dict_bkp['use_proxy'] == 'True':
-                                if 'svr_proxyport' in server_status_bkp:
-                                    proxy_online=svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyport']))
-                                    if proxy_online:
-                                        print("Health check: port healthy")
-                                    else:
-                                        proxy_online=False
-                                        print(f"Health check: proxy port: {server_status_bkp['svr_proxyport']} not online")
-                                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
-                                        # svr_state.stopSELF()
+                    #if playercount >=0:
+                    counter_health_checks +=1
+                    if counter_health_checks>=threshold_health_checks:
+                        counter_health_checks=0
+                        if processed_data_dict_bkp['use_proxy'] == 'True':
+                            if 'svr_proxyport' in server_status_bkp:
+                                proxy_online=svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyport']))
+                                if proxy_online:
+                                    print("Health check: port healthy")
+                                else:
+                                    proxy_online=False
+                                    print(f"Health check: proxy port: {server_status_bkp['svr_proxyport']} not online")
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
+                                    # svr_state.stopSELF()
+                        config_hash = dmgr.mData.get_hash(f"{processed_data_dict_bkp['sdc_home_dir']}\\config\\local_config.ini")
+                        if 'config_hash' in processed_data_dict_bkp:
+                            if config_hash != processed_data_dict_bkp['config_hash']:
+                                svr_state.restartSERVER(True)
+                                processed_data_dict_bkp.update({'config_hash':config_hash})
+                        else:
+                            processed_data_dict_bkp.update({'config_hash':config_hash})
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -714,6 +722,7 @@ class heartbeat(commands.Cog):
                         waiting = False
                         print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is open")
                         server_status_bkp.update({'server_ready':True})
+                        # required if dynamically assigning CPU cores for launching servers
                         # if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
                         #     svr_state.assign_cpu()
                         #     print("Server ready.")
