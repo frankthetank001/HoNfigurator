@@ -660,6 +660,16 @@ if is_admin():
             except: 
                 print(traceback.format_exc())
                 return False
+        def print_and_tex(self,message,*args):
+            print(message)
+            if len(args) > 0:
+                level = args[0]
+                tex.insert(END,message,level)
+                tex.see(tk.END)
+            else:
+                tex.insert(END,message)
+                tex.see(tk.END)
+
         def build(self,name):
             os.environ["PYTHONHASHSEED"] = "1"
             os.system(f'pyinstaller --noconfirm --onefile --console --icon .\\icons\\botico.png --uac-admin --add-data "cogs;cogs/" --add-data "config;config/"  "adminbot.py" --name {name} -y')
@@ -686,8 +696,7 @@ if is_admin():
             print("==========================================")
             print("CHECKING EXISTING HON ENVIRONMENT")
             print("==========================================")
-            tex.insert(END,f"\n================= {self.service_name_bot} ===================\n")
-            tex.see(tk.END)
+            initialise.print_and_tex(self,f"\n================= {self.service_name_bot} ===================\n")
 
             if exists(f"{self.hon_home_dir}\\Documents"):
                 #os.environ["USERPROFILE"] = self.hon_home_dir
@@ -802,8 +811,7 @@ if is_admin():
                 firewall = initialise.configure_firewall(self,self.dataDict['hon_file_name'],self.dataDict['hon_exe'])
             if not exists(f"{self.hon_game_dir}\\startup.cfg") or bot_first_launch == True or bot_needs_update == True or force_update == True:
                 if bot_needs_update or force_update == True:
-                    tex.insert(END,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,f"FORCE or UPDATE DETECTED, APPLIED v{self.bot_version}\n")
                 # check if exe's need to be copied, either it doesn't exist or the hash is different.
                 if self.dataDict['master_server'] == "honmasterserver.com":
                     exe_path=f"{self.dataDict['hon_directory']}HON_SERVER_{self.svr_id}.exe"
@@ -897,8 +905,7 @@ if is_admin():
                     #print("HON Registration API STATUS: " + self.service_name_api)
                     if service_api['status'] == 'running' or service_api['status'] == 'paused':
                         if force_update != True and bot_needs_update != True:
-                            tex.insert(END,"HON Registration API STATUS: RUNNING\n")
-                            tex.see(tk.END)
+                            initialise.print_and_tex(self,"HON Registration API STATUS: RUNNING\n")
                         elif (force_update == True or bot_needs_update == True) and hon_api_updated !=True:
                             initialise.stop_service(self,self.service_name_api,False)
                             #time.sleep(1)
@@ -907,9 +914,7 @@ if is_admin():
                                 try:
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                                 except PermissionError:
-                                    tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n",'warning')
-                                    tex.see(tk.END)
-                                    print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n" + bcolors.ENDC)
+                                    initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n",'warning')
                                 except: print(traceback.format_exc())
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
@@ -920,9 +925,7 @@ if is_admin():
                             try:
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             except PermissionError:
-                                tex.insert(END,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n",'warning')
-                                tex.see(tk.END)
-                                print(bcolors.FAIL +"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later\n") + bcolors.ENDC
+                                initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later\n",'warning')
                             except: print(traceback.format_exc())
                             #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             if initialise.configure_service_api(self,self.service_name_api):
@@ -934,10 +937,9 @@ if is_admin():
                             initialise.start_service(self,self.service_name_api,False)
                             service_api = initialise.get_service(self.service_name_api)
                         if service_api['status'] == 'running':
-                            tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
+                            initialise.print_and_tex(self,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                         else:
-                            tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
-                        tex.see(tk.END)
+                            initialise.print_and_tex(self,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                         print("==========================================")
                 else:
                     bot_needs_update = True
@@ -951,10 +953,9 @@ if is_admin():
                     print("HON Registration API STATUS: " + self.service_name_api)
                     service_api = initialise.get_service(self.service_name_api)
                     if service_api['status'] == 'running':
-                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
+                        initialise.print_and_tex(self,"HON Registration API STATUS: " + self.service_name_api +": RUNNING\n")
                     else:
-                        tex.insert(END,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
-                    tex.see(tk.END)
+                        initialise.print_and_tex(self,"HON Registration API STATUS: " + self.service_name_api +":  FAILED TO START!\n",'warning')
                     print("==========================================")
             
 
@@ -963,8 +964,7 @@ if is_admin():
                 if initialise.check_port(self.game_port_proxy):
                     pass
                 else:
-                    tex.insert(END,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,"Proxy is not running. You may not start the server without the proxy first running.\n",'warning')
                     return
             ###
             service_bot = initialise.get_service(self.service_name_bot)
@@ -980,14 +980,15 @@ if is_admin():
                 initialise.configure_service_bot(self,self.service_name_bot)
                 if not (service_bot['status'] == 'running' or service_bot['status'] == 'paused'):
                     if initialise.check_proc(f"{self.service_name_bot}.exe"):
+                        initialise.print_and_tex(self,f"[{self.service_name_bot}] You are switching from console mode to windows service.\n",None)
                         playercount = initialise.playerCount(self)
                         if playercount > 0:
                             #TODO: Check if below needs words for "as you're changing from console to service, can't auto restart etc"
-                            print(f"[{self.service_name_bot}] Players connected. Scheduling shutdown instead.")
+                            initialise.print_and_tex(self,f"[{self.service_name_bot}] {playercount }Players connected. Scheduling shutdown instead. Please start server once it has been shut down.",'warning')
                             initialise.schedule_shutdown(self.deployed_status)
                             return
                         else:
-                            print(f"[{self.service_name_bot}] No players connected, safe to stop...")
+                            print(f"[{self.service_name_bot}] No players connected, safe to restart...")
                             initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                     print(f"[{self.service_name_bot}] Starting as a windows service.")
                     #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
@@ -1005,32 +1006,30 @@ if is_admin():
                         if o >= threshold:
                             waiting=False
                     if service_bot['status'] == 'running' or service_bot['status'] == 'start_pending':
-                        print(f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
-                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
+                        initialise.print_and_tex(self,f"HONSERVER STATUS: {self.service_name_bot} {service_bot['status']}\n")
                     else:
-                        tex.insert(END,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                        print(f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
-                    tex.see(tk.END)
+                        initialise.print_and_tex(self,f"HONSERVER STATUS: {self.service_name_bot} FAILED TO START!\n",'warning')
                     print("==========================================")
             else:
                 if service_bot:
                     if (service_bot['status'] == 'running' or service_bot['status'] == 'paused'):
+                        initialise.print_and_tex(self,f"[{self.service_name_bot}] You are switching from windows service to console mode.\n")
                         playercount = initialise.playerCount(self)
                         if playercount > 0:
                             #TODO: Check if below needs words for "as you're changing from service to console, can't auto restart etc"
-                            print(f"[{self.service_name_bot}] {playercount} players connected. Scheduling shutdown instead.")
+                            print(f"[{self.service_name_bot}] {playercount }Players connected. Scheduling shutdown instead. Please start server once it has been shut down.")
                             initialise.schedule_shutdown(self.deployed_status)
                             return
                         else:
-                            print(f"[{self.service_name_bot}] No players connected, safe to stop service...")
+                            print(f"[{self.service_name_bot}] No players connected, safe to restart...")
                             initialise.stop_service(self,self.service_name_bot,False)
                 initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                 print(f"[{self.service_name_bot}] Starting as a console application.")
                 initialise.start_bot(self,False)
-            if initialise.check_proc(f"{self.service_name_bot}.exe"):
-                print(f"[{self.service_name_bot}] updated!")
-            else:
-                print(f"[{self.service_name_bot}] problem updating code")
+            # if initialise.check_proc(f"{self.service_name_bot}.exe"):
+            #     print(f"[{self.service_name_bot}] updated!")
+            # else:
+            #     print(f"[{self.service_name_bot}] problem updating code")
 
             # if service_bot:
             #     print(f"HONSERVER STATUS: {self.service_name_bot}")
@@ -1146,26 +1145,23 @@ if is_admin():
             #     initialise.start_bot(self,False)
 
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
-                if players_connected == True:
-                    tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
-                    tex.see(tk.END)
-                    print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
+                # if players_connected == True:
+                #     tex.insert(END,f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n",'warning')
+                #     tex.see(tk.END)
+                #     print(f"{self.service_name_bot}: {playercount} Players are connected, scheduling restart for after the current match finishes..\n")
                 if self.dataDict['use_proxy'] == 'False':
-                    tex.insert(END,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
+                    initialise.print_and_tex(self,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
                     ports_to_forward_game.append(self.startup['svr_port'])
                     ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
-                    tex.see(tk.END)
                 elif self.dataDict['use_proxy'] == 'True':
-                    tex.insert(END,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
+                    initialise.print_and_tex(self,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
                     ports_to_forward_game.append(self.startup['svr_proxyPort'])
                     ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])
-                    tex.see(tk.END)           
                 print("==========================================")
             else:
                 print("==========================================")
-                tex.insert(END,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
-                tex.insert(END,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
-                tex.see(tk.END)
+                initialise.print_and_tex(self,f"ADMINBOT{self.svr_id} v{self.bot_version}\n")
+                initialise.print_and_tex(self,"NO UPDATES OR CONFIGURATION CHANGES MADE\n")
                 #tex.insert(END,"==============================================\n")
             bot_needs_update = False
             players_connected = False
@@ -1836,15 +1832,14 @@ if is_admin():
                         use_console=True
                     else:
                         use_console=False
-                    print(f"Server requires update (adminbot{i})")
-                    print("==========================================")
-                    tex.insert(END,(f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest."))
-                    tex.see(tk.END)
+                    initialise.print_and_tex(self,f"Server requires update (adminbot{i})")
+                    initialise.print_and_tex(self,"==========================================")
+                    initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
                     honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     if initialise.playerCountX(self,i) >= 0:
                         initialise(deployed_server).configureEnvironment(True,use_console)
-                    #honfigurator.sendData(self,"single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
+                    honfigurator.sendData(self,"single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             players=False
             print("attempting to stop servers")
@@ -2191,7 +2186,7 @@ if is_admin():
             applet.Label(tab1, text="Bot Token (SECRET):",background=maincolor,foreground='white').grid(column=3, row=3,sticky="e",padx=[20,0])
             self.tab1_bottokd = applet.Entry(tab1,foreground=textcolor,width=45)
             labl_ttp = honfigurator.CreateToolTip(self.tab1_bottokd, \
-                    f"The secret token which your bot uses to authenticate to Discord. This is provide when your bot is made\nContact @FrankTheGodDamnMotherFuckenTank#8426\nOR, create your own Discord bot.\nPermissions integer: 533650040896.\nRequires message content intent.")
+                    f"The secret token which your bot uses to authenticate to Discord. View github to see instructions on creating your own Discord bot.\nPermissions integer: 533650040896.\nRequires message content intent.")
             self.tab1_bottokd.insert(0,self.dataDict['token'])
             self.tab1_bottokd.grid(column= 4, row = 3,sticky="w",pady=4,padx=[0,20])
             #  allow bot matches 
@@ -2208,7 +2203,7 @@ if is_admin():
                 self.debugmode.set(True)
             tab1_debugmode_btn = applet.Checkbutton(tab1,variable=self.debugmode)
             labl_ttp = honfigurator.CreateToolTip(tab1_debugmode_btn, \
-                    f"Enhanced logging, specifically in eventlog sent to Discord DM by bot.")
+                    f"Enhanced logging, specifically in eventlog sent to Discord DM by bot. Only relevant if discord bots are enabled.")
             tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
             #  Run without bots 
             applet.Label(tab1, text="Run without discord bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
@@ -2217,7 +2212,7 @@ if is_admin():
                 self.disablebot.set(True)
             tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.disablebot)
             labl_ttp = honfigurator.CreateToolTip(tab1_disablebot_btn, \
-                    f"An experimental feature, allowing you to run the app without a reliance on Discord bots.")
+                    f"Run the app in default mode without enabling on Discord bots.")
             tab1_disablebot_btn.grid(column= 4, row = 6,sticky="w",pady=4)
             # auto configure servers on update
             applet.Label(tab1, text="Auto-Configure servers on update:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
