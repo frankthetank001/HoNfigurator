@@ -1794,8 +1794,8 @@ if is_admin():
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
-                initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
-                initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
+                initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)))
+                initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)))
                 if self.dataDict['use_proxy'] == 'False':
                     initialise.print_and_tex(self,("\nUDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))+'\n'))
                 else:
