@@ -676,7 +676,7 @@ class heartbeat(commands.Cog):
                         if current_login not in server_status_bkp['hon_pid_owner']:
                             svr_state.restartSERVER(False)
                     else:
-                        if server_status_bkp['hon_pid_owner'] != "NT Authority\\SYSTEM":
+                        if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
                             svr_state.restartSERVER(False)
                     # check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
