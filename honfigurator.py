@@ -471,6 +471,16 @@ if is_admin():
         def create_service_bot(self,service_name):
             if not exists(f"{self.dataDict['hon_directory']}nssm.exe"):
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
+            else:
+                if dmgr.mData.get_hash(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe") != dmgr.mData.get_hash(f"{self.dataDict['hon_directory']}\\nssm.exe"):
+                    try:
+                        shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
+                    except:
+                        try:
+                            shutil.move(f"{self.dataDict['hon_directory']}\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm_old.exe")
+                            shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
+                        except: pass
+
             try:
                 sp.run(['nssm', "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             except:
@@ -531,9 +541,13 @@ if is_admin():
             if initialise.is_tool('nssm'):
                 nssm = 'nssm'
                 nssm_loc = rf"{os.environ['ProgramData']}\chocolatey\lib\NSSM\tools\nssm.exe"
-            # else:
-            #     nssm = self.dataDict['nssm']
-            #     nssm_loc = nssm
+            else:
+                nssm = self.dataDict['nssm']
+                # this hash is BAD, it means nssm is buggy, and server may close when stopping windows service, when it should stay open.
+                if dmgr.mData.get_hash(nssm) != "47C112C23C7BDF2AF24A20BD512F91FF6AF76BC6":
+                    nssm_loc = nssm
+                else:
+                    initialise.print_and_tex(self,f"[{self.service_name_bot}] There is an issue configuring windows services. The NSSM client is too old.",'warning')
 
             reg_path = rf"SYSTEM\CurrentControlSet\Services\{service_name}"
             existing_reg = initialise.get_reg("ImagePath",reg_path)
