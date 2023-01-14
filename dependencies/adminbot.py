@@ -81,7 +81,7 @@ if is_admin():
         svr_cmd.stopSERVER(True)
         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Received SIGNUM: {signum} , frame: {frame}","INFO")
         exit(1)
-    signal.signal(signal.SIGINT, handler)
+    #signal.signal(signal.SIGINT, handler)
     #os.environ["USERPROFILE"] = processed_data_dict['hon_root_dir']
 
     # clean up previous instance, import pending configurations

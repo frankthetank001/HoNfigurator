@@ -560,7 +560,7 @@ class heartbeat(commands.Cog):
             f.write("True")
 
         
-        svr_state.check_current_match_id()
+        svr_state.check_current_match_id(False)
         heartbeat_freq = 1
         process_priority = processed_data_dict_bkp['process_priority']
         process_priority = process_priority.upper()
@@ -667,23 +667,24 @@ class heartbeat(commands.Cog):
                             print("scheduled shutdown, moving to stop server")
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
                             svr_state.stopSELF()
-                    running_cmdline = server_status_bkp['hon_pid_hook'].cmdline()
-                    incoming_cmd = [processed_data_dict_bkp['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict_bkp['svr_login']}:{processed_data_dict_bkp['svr_id']}; Set svr_password {processed_data_dict_bkp['svr_password']};Set svr_description priority:{processed_data_dict_bkp['process_priority']},cores:{processed_data_dict_bkp['core_assignment']},honfigurator_version:{processed_data_dict_bkp['bot_version']},github_branch:{processed_data_dict_bkp['github_branch']},discord_admin:{processed_data_dict_bkp['discord_admin']}; Set sv_masterName {processed_data_dict_bkp['svr_login']}:; Set svr_slave {processed_data_dict_bkp['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict_bkp['svr_hoster']} {processed_data_dict_bkp['svr_id']}/{processed_data_dict_bkp['svr_total']} 0; Set svr_ip {processed_data_dict_bkp['svr_ip']}; Set svr_port {processed_data_dict_bkp['svr_port']}; Set svr_proxyPort {processed_data_dict_bkp['svr_proxyPort']}; Set svr_proxyLocalVoicePort {processed_data_dict_bkp['svr_proxyLocalVoicePort']}; Set svr_proxyRemoteVoicePort {processed_data_dict_bkp['svr_proxyRemoteVoicePort']}; Set man_enableProxy {processed_data_dict_bkp['use_proxy']}; Set svr_location {processed_data_dict_bkp['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict_bkp['master_server']]
-                    if running_cmdline != incoming_cmd:
-                        svr_state.restartSERVER(False)
-                    if processed_data_dict_bkp['use_console'] == 'True':
-                        current_login = os.getlogin()
-                        if current_login not in server_status_bkp['hon_pid_owner']:
-                            svr_state.restartSERVER(False)
-                    else:
-                        if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
-                            svr_state.restartSERVER(False)
                     # check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
                         if match_status_bkp['now'] == "in game":
                             svr_state.wait_for_replay(replay_threshold)
                         else:
                             svr_state.initialise_variables("soft")
+                    if match_status_bkp['now'] == "idle":
+                        running_cmdline = server_status_bkp['hon_pid_hook'].cmdline()
+                        incoming_cmd = dmgr.mData().return_commandline(processed_data_dict_bkp)
+                        if running_cmdline != incoming_cmd:
+                            svr_state.restartSERVER(False)
+                        if processed_data_dict_bkp['use_console'] == 'True':
+                            current_login = os.getlogin()
+                            if current_login not in server_status_bkp['hon_pid_owner']:
+                                svr_state.restartSERVER(False)
+                        else:
+                            if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
+                                svr_state.restartSERVER(False)
                     # else:
                     #     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"[{match_status_bkp['match_id']}] Server restarting inbetween games","INFO")
                     #     svr_state.restartSERVER(False)
@@ -766,7 +767,11 @@ class heartbeat(commands.Cog):
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     elif match_status_bkp['now'] == "in game":
                         svr_state.check_current_game_time()
-                    else: svr_state.check_current_match_id()
+                    else:
+                        if playercount > 1:
+                            svr_state.check_current_match_id(True)
+                        else:
+                            svr_state.check_current_match_id(False)
                     if match_status_bkp['now'] != "idle":
                         if not match_status_bkp['match_info_obtained']:
                             #print("checking for match information....")

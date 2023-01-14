@@ -67,7 +67,7 @@ class honCMD():
     """
     Game server updates
     """
-    def check_current_match_id(self):
+    def check_current_match_id(self,reload):
         try:
             # get list of files that matches pattern
             pattern="M*.log"
@@ -82,7 +82,7 @@ class honCMD():
             matchLoc = files[-1]
             matchID = matchLoc.replace(".log","")
             if 'match_id' in match_status:
-                if matchID != match_status['match_id']:
+                if matchID != match_status['match_id'] or reload:
                     #if self.server_status["bot_first_run"] == True:
                         #self.server_status.update({'bot_first_run':False})
                     honCMD().initialise_variables("reload")
@@ -124,7 +124,6 @@ class honCMD():
                                 if match_time != match_status['match_time']:
                                     tempData.update({'match_time':match_time})
                                     #tempData.update({'match_log_last_line':num})
-                                    print("match_time: "+ match_time)
                                     self.server_status.update({'tempcount':-5})
                                     self.server_status.update({'update_embeds':True})
                                     honCMD.updateStatus_GI(self,tempData)
@@ -807,6 +806,7 @@ class honCMD():
             free_mem = psutil.virtual_memory().free
             if free_mem > 1000000000:
                 ram = True
+                hon_commandline = dmgr.mData().return_commandline(processed_data_dict)
                 #
                 # set the environment
                 os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
@@ -866,7 +866,7 @@ class honCMD():
 
                 DETACHED_PROCESS = 0x00000008
                 #self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']],close_fds=True, creationflags=DETACHED_PROCESS)
-                self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']])
+                self.honEXE = subprocess.Popen(hon_commandline)
                 
                 honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
                 #
