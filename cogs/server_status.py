@@ -1064,6 +1064,10 @@ class honCMD():
             if len(data) > 0:
                 f.write("\n")
             f.write(f"[{timenow}] [{level}] {text}")
+        if exists(file):
+            filesize = os.path.getsize(file) >> 20
+            if filesize > 10:
+                open(file, 'w').close()
     def compare_filesizes(self,file,name):
         last_modified_time_file = f"{processed_data_dict['sdc_home_dir']}\\cogs\\{name}_mtime"
         lastmodData = 0
