@@ -88,12 +88,18 @@ if exists(old_adminbot_launch_exe):
 
 basename=os.path.basename(sys.argv[0])
 exe=basename.split("-")
-name=f"adminbot20.exe"
+name=f"{exe[0]}.exe"
 for p in psutil.process_iter():
     if name in p.name():
-        cmdline = p.cmdline()
-        if len(cmdline) > 1 and cmdline[1] == "adminbot.py":
+        current_pid = os.getpid()
+        other_pid = p.pid
+        if other_pid != current_pid:
             p.kill()
+# for p in psutil.process_iter():
+#     if name in p.name():
+#         cmdline = p.cmdline()
+#         if len(cmdline) > 1 and cmdline[1] == "adminbot.py":
+#             p.kill()
 if confDict['use_console'] == 'True':
     print("starting in console mode")
     subprocess.Popen([name,'adminbot.py'])
