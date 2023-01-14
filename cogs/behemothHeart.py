@@ -572,7 +572,7 @@ class heartbeat(commands.Cog):
         counter_health_checks = 0
         counter_ipcheck = 0
         waited=0
-        wait=1800
+        wait=1800 / heartbeat_freq
         #  Debug setting
         #  playercount = 0
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
@@ -600,7 +600,9 @@ class heartbeat(commands.Cog):
                 # if match_status_bkp['now'] == "in lobby":
                 #     playercount = 0
                 # else: playercount = 1
+                waited+=1
                 if (waited >= wait or server_status_bkp['bot_first_run'] == True) and processed_data_dict_bkp['svr_id'] == "1":
+                    waited+=0
                     server_status_bkp.update({'bot_first_run':False})
                     svrcmd.honCMD.launch_keeper()
             except:
