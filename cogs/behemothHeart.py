@@ -6,6 +6,7 @@ import cogs.server_status as svrcmd
 import cogs.dataManager as dmgr
 from datetime import datetime
 import traceback
+import os
 import time
 
 svr_state = svrcmd.honCMD()
@@ -548,18 +549,20 @@ class heartbeat(commands.Cog):
         global alive
         alive_bkp='True'
         waiting = False
+        proxy_online = False
         processed_data_dict_bkp = svr_state.getDataDict()
         server_status_bkp = svr_state.getStatus()
         match_status_bkp = svr_state.getMatchInfo()
         available_maps_bkp = svr_state.getData("availMaps")
         server_status_bkp.update({'hard_reset':False})
         server_status_bkp.update({'backup_heart':True})
+        server_status_bkp.update({'server_ready':False})
         bkup_heart_file=f"{processed_data_dict_bkp['sdc_home_dir']}\\cogs\\bkup_heart"
         with open(bkup_heart_file, 'w') as f:
             f.write("True")
 
         
-        svr_state.check_current_match_id()
+        svr_state.check_current_match_id(False)
         heartbeat_freq = 1
         process_priority = processed_data_dict_bkp['process_priority']
         process_priority = process_priority.upper()
@@ -577,6 +580,9 @@ class heartbeat(commands.Cog):
         threshold_health_checks = 30 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
         replay_threshold = 330 / heartbeat_freq
+
+        healthcheck_first_run = True
+        announce_proxy_health = True
 
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
         print(processed_data_dict_bkp)
@@ -625,6 +631,15 @@ class heartbeat(commands.Cog):
                                 server_status_bkp.update({'server_start_attempts':start_attempts})
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                if not proxy_online:
+                    if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyPort'])):
+                        announce_proxy_health = True
+                        proxy_online = True
+                        svr_state.startSERVER(True)
+                    else:
+                        if announce_proxy_health:
+                            announce_proxy_health = False
+                            print("proxy is not online. Waiting.")
             try:
                 if playercount == 0:
                     counter_ipcheck +=1
@@ -641,7 +656,7 @@ class heartbeat(commands.Cog):
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if server_status_bkp['hard_reset'] == True:
-                        if match_status_bkp['now'] == "in game":
+                        if match_status_bkp['now'] in ["in lobby","in game"]:
                             if svr_state.wait_for_replay(replay_threshold):
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled restart initiated.","INFO")
                                 svr_state.restartSELF()
@@ -657,7 +672,7 @@ class heartbeat(commands.Cog):
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if server_status_bkp['scheduled_shutdown'] == True:
-                        if match_status_bkp['now'] == "in game":
+                        if match_status_bkp['now'] in ["in lobby","in game"]:
                             if svr_state.wait_for_replay(replay_threshold):
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
                                 svr_state.stopSELF()
@@ -666,16 +681,24 @@ class heartbeat(commands.Cog):
                             print("scheduled shutdown, moving to stop server")
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
                             svr_state.stopSELF()
-                    running_cmdline = server_status_bkp['hon_pid_hook'].cmdline()
-                    incoming_cmd = [processed_data_dict_bkp['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict_bkp['svr_login']}:{processed_data_dict_bkp['svr_id']}; Set svr_password {processed_data_dict_bkp['svr_password']};Set svr_description priority:{processed_data_dict_bkp['process_priority']},cores:{processed_data_dict_bkp['core_assignment']},honfigurator_version:{processed_data_dict_bkp['bot_version']},github_branch:{processed_data_dict_bkp['github_branch']},discord_admin:{processed_data_dict_bkp['discord_admin']}; Set sv_masterName {processed_data_dict_bkp['svr_login']}:; Set svr_slave {processed_data_dict_bkp['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict_bkp['svr_hoster']} {processed_data_dict_bkp['svr_id']}/{processed_data_dict_bkp['svr_total']} 0; Set svr_ip {processed_data_dict_bkp['svr_ip']}; Set svr_port {processed_data_dict_bkp['svr_port']}; Set svr_proxyPort {processed_data_dict_bkp['svr_proxyPort']}; Set svr_proxyLocalVoicePort {processed_data_dict_bkp['svr_proxyLocalVoicePort']}; Set svr_proxyRemoteVoicePort {processed_data_dict_bkp['svr_proxyRemoteVoicePort']}; Set man_enableProxy {processed_data_dict_bkp['use_proxy']}; Set svr_location {processed_data_dict_bkp['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict_bkp['master_server']]
-                    if running_cmdline != incoming_cmd:
-                        svr_state.restartSERVER(False)
                     # check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
                         if match_status_bkp['now'] == "in game":
                             svr_state.wait_for_replay(replay_threshold)
                         else:
                             svr_state.initialise_variables("soft")
+                    if match_status_bkp['now'] == "idle":
+                        running_cmdline = server_status_bkp['hon_pid_hook'].cmdline()
+                        incoming_cmd = dmgr.mData().return_commandline(processed_data_dict_bkp)
+                        if running_cmdline != incoming_cmd:
+                            svr_state.restartSERVER(False)
+                        elif processed_data_dict_bkp['use_console'] == 'True':
+                            current_login = os.getlogin()
+                            if current_login not in server_status_bkp['hon_pid_owner']:
+                                svr_state.restartSERVER(False)
+                        else:
+                            if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
+                                svr_state.restartSERVER(False)
                     # else:
                     #     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"[{match_status_bkp['match_id']}] Server restarting inbetween games","INFO")
                     #     svr_state.restartSERVER(False)
@@ -691,25 +714,25 @@ class heartbeat(commands.Cog):
                     # every x seconds, check if the proxy port is still listening. If it isn't shutdown the server.
                     #if playercount >=0:
                     counter_health_checks +=1
-                    if counter_health_checks>=threshold_health_checks:
+                    if counter_health_checks>=threshold_health_checks or healthcheck_first_run:
+                        healthcheck_first_run = False
                         counter_health_checks=0
                         if processed_data_dict_bkp['use_proxy'] == 'True':
-                            if 'svr_proxyport' in server_status_bkp:
-                                proxy_online=svrcmd.honCMD.check_port(int(server_status_bkp['svr_proxyport']))
+                            if 'svr_proxyPort' in processed_data_dict_bkp:
+                                proxy_online=svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyPort']))
                                 if proxy_online:
-                                    print("Health check: port healthy")
+                                    print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} healthy")
                                 else:
-                                    proxy_online=False
-                                    print(f"Health check: proxy port: {server_status_bkp['svr_proxyport']} not online")
+                                    print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} not online")
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
                                     # svr_state.stopSELF()
-                        config_hash = dmgr.mData.get_hash(f"{processed_data_dict_bkp['sdc_home_dir']}\\config\\local_config.ini")
-                        if 'config_hash' in processed_data_dict_bkp:
-                            if config_hash != processed_data_dict_bkp['config_hash']:
-                                svr_state.restartSERVER(True)
-                                processed_data_dict_bkp.update({'config_hash':config_hash})
-                        else:
-                            processed_data_dict_bkp.update({'config_hash':config_hash})
+                        # config_hash = dmgr.mData.get_hash(f"{processed_data_dict_bkp['sdc_home_dir']}\\config\\local_config.ini")
+                        # if 'config_hash' in processed_data_dict_bkp:
+                        #     if config_hash != processed_data_dict_bkp['config_hash']:
+                        #         svr_state.restartSERVER(True)
+                        #         processed_data_dict_bkp.update({'config_hash':config_hash})
+                        # else:
+                        #     processed_data_dict_bkp.update({'config_hash':config_hash})
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -756,7 +779,13 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    else: svr_state.check_current_match_id()
+                    elif match_status_bkp['now'] == "in game":
+                        svr_state.check_current_game_time()
+                    else:
+                        if playercount > 1:
+                            svr_state.check_current_match_id(True)
+                        else:
+                            svr_state.check_current_match_id(False)
                     if match_status_bkp['now'] != "idle":
                         if not match_status_bkp['match_info_obtained']:
                             #print("checking for match information....")

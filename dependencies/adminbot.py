@@ -78,7 +78,7 @@ if is_admin():
             if other_pid != current_pid:
                 p.kill()
     def handler(signum, frame):
-        svr_cmd.stopSERVER(True)
+        #svr_cmd.stopSERVER(True)
         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Received SIGNUM: {signum} , frame: {frame}","INFO")
         exit(1)
     signal.signal(signal.SIGINT, handler)
