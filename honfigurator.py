@@ -990,7 +990,7 @@ if is_admin():
                         else:
                             print(f"[{self.service_name_bot}] No players connected, safe to restart...")
                             initialise.stop_bot(self,f"{self.service_name_bot}.exe")
-                            initialise.stop_bot(self,f"{self.dataDict['hon_file_name']}")
+                            #initialise.stop_bot(self,f"{self.dataDict['hon_file_name']}")
                     print(f"[{self.service_name_bot}] Starting as a windows service.")
                     #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                     initialise.start_bot(self,False)
