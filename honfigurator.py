@@ -183,7 +183,9 @@ if is_admin():
                     if deployed_status['svr_id'] not in deployed_status['sdc_home_dir']:
                         deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{deployed_status['svr_id']}"})
                     os.chdir(deployed_status['sdc_home_dir'])
-                    os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
+                    #os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
+                    Thread(target=os.startfile,args=[f"{self.dataDict['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe"]).start()
+                    #sp.Popen([f"adminbot{deployed_status['svr_id']}-launch.exe"])
                     try:
                         os.chdir(application_path)
                     except Exception as e:
@@ -195,7 +197,9 @@ if is_admin():
             else:
                 try:
                     os.chdir(self.dataDict['sdc_home_dir'])
-                    os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
+                    #os.startfile(f"adminbot{self.dataDict['svr_id']}-launch.exe")
+                    Thread(target=os.startfile,args=[f"{self.dataDict['sdc_home_dir']}\\adminbot{self.dataDict['svr_id']}-launch.exe"]).start()
+                    #sp.Popen([f"adminbot{self.dataDict['svr_id']}-launch.exe"])
                     try:
                         os.chdir(application_path)
                     except Exception as e:
@@ -636,7 +640,7 @@ if is_admin():
             else:
                 return False
 
-        def create_config(self,filename,type,svr_port,voicelocal,svr_proxyport,voiceremote,serverID,serverHoster,location,svr_total,svr_ip,master_user,master_pass,svr_desc):
+        def create_config(self,filename,type,svr_port,voicelocal,svr_proxyport,voiceremote,serverID,serverHoster,location,svr_total,svr_ip):
             self.proxy = {}
             self.base = dmgr.mData.parse_config(self,os.path.abspath(application_path)+"\\config\\honfig.ini")
             iter = self.dataDict['incr_port']
@@ -668,9 +672,11 @@ if is_admin():
                 self.startup.update({"svr_name":f'"{serverHoster} {str(svr_identifier)}"'})
                 self.startup.update({"svr_location":f'"{location}"'})
                 self.startup.update({"svr_ip":f'"{svr_ip}"'})
-                self.startup.update({"svr_login":f'"{master_user}"'})
-                self.startup.update({"svr_password":f'"{master_pass}"'})
-                self.startup.update({"svr_desc":f'"{svr_desc}"'})
+                # uncomment if needing auth via svr_desc
+                # will also need to provide below 3 variables to function when called. it's been taken out
+                # self.startup.update({"svr_login":f'"{master_user}"'})
+                # self.startup.update({"svr_password":f'"{master_pass}"'})
+                # self.startup.update({"svr_desc":f'"{svr_desc}"'})
             elif type == "proxy":
                 self.proxy.update({'redirectIP':'127.0.0.1'})
                 self.proxy.update({'publicip':svr_ip})
@@ -848,17 +854,20 @@ if is_admin():
             self.game_port_proxy = self.game_port + 10000
             self.voice_port_proxy = self.voice_port + 10000
             self.secrets = initialise.KOTF(self)
-            if self.secrets:
-                self.svr_desc = self.secrets.split(',')[0]
-                self.svr_desc = self.svr_desc.replace('\n','')
-                self.master_user = self.secrets.split(',')[1]
-                self.master_user = self.master_user.replace('\n','')
-                self.master_pass = self.secrets.split(',')[2]
-                self.master_pass = self.master_pass.replace('\n','')
-            else:
-                bot_needs_update = False
-                force_update = False
-                bot_first_launch = False
+            if not self.secrets:
+                print("error with hashes. See details above")
+                return False
+            # if self.secrets:
+            #     self.svr_desc = self.secrets.split(',')[0]
+            #     self.svr_desc = self.svr_desc.replace('\n','')
+            #     self.master_user = self.secrets.split(',')[1]
+            #     self.master_user = self.master_user.replace('\n','')
+            #     self.master_pass = self.secrets.split(',')[2]
+            #     self.master_pass = self.master_pass.replace('\n','')
+            # else:
+            #     bot_needs_update = False
+            #     force_update = False
+            #     bot_first_launch = False
             #
             #   Check if startup.cfg exists.
             if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
@@ -894,8 +903,8 @@ if is_admin():
                         exe_force_copy=True
                 if not exists(f"{self.hon_game_dir}\\startup.cfg"):
                     print(f"Server {self.service_name_bot} requires full configuration. No existing startup.cfg or game_settings_local.cfg. Configuring...")
-                initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
-                initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip,self.master_user,self.master_pass,self.svr_desc)
+                #initialise.create_config(self,f"{self.hon_game_dir}\\startup.cfg","startup",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip)
+                initialise.create_config(self,f"{self.hon_game_dir}\\proxy_config.cfg","proxy",self.game_port,self.voice_port,self.game_port_proxy,self.voice_port_proxy,self.svr_id,self.svr_hoster,self.svr_region_short,self.svr_total,self.svr_ip)
                 print(f"copying {self.service_name_bot} script and related configuration files to HoN environment: "+ self.hon_home_dir + "..")
                 try:
                     shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
@@ -1054,18 +1063,18 @@ if is_admin():
                     print(f"[{self.service_name_bot}] Starting as a windows service.")
                     #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                     initialise.start_bot(self,False)
-                    waiting = True
-                    threshold = 15
-                    o=0
-                    while waiting:
-                        o+=1
-                        time.sleep(1)
-                        service_bot = initialise.get_service(self.service_name_bot)
-                        print(f"[{self.service_name_bot}] Waiting for windows service to start.. {o}/{threshold}secs remaining")
-                        if service_bot['status'] == 'running':
-                            waiting=False
-                        if o >= threshold:
-                            waiting=False
+                    # waiting = True
+                    # threshold = 15
+                    # o=0
+                    # while waiting:
+                    #     o+=1
+                    #     time.sleep(1)
+                    #     service_bot = initialise.get_service(self.service_name_bot)
+                    #     print(f"[{self.service_name_bot}] Waiting for windows service to start.. {o}/{threshold}secs remaining")
+                    #     if service_bot['status'] == 'running':
+                    #         waiting=False
+                    #     if o >= threshold:
+                    #         waiting=False
                     #print("==========================================")
                 else:
                     # stop bot is faster
@@ -1084,8 +1093,9 @@ if is_admin():
                         #     return
                         # else:
                         print(f"[{self.service_name_bot}] No players connected, safe to restart...")
-                        initialise.stop_service(self,self.service_name_bot,False)
-                initialise.stop_bot(self,f"{self.service_name_bot}.exe")
+                        #initialise.stop_service(self,self.service_name_bot,False)
+                        sp.Popen(['net','stop',self.service_name_bot])
+                #initialise.stop_bot(self,f"{self.service_name_bot}.exe")
                 print(f"[{self.service_name_bot}] Starting as a console application.")
                 initialise.start_bot(self,False)
             # if initialise.check_proc(f"{self.service_name_bot}.exe"):
@@ -1863,6 +1873,7 @@ if is_admin():
                 elif identifier == "all":
                     #tex.insert(END,"==========================================\n")
                     print("Selected option to configure ALL servers\n")
+                    threads = []
                     for i in range(0,int(servertotal)):
                         serverid = i + 1
                         honfigurator.update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
@@ -1876,7 +1887,20 @@ if is_admin():
                         #     conf_global.write(d)
                         # d.close()
                         hon_api_updated = False
+                        #threads.append(Thread(target=initialise(self.dataDict).configureEnvironment,args=[force_update,use_console]))
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
+                    # for x in threads:
+                    #     x.start()
+                    # for x in threads:
+                    #     x.join()
+                    for i in range(0,int(servertotal)):
+                        serverid = i + 1
+                        if initialise.check_proc(f"adminbot{serverid}.exe"):
+                            initialise.print_and_tex(self,f"[adminbot{serverid}] OK")
+                        else:
+                            initialise.print_and_tex(self,f"[adminbot{serverid}] Failed to start.")
+
+                        
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
                 initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)),'interest')

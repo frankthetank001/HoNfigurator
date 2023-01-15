@@ -81,13 +81,18 @@ class honCMD():
             # get last item in list
             matchLoc = files[-1]
             matchID = matchLoc.replace(".log","")
+
+            hard_data = honCMD.compare_filesizes(self,matchLoc,"match")
+            soft_data = os.stat(matchLoc).st_size # initial file size
+
             if 'match_id' in match_status:
-                if matchID != match_status['match_id'] or reload:
+                if matchID != match_status['match_id'] or reload or (matchID == match_status['match_id'] and soft_data > hard_data and match_status['first_run'] == True):
                     #if self.server_status["bot_first_run"] == True:
                         #self.server_status.update({'bot_first_run':False})
-                    honCMD().initialise_variables("reload")
+                    honCMD().initialise_variables("soft")
                     print(f"Lobby created. Match ID: {matchID}")
                     match_status.update({'match_id':matchID})
+                    match_status.update({'first_run':False})
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Lobby created: {matchID}","INFO")
                     match_status.update({'now':"in lobby"})
                     return True
@@ -106,7 +111,7 @@ class honCMD():
             honCMD().get_current_game_log()
         #print("checking for game started now")
         
-        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
+        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"game")
         soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
 
         tempData = {}
@@ -287,6 +292,22 @@ class honCMD():
                     honCMD.updateStatus(self,tempData)
         f.close()
         return tempData
+    def check_game_ended(self):
+        #
+        if self.server_status["match_log_location"] == "empty":
+            return False
+        
+        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"match")
+        soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
+
+        if soft_data > hard_data:
+            with open (self.server_status['match_log_location'], "r", encoding='utf-16-le') as f:
+                #if self.server_status['game_started'] == False:
+                for line in f:
+                    if line.startswith("GAME_END"):
+                        return True
+            f.close()                   
+        return
     def check_game_started(self):
         tempData = {}
         #
@@ -294,7 +315,7 @@ class honCMD():
             honCMD().get_current_game_log()
         #print("checking for game started now")
         
-        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
+        hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"game")
         soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
 
         tempData = {}
@@ -401,21 +422,18 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             pass
     def reset_log_mtime_files(self):
-        match_mtime = f"{processed_data_dict['sdc_home_dir']}\\cogs\\slave_mtime"
-        slave_mtime = f"{processed_data_dict['sdc_home_dir']}\\cogs\\match_mtime"
-        try:
-            if exists(match_mtime):
-                os.remove(f"{processed_data_dict['sdc_home_dir']}\\cogs\\slave_mtime")
-        except: 
-            print(traceback.format_exc())
-            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-        try:
-            if exists(slave_mtime):
-                os.remove(f"{processed_data_dict['sdc_home_dir']}\\cogs\\match_mtime")
-        except: 
-            print(traceback.format_exc())
-            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        mtime_files = [f"{processed_data_dict['sdc_home_dir']}\\cogs\\slave_mtime",f"{processed_data_dict['sdc_home_dir']}\\cogs\\game_mtime",f"{processed_data_dict['sdc_home_dir']}\\cogs\\match_mtime"]
+        for mtime_file in mtime_files:
+            try:
+                if exists(mtime_file): os.remove(mtime_file)
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     def move_replays_and_stats(self):
+        print("Moving replays to replay manager directory and cleaning temporary files...")
+        if 'match_id' not in match_status:
+            return False
+        match_id = match_status['match_id'].replace("M","")
         replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
         try:
             if not exists(processed_data_dict['hon_replays_dir']):
@@ -425,28 +443,42 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         try:
             files = os.listdir(processed_data_dict['hon_replays_dir'])
+            
+
             for file in files:
-                if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
-                    if file.endswith(".honreplay"):
-                        try:
-                            shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
-                        except:
-                            print(traceback.format_exc())
-                            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    elif file.endswith(".tmp"):
-                        print("deleting temporary file "+file)
-                        try:
-                            os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
-                        except:
-                            print(traceback.format_exc())
-                            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                else:
-                    print("removing unrequired replay folder " + file)
+                #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                #find = re.compile(r"^([^.]*).*")
+                if match_id not in file:
                     try:
-                        shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                        if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                            shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                        else:
+                            if file.endswith(".honreplay"):
+                                print(f"moving replay {file} to {processed_data_dict['hon_replays_dir']}")
+                                if not exists(replays_dest_dir+file):
+                                    shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                                else:
+                                    if os.stat(file) > os.stat(replays_dest_dir+file):
+                                        os.remove(replays_dest_dir+file)
+                                    else: 
+                                        os.remove(file)
+                                        shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                            else:
+                                print("deleting temporary file "+file)
+                                os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
                     except:
                         print(traceback.format_exc())
                         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                # else:
+                #     if match_id not in file_name:
+                #         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                #             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                #         else:
+                #             print("deleting temporary file "+file)
+                #             if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                #                 shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                #             else:
+                #                 os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
         except:
             print(traceback.format_exc())
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -550,7 +582,7 @@ class honCMD():
         # match_id = self.server_status['match_log_location']
         # match_id = match_id.replace(".log","")
         # pattern = f"{match_id}*"
-        # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csv
+        # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csvwrite_mtime
         # latest_file = max(list_of_files, key=os.path.getctime)
         replay_wait +=1
         if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
@@ -565,9 +597,10 @@ class honCMD():
             if 'replay_notif_in_log' not in match_status:
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
                 match_status.update({'replay_notif_in_log':True})
-            if replay_wait == wait:
+            if replay_wait >= wait:
+                replay_wait = 0
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
-                honCMD().restartSERVER(False)
+                honCMD().restartSERVER(False,"Restarting server because it has taken too long to generate the replay.")
             return False
     def check_cookie(server_status,log,name):
         def write_mtime(log,name):
@@ -620,7 +653,8 @@ class honCMD():
         #return True
         # else:
         #     return True
-    def Clean(self):
+    def clean_old_logs(self):
+        print("Performing cleanup of old log files (older than 7 days)...")
         paths = [f"{processed_data_dict['hon_logs_dir']}",f"{processed_data_dict['hon_logs_dir']}\\diagnostics"]
         now = time.time()
         count=0
@@ -705,19 +739,18 @@ class honCMD():
     def initialise_variables(self,reset_type):
         
         if reset_type == "soft":
+            print("lobby closed.")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
             self.server_status.update({"game_log_location":"empty"})
             self.server_status.update({"match_log_location":"empty"})
             self.server_status.update({"slave_log_location":"empty"})
             return
-        #
-        # move replays off into the manager directory. clean up other temporary files
-        honCMD().move_replays_and_stats()
+        
         #
         # Remove log files older than 7 days
         try:
-            honCMD().Clean()
+            honCMD().clean_old_logs()
         except:
             print(traceback.format_exc())
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -782,6 +815,7 @@ class honCMD():
         match_status.update({'match_info_obtained':False})
         match_status.update({'lobby_info_obtained':False})
         match_status.update({'now':'idle'})
+        match_status.update({'first_run':True})
     def assign_cpu(self):
         self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
         print(f"Server assigned to CPU cores: {processed_data_dict['svr_affinity']}")
@@ -967,14 +1001,15 @@ class honCMD():
         self.server_status.update({'update_embeds':True})
         return True
 
-    def restartSERVER(self,force):
+    def restartSERVER(self,force,reason):
         if self.playerCount() == 0 or force:
             hard_reset = honCMD().check_for_updates("pending_restart")
             if hard_reset:
                 self.server_status.update({'hard_reset':True})
                 honCMD().restartSELF()
-            else: 
-                honCMD().append_line_to_file(processed_data_dict['app_log'],"Server about to restart.","INFO")
+            else:
+                print(reason)
+                honCMD().append_line_to_file(processed_data_dict['app_log'],f"Server about to restart. Reason: {reason}","INFO")
                 try:
                     honCMD().stopSERVER(force)
                 except:
@@ -998,7 +1033,7 @@ class honCMD():
             self.server_status.update({'tempcount':-5})
         return True
 
-    def restartSELF(self):
+    def restartSELF(self,reason):
         honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
         #honCMD().stopSERVER(True)
         #incoming_config = dmgr.mData.returnDict_temp(processed_data_dict)
@@ -1224,7 +1259,7 @@ class honCMD():
                     honCMD.getData(self,"getLogList_Game")
                 #print("checking for game started now")
                 
-                hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"slave")
+                hard_data = honCMD.compare_filesizes(self,self.server_status["game_log_location"],"game")
                 soft_data = os.stat(self.server_status['game_log_location']).st_size # initial file size
 
                 tempData = {}
