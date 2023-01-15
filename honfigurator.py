@@ -2949,7 +2949,7 @@ if is_admin():
                                 # lablname.append(labl_name)
                                 # lablcolour.append(colour)
                                 try:
-                                    labl_ttp = honfigurator.CreateToolTip(labllist[x], \
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
                                 except: pass
                             elif index1==1:
@@ -2958,15 +2958,15 @@ if is_admin():
                                 # lablwidth.append(18)
                                 # lablname.append(labl_name)
                                 # lablcolour.append(colour)
-                                # if 'available' in labl_name.lower():
-                                #     labl_ttp = honfigurator.CreateToolTip(labllist[x-1], \
-                                #         f"Server is available and connected to the master server.")
-                                # elif 'cookie' in labl_name.lower():
-                                #     labl_ttp = honfigurator.CreateToolTip(labllist[x-1], \
-                                #         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                                # if pcount > 0:
-                                #     labl_ttp = honfigurator.CreateToolTip(labllist[x-1], \
-                                #         f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
+                                if 'available' in labl_name.lower():
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"Server is available and connected to the master server.")
+                                elif 'cookie' in labl_name.lower():
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
+                                if pcount > 0:
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
                             #labl.grid(row=i, column=c_pos1)
                             labllistrows.append(i)
                             labllistcols.append(c_pos1)
@@ -2975,21 +2975,21 @@ if is_admin():
                                 c_pos2 = index2 + c
                                 #btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
                                 btnlist.append(Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount)))
-                                # if btn_name == "View Log":
-                                #     btn_ttp = honfigurator.CreateToolTip(btnlist[x-1], \
-                                #         "View the server logs")
-                                # elif btn_name == "Start":
-                                #     btn_ttp = honfigurator.CreateToolTip(btnlist[x-1], \
-                                #         "Start the server with the current configuration.")
-                                # elif btn_name == "Stop":
-                                #     btn_ttp = honfigurator.CreateToolTip(btnlist[x-1], \
-                                #         "Schedule a shutdown of this server. Does NOT disconnect current games.")
-                                # elif btn_name == "Clean":
-                                #     btn_ttp = honfigurator.CreateToolTip(btnlist[x-1], \
-                                #         "Remove unnecessary files (7 days or older), such as old log files.")
-                                # elif btn_name == "Uninstall":
-                                #     btn_ttp = honfigurator.CreateToolTip(btnlist[x-1], \
-                                #         "Remove this server and bot, also removes folders and files.")
+                                if btn_name == "View Log":
+                                    btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
+                                        "View the server logs")
+                                elif btn_name == "Start":
+                                    btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
+                                        "Start the server with the current configuration.")
+                                elif btn_name == "Stop":
+                                    btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
+                                        "Schedule a shutdown of this server. Does NOT disconnect current games.")
+                                elif btn_name == "Clean":
+                                    btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
+                                        "Remove unnecessary files (7 days or older), such as old log files.")
+                                elif btn_name == "Uninstall":
+                                    btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
+                                        "Remove this server and bot, also removes folders and files.")
                                 #btn.grid(row=i, column=c_pos2)
                                 btnlistrows.append(i)
                                 btnlistcols.append(c_pos2)
