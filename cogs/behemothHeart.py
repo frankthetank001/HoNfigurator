@@ -602,7 +602,7 @@ class heartbeat(commands.Cog):
                 # else: playercount = 1
                 waited+=1
                 if (waited >= wait or server_status_bkp['bot_first_run'] == True) and processed_data_dict_bkp['svr_id'] == "1":
-                    waited+=0
+                    waited=0
                     server_status_bkp.update({'bot_first_run':False})
                     svrcmd.honCMD.launch_keeper()
             except:
