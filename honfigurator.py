@@ -1893,16 +1893,18 @@ if is_admin():
                     #     x.start()
                     # for x in threads:
                     #     x.join()
-                    for i in range(0,int(servertotal)):
-                        serverid = i + 1
-                        if initialise.check_proc(f"adminbot{serverid}.exe"):
-                            initialise.print_and_tex(self,f"[adminbot{serverid}] OK")
-                        else:
-                            initialise.print_and_tex(self,f"[adminbot{serverid}] Failed to start.")
 
                         
                 #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
+                if identifier == "all":
+                    for i in range(0,int(servertotal)):
+                        serverid = i + 1
+                        if initialise.check_proc(f"adminbot{serverid}.exe"):
+                            pass
+                            #initialise.print_and_tex(self,f"[adminbot{serverid}] OK")
+                        else:
+                            initialise.print_and_tex(self,f"[adminbot{serverid}] Failed to start.")
                 initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)),'interest')
                 initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)),'interest')
                 if self.dataDict['use_proxy'] == 'False':
