@@ -691,8 +691,8 @@ class heartbeat(commands.Cog):
                     # check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
                         if match_status_bkp['now'] == "in game":
-                            if svr_state.wait_for_replay(replay_threshold):
-                                svr_state.initialise_variables("reload")
+                            svr_state.wait_for_replay(replay_threshold)
+                                #svr_state.initialise_variables("reload")
                         else:
                             svr_state.initialise_variables("soft")
                     if match_status_bkp['now'] == "idle":

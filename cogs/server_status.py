@@ -461,7 +461,7 @@ class honCMD():
             for file in files:
                 #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                 #find = re.compile(r"^([^.]*).*")
-                if match_id not in file:
+                if match_id not in file or not exists(f"{match_id}.tmp"):
                     try:
                         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
@@ -611,7 +611,7 @@ class honCMD():
         replay_wait +=1
         if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             if os.stat(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay").st_size > 0:
-                print("replay generated. Preparing server for next match..")
+                print("Replay generated. Preparing server for next match..")
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
                 #match_status.update({'now':'idle'})
                 honCMD().initialise_variables("reload")
@@ -773,11 +773,13 @@ class honCMD():
         
         #
         # Remove log files older than 7 days
-        try:
-            honCMD().clean_old_logs()
-        except:
-            print(traceback.format_exc())
-            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        if reset_type == "reload":
+            try:
+                honCMD().clean_old_logs()
+                honCMD().move_replays_and_stats()
+            except:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         self.first_run = True
         self.just_collected = False
         self.game_started = False
