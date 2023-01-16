@@ -414,7 +414,7 @@ if is_admin():
                 exe = f"KONGOR_ARENA_{svr_id}.exe"
             for proc in psutil.process_iter():
                 if proc.name() == exe:
-                    check = sp.Popen([self.dataDict['player_count_exe_loc'],proc.pid],stdout=sp.PIPE, text=True)
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],str(proc.pid)],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
                     if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
                         try:
