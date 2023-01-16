@@ -968,10 +968,12 @@ class honCMD():
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Insufficient RAM to start server.","WARNING")
                 return "ram"
         else:
+            proc_found = False
             print("detected already running hon instance, attempting to hook on..")
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     if self.playerCount_pid_raw(proc.pid) >= 0:
+                        proc_found = True
                         self.honEXE=proc
                         self.honP=proc.pid
                         self.hon_user = proc.username()
@@ -979,15 +981,16 @@ class honCMD():
                         print(f"ATTENTION: detected additional instances of {processed_data_dict['hon_file_name']} already running. They are stuck processes and have been terminated.")
                         proc.terminate()
             try:
-                self.server_status.update({'hon_exe':self.honEXE})
-                self.server_status.update({'hon_pid':self.honP})
-                print(f"HoN PID: {self.honP}")
-                honPID = psutil.Process(pid=self.honEXE.pid)
-                self.server_status.update({'hon_pid_hook':honPID})
-                self.server_status.update({'hon_pid_owner':self.hon_user})
-                honCMD().initialise_variables("restart")
-                self.server_status.update({'realtime_priority':True})
-                return True
+                if proc_found:
+                    self.server_status.update({'hon_exe':self.honEXE})
+                    self.server_status.update({'hon_pid':self.honP})
+                    print(f"HoN PID: {self.honP}")
+                    honPID = psutil.Process(pid=self.honEXE.pid)
+                    self.server_status.update({'hon_pid_hook':honPID})
+                    self.server_status.update({'hon_pid_owner':self.hon_user})
+                    honCMD().initialise_variables("restart")
+                    self.server_status.update({'realtime_priority':True})
+                    return True
             except:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
