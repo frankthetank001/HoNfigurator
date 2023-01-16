@@ -409,22 +409,27 @@ if is_admin():
             print()
         def playerCountX(self,svr_id):
             if self.dataDict['master_server'] == "honmasterserver.com":
-                check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
+                exe = f"HON_SERVER_{svr_id}.exe"
             else:
-                check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
-            i = int(check.stdout.read())
-            if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
-                try:
-                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
+                exe = f"KONGOR_ARENA_{svr_id}.exe"
+            for proc in psutil.process_iter():
+                if proc.name() == exe:
+                    check = sp.Popen([self.dataDict['player_count_exe_loc'],proc.pid],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
-                except: pass
-            elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
-                try:
-                    check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
-                    i = int(check.stdout.read())
-                except: pass
-            check.terminate()
-            return i
+                    if i == -3 and self.dataDict['master_server'] == "honmasterserver.com":
+                        try:
+                            check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
+                            i = int(check.stdout.read())
+                        except: pass
+                    elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
+                        try:
+                            check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
+                            i = int(check.stdout.read())
+                        except: pass
+                    if i != -1:
+                        pcount = i
+                    check.terminate()
+            return pcount
         def start_service(self,service_name,deployed):
             try:
                 #os.system(f'net start "{service_name}"')
@@ -1566,7 +1571,7 @@ if is_admin():
                     #sp.call(["hon_update_x64.exe"])
                     update_running = initialise.check_proc("hon_update_x64.exe")
                     if update_running:
-                        svrcmd.honCMD.stop_proc("hon_update_x64.exe")
+                        svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
                     # if exists("hon_x64_tmp.exe"):
@@ -1581,7 +1586,7 @@ if is_admin():
                         timeout+=1
                         if timeout==6:
                             if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
-                                svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
+                                svrcmd.honCMD.stop_proc_by_name("hon_x64_tmp.exe")
                             break
                     try:
                         os.chdir(application_path)
@@ -1593,9 +1598,9 @@ if is_admin():
                             print("Please wait 60 seconds..")
                             time.sleep(60)
                         if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
-                            svrcmd.honCMD.stop_proc("hon_x64_tmp.exe")
+                            svrcmd.honCMD.stop_proc_by_name("hon_x64_tmp.exe")
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
-                            svrcmd.honCMD.stop_proc("hon_update_x64.exe")
+                            svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
                         update_counter = update_delay
                     else:
@@ -1794,7 +1799,7 @@ if is_admin():
                             initialise.stop_service(self,service_manager_name,False)
                         else:
                             if svrcmd.honCMD.check_proc(manager_application):
-                                svrcmd.honCMD.stop_proc(manager_application)
+                                svrcmd.honCMD.stop_proc_by_name(manager_application)
                         if copy_retry:
                             shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manager_application}")
                         if use_console == False:
@@ -1803,7 +1808,7 @@ if is_admin():
                             sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
                     else:
                         if svrcmd.honCMD.check_proc(manager_application):
-                            svrcmd.honCMD.stop_proc(manager_application)
+                            svrcmd.honCMD.stop_proc_by_name(manager_application)
                         if use_console == False:
                             initialise.create_service_generic(self,service_manager_name,manager_application)
                             initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
@@ -1838,13 +1843,13 @@ if is_admin():
                             if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                                 initialise.stop_service(self,service_proxy_name,False)
                             if svrcmd.honCMD.check_proc(application):
-                                svrcmd.honCMD.stop_proc(application)
+                                svrcmd.honCMD.stop_proc_by_name(application)
                             if svrcmd.honCMD.check_proc("proxy.exe"):
-                                svrcmd.honCMD.stop_proc("proxy.exe")
+                                svrcmd.honCMD.stop_proc_by_name("proxy.exe")
                             initialise.start_service(self,service_proxy_name,False)
                         else:
                             if svrcmd.honCMD.check_proc(application):
-                                svrcmd.honCMD.stop_proc(application)
+                                svrcmd.honCMD.stop_proc_by_name(application)
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
@@ -1855,7 +1860,7 @@ if is_admin():
                         #         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                         #             initialise.stop_service(self,service_proxy_name,False)
                         #     if svrcmd.honCMD.check_proc(application):
-                        #         svrcmd.honCMD.stop_proc(application)
+                        #         svrcmd.honCMD.stop_proc_by_name(application)
                         #     os.chdir(self.dataDict['hon_directory'])
                         #     os.startfile(f"proxymanager.exe")
                         #     os.chdir(application_path)
@@ -1982,7 +1987,7 @@ if is_admin():
                     if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                         initialise.stop_service(self,service_manager_name,False)
                 if svrcmd.honCMD.check_proc(manager_application):
-                    svrcmd.honCMD.stop_proc(manager_application)
+                    svrcmd.honCMD.stop_proc_by_name(manager_application)
                 service_proxy_name = "HON Proxy Manager"
                 proxy_application = "proxymanager.exe"
                 service_proxy = initialise.get_service(service_proxy_name)
@@ -1990,7 +1995,7 @@ if is_admin():
                     if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
                         initialise.stop_service(self,service_proxy_name,False)
                 if svrcmd.honCMD.check_proc(proxy_application):
-                    svrcmd.honCMD.stop_proc(proxy_application)
+                    svrcmd.honCMD.stop_proc_by_name(proxy_application)
                 return True
         def botCount(self,num_of_bots):
             for i in range(0,num_of_bots):
@@ -2704,7 +2709,7 @@ if is_admin():
                     if pcount == -3:
                         service_name=f"adminbot{id}"
                         if svrcmd.honCMD.check_proc(f"{service_name}.exe"):
-                            svrcmd.honCMD.stop_proc(f"{service_name}.exe")
+                            svrcmd.honCMD.stop_proc_by_name(f"{service_name}.exe")
                         if self.dataDict['use_proxy']=='True':
                             if initialise.check_port(deployed_status['svr_proxyPort']):
                                 pass

@@ -601,7 +601,7 @@ class heartbeat(commands.Cog):
 
             await asyncio.sleep(heartbeat_freq)
             try:
-                playercount = svrcmd.honCMD().playerCount()
+                playercount = svr_state.playerCount_pid()
                 # if match_status_bkp['now'] == "in lobby":
                 #     playercount = 0
                 # else: playercount = 1
