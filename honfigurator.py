@@ -408,6 +408,7 @@ if is_admin():
         def attempt_stop_server(self):
             print()
         def playerCountX(self,svr_id):
+            pcount=-3
             if self.dataDict['master_server'] == "honmasterserver.com":
                 exe = f"HON_SERVER_{svr_id}.exe"
             else:
