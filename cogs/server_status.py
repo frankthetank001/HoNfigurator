@@ -855,7 +855,7 @@ class honCMD():
                 udp_listener_port = int(processed_data_dict['game_starting_port']) - 1
             else:
                 udp_listener_port = int(processed_data_dict['game_starting_port']) + 10000 - 1
-            if honCMD.check_port(udp_listener_port) == False:
+            if not honCMD.check_port(udp_listener_port):
                 try:
                     # create a thread
                     thread = Thread(target=udp_lsnr.Listener.start_listener)
