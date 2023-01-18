@@ -992,7 +992,7 @@ class honCMD():
                 self.server_status.update({'hon_exe':self.honEXE})
                 self.server_status.update({'hon_pid':self.honP})
                 print(f"HoN PID: {self.honP}")
-                self.server_status.update({'hon_pid_hook':honPID})
+                self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honEXE.pid)})
                 # self.server_status.update({'hon_pid_hook':honPID})
                 self.hon_user = self.honEXE.username()
                 self.server_status.update({'hon_pid_owner':self.hon_user})
