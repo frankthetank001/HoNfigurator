@@ -116,7 +116,7 @@ class heartbeat(commands.Cog):
                             start_attempts=self.server_status['server_start_attempts']
                             # server may have crashed, check if we can restart.
                             try:
-                                if svr_state.startSERVER(False):
+                                if svr_state.startSERVER("Attempting to start crashed instance"):
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {self.processed_data_dict['hon_game_dir']} for any crash dump files.","WARNING")
                                     continue
                                 else:
@@ -126,7 +126,16 @@ class heartbeat(commands.Cog):
                                 start_attempts+=1
                                 self.server_status.update({'server_start_attempts':start_attempts})
                                 print(traceback.format_exc())
-                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                svr_state.append_li
+                if not proxy_online:
+                    if svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyPort'])):
+                        announce_proxy_health = True
+                        proxy_online = True
+                        svr_state.startSERVER("Proxy was offline. Now it's online, attempting to start dead instance")
+                    else:
+                        if announce_proxy_health:
+                            announce_proxy_health = False
+                            print("proxy is not online. Waiting.")
             if playercount >=0:
                 try:
                     counter_health_checks +=1
@@ -146,9 +155,6 @@ class heartbeat(commands.Cog):
                                     except:
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                                    # svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening. Stopping server to reduce TMM failures.","INFO")
-                                    # await test.createEmbed(ctx,playercount)
-                                    # svr_state.stopSERVER()
                                 if proxy_online !=self.server_status['proxy_online']:
                                     self.server_status.update({'proxy_online':proxy_online})
                                     self.server_status.update({'update_embeds':True})
@@ -250,8 +256,7 @@ class heartbeat(commands.Cog):
                                 except:
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
-                            svr_state.restartSELF()
+                            svr_state.restartSELF("Scheduled restart initiated.")
                         else: pass
                     else:
                         # await test.createEmbed(ctx,playercount)
@@ -266,8 +271,7 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled restart initiated.","INFO")
-                        svr_state.restartSELF()
+                        svr_state.restartSELF("Scheduled restart initiated.")
                 # check for or action a scheduled shutdown
                 if self.server_status['scheduled_shutdown']==False:
                     try:
@@ -285,8 +289,7 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             await test.createEmbed(ctx,-3)
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled shutdown initiated.","INFO")
-                            svr_state.stopSELF()
+                            svr_state.stopSELF("Scheduled shutdown initiated.")
                         else: pass
                     else:
                         logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] SCHEDULED SHUTDOWN")
@@ -296,8 +299,7 @@ class heartbeat(commands.Cog):
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         await test.createEmbed(ctx,-3)
-                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}","Scheduled shutdown initiated.","INFO")
-                        svr_state.stopSELF()
+                        svr_state.stopSELF("Scheduled shutdown initiated.")
                 # check for or action a natural restart inbetween games
                 try:
                     if self.server_status['first_run'] == False:
@@ -315,8 +317,7 @@ class heartbeat(commands.Cog):
                                     except:
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"[{match_id}] Server restarting inbetween games","INFO")
-                                svr_state.restartSERVER(False)
+                                svr_state.restartSERVER(False,f"[{match_id}] Server restarting inbetween games")
                             else: pass
                         else: 
                             self.server_status.update({"server_restarting":True})
@@ -331,8 +332,7 @@ class heartbeat(commands.Cog):
                                 except:
                                     print(traceback.format_exc())
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"[{match_id}] Server restarting inbetween games","INFO")
-                            svr_state.restartSERVER(False)
+                            svr_state.restartSERVER(False,f"[{match_id}] Server restarting inbetween games")
                         self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                         self.server_status.update({'update_embeds':False})
                 except:
@@ -354,44 +354,12 @@ class heartbeat(commands.Cog):
                                     except:
                                         print(traceback.format_exc())
                                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.","INFO")
-                                svr_state.restartSERVER(False)
+                                svr_state.restartSERVER(False,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.")
                                 self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                                 self.server_status.update({'update_embeds':False})
                     except:
                         print(traceback.format_exc())
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                """
-                60 second hosted kick
-                COMMENTED TEMPORARILY DUE TO ISSUES WITH MATCH MAKING BOOTING FROM LOBBY
-                """
-            #if playercount >= 1 and self.server_status['lobby_created'] == False:
-                #if self.server_status['lobby_created'] == False:
-                    #counter_hosted+=1
-                    #counter_lobbycheck+=1
-                    # if counter_hosted == threshold_hosted:
-                    #     counter_hosted = 0
-                    #     self.server_status.update({'server_restarting':True})
-                    #     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] Kicked {self.server_status['game_host']} for taking too long to create a lobby")
-                    #     try:
-                    #         await embed_log.edit(embed=logEmbed)
-                    #     except:
-                    #         print(traceback.format_exc())
-                    #         print("most likely due to using auto-sync")
-                    #     svr_state.restartSERVER(True)
-                    #     self.server_status.update({'tempcount':-5})    # force the heartbeat
-
-                #if counter_lobbycheck == threshold_lobbycheck:
-                #    counter_lobbycheck=0
-                #    if self.server_status['first_run'] == True:
-                #        svr_state.getData("GameCheck")
-                #        if self.server_status['lobby_created'] == True and self.server_status['priority_realtime'] == False:
-                #            svr_state.changePriority(True)
-            #
-            #   Server has been turned on but is not yet ready
-                """
-                END COMMENT
-                """
             #
             #   Check if the match has begun
             if playercount >= 1:
@@ -450,8 +418,7 @@ class heartbeat(commands.Cog):
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to attempt to crash server with false map.","INFO")
-                            svr_state.restartSERVER(True)
+                            svr_state.restartSERVER(True,f"{self.processed_data_dict['app_log']}",f"Server restarting due to attempt to crash server with false map.")
                             self.server_status.update({'tempcount':playercount})    # prevents the heartbeat
                             self.server_status.update({'update_embeds':False})
                         except:
@@ -472,8 +439,7 @@ class heartbeat(commands.Cog):
                         self.server_status.update({"server_restarting":True})
                         await test.createEmbed(ctx,playercount)
                         try:
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to bot match (disallowed).","INFO")
-                            svr_state.restartSERVER(True)
+                            svr_state.restartSERVER(True,f"Server restarting due to bot match (disallowed).")
                         except:
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -498,7 +464,7 @@ class heartbeat(commands.Cog):
                                     await test.createEmbed(ctx,playercount)
                                     print("Restarting the server. Last remaining player has not left yet.")
                                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to match ongoing for 1+ with only 1 players connected.","INFO")
-                                    svr_state.restartSERVER(True)
+                                    svr_state.restartSERVER(True,f"Server restarting due to match ongoing for 1+ with only 1 players connected.")
                                     logEmbed = await test.embedLog(ctx,f"``{heartbeat.time()}`` [WARN] {self.match_status['match_id']} - Game ongoing for over 1 hour, with only 1 player connected, RESTARTING...")
                                     try:
                                         await embed_log.edit(embed=logEmbed)
@@ -602,14 +568,26 @@ class heartbeat(commands.Cog):
             await asyncio.sleep(heartbeat_freq)
             try:
                 playercount = svr_state.playerCount_pid()
-                # if match_status_bkp['now'] == "in lobby":
-                #     playercount = 0
-                # else: playercount = 1
                 waited+=1
+                # check the live DDOS blacklist for any changes requiring action in firewall
                 if (waited >= wait or server_status_bkp['bot_first_run'] == True) and processed_data_dict_bkp['svr_id'] == "1":
                     waited+=0
                     server_status_bkp.update({'bot_first_run':False})
                     svrcmd.honCMD.launch_keeper()
+                # check for a scheduled restart, and queue it
+                if server_status_bkp['hard_reset'] == False:
+                    try:
+                        server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
+                    except:
+                        print(traceback.format_exc())
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                # check for or a scheduled shutdown, and queue it
+                if server_status_bkp['scheduled_shutdown']==False:
+                    try:
+                        server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
+                    except:
+                        print(traceback.format_exc())
+                        svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -627,7 +605,7 @@ class heartbeat(commands.Cog):
                             start_attempts=server_status_bkp['server_start_attempts']
                             # server may have crashed, check if we can restart.
                             try:
-                                if svr_state.startSERVER(False):
+                                if svr_state.startSERVER("Attempting to start crashed instance"):
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {processed_data_dict_bkp['hon_game_dir']} for any crash dump files.","WARNING")
                                     continue
                                 else:
@@ -642,64 +620,52 @@ class heartbeat(commands.Cog):
                     if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyPort'])):
                         announce_proxy_health = True
                         proxy_online = True
-                        svr_state.startSERVER(True)
+                        svr_state.startSERVER("Proxy was offline. Now it's online, attempting to start dead instance")
                     else:
                         if announce_proxy_health:
                             announce_proxy_health = False
                             print("proxy is not online. Waiting.")
             try:
                 if playercount == 0:
-                    counter_ipcheck +=1
+                    #   Check the process priority, set it to IDLE if it isn't already
                     if proc_priority != "IDLE":
                         try:
                             svr_state.changePriority(False)
                         except:
                             svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    # check for or action a scheduled restart
-                    if server_status_bkp['hard_reset'] == False:
-                        try:
-                            server_status_bkp.update({'hard_reset':svr_state.check_for_updates("pending_restart")})
-                        except:
-                            print(traceback.format_exc())
-                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    """   [Players: 0] scheduled (restart / shutdown) checks """
+                    #   action a scheduled restart, if it's been queued
                     if server_status_bkp['hard_reset'] == True:
                         if match_status_bkp['now'] in ["in lobby","in game"]:
                             if svr_state.wait_for_replay(replay_threshold):
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled restart initiated.","INFO")
-                                svr_state.restartSELF()
-                            else: pass
+                                svr_state.restartSELF("Scheduled restart initiated.")
                         else:
-                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled restart initiated.","INFO")
-                            svr_state.restartSELF()    
-                    # check for or action a scheduled shutdown
-                    if server_status_bkp['scheduled_shutdown']==False:
-                        try:
-                            server_status_bkp.update({'scheduled_shutdown':svr_state.check_for_updates("pending_shutdown")})
-                        except:
-                            print(traceback.format_exc())
-                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
+                            svr_state.restartSELF("Scheduled restart initiated.")
+                    #   action a scheduled shutdown, if it's been queued
                     if server_status_bkp['scheduled_shutdown'] == True:
                         if match_status_bkp['now'] in ["in lobby","in game"]:
                             if svr_state.wait_for_replay(replay_threshold):
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
-                                svr_state.stopSELF()
+                                svr_state.stopSELF("Scheduled shutdown initiated.")
                             else: pass
                         else:
                             print("scheduled shutdown, moving to stop server")
-                            svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","Scheduled shutdown initiated.","INFO")
-                            svr_state.stopSELF()
-                    # check for or action a natural restart inbetween games
+                            svr_state.stopSELF("Scheduled shutdown initiated.")
+                    #   check for or action a natural restart inbetween games
                     if match_status_bkp['now'] in ["in lobby","in game"]:
                         if match_status_bkp['now'] == "in game":
                             svr_state.wait_for_replay(replay_threshold)
-                                #svr_state.initialise_variables("reload")
                         else:
                             svr_state.initialise_variables("soft")
+                    
+                    """  [Players: 0] idle game health checks """
+                    counter_ipcheck +=1
                     if match_status_bkp['now'] == "idle":
+                        #   compare the hon process commandline arguments, to the expected commandline arguments from config file
                         running_cmdline = server_status_bkp['hon_pid_hook'].cmdline()
                         incoming_cmd = dmgr.mData().return_commandline(processed_data_dict_bkp)
                         if running_cmdline != incoming_cmd:
                             svr_state.restartSERVER(False,"A configuration change has been detected. The server is being restarted to load the new configuration.")
+                        #   check whether the code should "summon" the hon server instance, because it's running under a different user context
                         elif processed_data_dict_bkp['use_console'] == 'True':
                             current_login = os.getlogin()
                             if current_login not in server_status_bkp['hon_pid_owner']:
@@ -707,21 +673,14 @@ class heartbeat(commands.Cog):
                         else:
                             if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
                                 svr_state.restartSERVER(False,"Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system.")
-                    # else:
-                    #     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"[{match_status_bkp['match_id']}] Server restarting inbetween games","INFO")
-                    #     svr_state.restartSERVER(False)
-                    # every x seconds, check if the public IP has changed for the server. Schedule a restart if it has
-                    if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
-                        counter_ipcheck = 0
-                        if server_status_bkp['game_started'] == False:
+                        #   every counter_ipcheck_threshold seconds, check if the public IP has changed for the server. Schedule a restart if it has
+                        if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
+                            counter_ipcheck = 0
                             check_ip = dmgr.mData.getData(NULL,"svr_ip")
-                            # check if svr id is here
                             if check_ip != processed_data_dict_bkp['svr_ip']:
                                 #TODO: Check if this causes any restart loop due to svr_ip not updating?
-                                msg = f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update."
-                                svr_state.restartSERVER(False,msg)
-                    # every x seconds, check if the proxy port is still listening. If it isn't shutdown the server.
-                    #if playercount >=0:
+                                svr_state.restartSERVER(False,f"The server's public IP has changed from {processed_data_dict_bkp['svr_ip']} to {check_ip}. Restarting server to update.")
+                    # every x seconds, check if the proxy port is still listening.
                     counter_health_checks +=1
                     if counter_health_checks>=threshold_health_checks or healthcheck_first_run:
                         healthcheck_first_run = False
@@ -733,35 +692,25 @@ class heartbeat(commands.Cog):
                                     print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} healthy")
                                 else:
                                     print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} not online")
-                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","INFO")
-                                    # svr_state.stopSELF()
-                        # config_hash = dmgr.mData.get_hash(f"{processed_data_dict_bkp['sdc_home_dir']}\\config\\local_config.ini")
-                        # if 'config_hash' in processed_data_dict_bkp:
-                        #     if config_hash != processed_data_dict_bkp['config_hash']:
-                        #         svr_state.restartSERVER(True)
-                        #         processed_data_dict_bkp.update({'config_hash':config_hash})
-                        # else:
-                        #     processed_data_dict_bkp.update({'config_hash':config_hash})
+                                    svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","WARNING")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
                 if playercount >=2:
+                    #   set the priority to the chosen in-game priority, once players are 2 or greater
                     if server_status_bkp['priority_realtime'] == False:
                         svr_state.changePriority(True)
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
+                #   Check whether the server has finished launching, by querying the voice listening port (open or not?)
                 if server_status_bkp['server_ready'] == False:
                     if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyLocalVoicePort'])):
                         waiting = False
                         print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is open")
                         server_status_bkp.update({'server_ready':True})
-                        # required if dynamically assigning CPU cores for launching servers
-                        # if processed_data_dict_bkp['core_assignment'] not in ("one","two"):
-                        #     svr_state.assign_cpu()
-                        #     print("Server ready.")
                     else:
                         if not waiting:
                             waiting = True
@@ -772,71 +721,67 @@ class heartbeat(commands.Cog):
             try:
                 if playercount >= 1:
                     if match_status_bkp['now'] == "in lobby":
+                        #   every threshold_gamecheck seconds, check whether the match has begun
                         counter_gamecheck+=1
                         if counter_gamecheck==threshold_gamecheck:
                             counter_gamecheck=0
                             try:
-                                #TODO: game time?
                                 svr_state.check_game_started()
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
-                            try:
-                                if not match_status_bkp['lobby_info_obtained']:
-                                    #svr_state.get_lobby_information()
-                                    pass
-                            except:
-                                print(traceback.format_exc())
-                                svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     elif match_status_bkp['now'] == "in game":
+                        #   get the current in-game match time elapsed
                         svr_state.check_current_game_time()
                     else:
                         if playercount > 1:
+                            #   player has connected, check the match ID.
+                            #   This works because there was no match ID, now there is. This won't trigger if the console is restarted while a player is connected.
                             svr_state.check_current_match_id(True)
                         else:
+                            #   check the match ID if 2 or more players are connected and the console has been restarted.
+                            #   It has no other way to tell if it's an old match ID or a new one
                             svr_state.check_current_match_id(False)
                     if match_status_bkp['now'] != "idle":
                         if not match_status_bkp['match_info_obtained']:
-                            #print("checking for match information....")
+                            #   poll the match logs until the lobby/match information is obtained
                             try:
                                 svr_state.get_match_information()
                             except:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if (server_status_bkp['game_map'] != "empty" and server_status_bkp['game_map'] not in available_maps_bkp):
-                        msg = f"Server restarting due to attempt to crash server with false map."
-                        #svr_state.reportPlayer("invalid_map")
-                        svr_state.restartSERVER(True,msg)
+                        svr_state.restartSERVER(True,f"Server restarting due to attempt to crash server with false map.")
                     elif (server_status_bkp['game_mode'] == "botmatch" or server_status_bkp['game_mode'] == "BotMatch") and processed_data_dict_bkp['allow_botmatches'] == 'False':
-                        msg = f"Server restarting due to bot match (disallowed)."
-                        #svr_state.reportPlayer("botmatch")
-                        svr_state.restartSERVER(True,msg)
+                        svr_state.restartSERVER(True,f"Server restarting due to bot match (disallowed).")
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
-                if match_status_bkp['now'] == "in game":
-                    if playercount == 1:
+                if playercount == 1:
+                    if match_status_bkp['now'] == "in game":
+                        #   OPTION 1: every threshold_game_end_check seconds, check if the match is over, despite there still being 1 player connected.
                         counter_game_end +=1
                         if counter_game_end == threshold_game_end_check:
                             counter_game_end = 0
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
-                    # if match_status_bkp['now'] == "in game":
-                    #     match_time = match_status_bkp['match_time']
-                    #     if ":" in match_time:
-                    #         match_too_long = match_time.split(":")
-                    #         match_too_long_hrs = int(match_too_long[0])
-                    #         match_too_long_mins = int(match_too_long[1])
-                    #         if match_too_long_hrs >= 1:
-                    #             msg = f"Server restarting due to match ongoing for 1+ with only 1 players connected."
-                    #             print(msg)
-                    #             svr_state.restartSERVER(True,msg)
+                        #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
+                        # match_time = match_status_bkp['match_time']
+                        # if ":" in match_time:
+                        #     match_too_long = match_time.split(":")
+                        #     match_too_long_hrs = int(match_too_long[0])
+                        #     match_too_long_mins = int(match_too_long[1])
+                        #     if match_too_long_hrs >= 1:
+                        #         msg = f"Server restarting due to match ongoing for 1+ with only 1 players connected."
+                        #         print(msg)
+                        #         svr_state.restartSERVER(True,msg)
             except:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")
             
             if 'tempcount_bkp' not in server_status_bkp or playercount != server_status_bkp["tempcount_bkp"]:
+                #   print the playercount when the playercount changes
                 server_status_bkp.update({'tempcount_bkp':playercount})
                 print(f"players: {playercount}")
 

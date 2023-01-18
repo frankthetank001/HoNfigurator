@@ -49,7 +49,7 @@ class honCMD():
         for proc in psutil.process_iter():
             if proc.name() == proc_name:
                 procs.append(proc.pid)
-        if len(procs) > 0:
+        if len(procs) > 1:
             return procs
         else: return False
     def check_proc(proc_name):
@@ -833,12 +833,10 @@ class honCMD():
         self.server_status.update({'crash':True})
         self.server_status.update({'server_start_attempts':0})
         honCMD().reset_log_mtime_files()
-        #self.server_status.update({'restarting_server':False})
 
         #
         # Match info dictionary
         match_status.update({'match_log_last_line':0})
-        #match_status.update({'match_id':'empty'})
         match_status.update({'match_time':'Preparation phase..'})
         match_status.update({'match_info_obtained':False})
         match_status.update({'lobby_info_obtained':False})
@@ -847,213 +845,186 @@ class honCMD():
     def assign_cpu(self):
         self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
         print(f"Server assigned to CPU cores: {processed_data_dict['svr_affinity']}")
-    def startSERVER(self,from_react):
-        #playercount = playercount()
-        if not honCMD.check_proc(processed_data_dict['hon_file_name']):
-            returnlist = []
-            if processed_data_dict['use_proxy'] == 'False':
-                udp_listener_port = int(processed_data_dict['game_starting_port']) - 1
-            else:
-                udp_listener_port = int(processed_data_dict['game_starting_port']) + 10000 - 1
-            if not honCMD.check_port(udp_listener_port):
-                try:
-                    # create a thread
-                    thread = Thread(target=udp_lsnr.Listener.start_listener)
-                    thread.start()
-                except:
-                    print(traceback.format_exc())
-                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Couldn't start the UDP listener required for auto server selection\n{traceback.format_exc()}","WARNING")
 
+    def startSERVER(self,reason):
+        """startServer(): Check for running server instances, or start one if none is running"""
 
-            free_mem = psutil.virtual_memory().free
-            if free_mem > 1000000000:
-                ram = True
-                hon_commandline = dmgr.mData().return_commandline(processed_data_dict)
-                #
-                # set the environment
-                os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
-                os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
-                #
-                # clean up temporary old files
-                old_hon_exe1 = f"{processed_data_dict['hon_directory']}HON_SERVER_{processed_data_dict['svr_id']}_old.exe"
-                old_hon_exe2 = f"{processed_data_dict['hon_directory']}KONGOR_ARENA_{processed_data_dict['svr_id']}_old.exe"
-                if exists(old_hon_exe1):
-                    try:
-                        os.remove(old_hon_exe1)
-                    except:
-                        print(traceback.format_exc())
-                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                if exists(old_hon_exe2):
-                    try:
-                        os.remove(old_hon_exe2)
-                    except:
-                        print(traceback.format_exc())
-                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                
-                #
-                # gather networking details
-                print("starting service")
-                print("collecting port info...")
-                tempData = {}
-                svr_port = int(processed_data_dict['game_starting_port']) + processed_data_dict['incr_port']
-                svr_proxyport = svr_port + 10000
-                svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
-                svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
-                if 'static_ip' not in processed_data_dict:
-                    try:
-                        svr_ip = dmgr.mData.getData(self,"svr_ip")
-                    except:
-                        print(traceback.format_exc())
-                        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                        svr_ip = processed_data_dict['svr_ip']
-                else:
-                    svr_ip = processed_data_dict['svr_ip']
-                tempData.update({'svr_port':svr_port})
-                tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})
-                tempData.update({'svr_proxyport':svr_proxyport})
-                tempData.update({'svr_proxyRemoteVoicePort':svr_proxyRemoteVoicePort})
-                honCMD.updateStatus(self,tempData)
+        log_msg = f"Starting HoN server.\nReason: {reason}"
+        print(log_msg)
+        honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
 
-                #
-                #   Start the HoN Server!
-                if processed_data_dict['use_proxy']=='True':
-                    if honCMD.check_port(svr_proxyport):
-                        print()
-                    else:
-                        print (f"proxy port {svr_proxyport} not online")
-                        return "proxy"
-                # remove any pending shutdown or pending restart files on startup
-                honCMD.check_for_updates(self,"pending_restart")
-                honCMD.check_for_updates(self,"pending_shutdown")
-
-                DETACHED_PROCESS = 0x00000008
-                #self.honEXE = subprocess.Popen([processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {svr_ip}; Set svr_port {svr_port}; Set svr_proxyPort {svr_proxyport}; Set svr_proxyLocalVoicePort {svr_proxyLocalVoicePort}; Set svr_proxyRemoteVoicePort {svr_proxyRemoteVoicePort}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']],close_fds=True, creationflags=DETACHED_PROCESS)
-                self.honEXE = subprocess.Popen(hon_commandline,close_fds=True, creationflags=DETACHED_PROCESS)
-                
-                honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
-                #
-                #   get the ACTUAL PID, otherwise it's just a string. Furthermore we use honp now when talking to PID
-                self.server_status.update({'hon_exe':self.honEXE})
-                self.honP = self.honEXE.pid
-                print(f"HoN PID: {self.honP}")
-                self.server_status.update({'hon_pid':self.honP})
-                honPID = psutil.Process(pid=self.honEXE.pid)
-                self.server_status.update({'hon_pid_hook':honPID})
-                self.server_status.update({'hon_pid_owner':honPID.username()})
-
-                if processed_data_dict['core_assignment'] not in ("one core/server","two cores/server","two servers/core","three servers/core","four servers/core"):
-                    honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
-                    print("THE CORE ASSIGNMENT IS SET UP INCORRECTLY. CHECK CONFIG.")
-                    print(f"Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'","WARNING")
-                    honCMD().append_line_to_file(processed_data_dict['app_log'],"THE CORE ASSIGNMENT IS SET UP INCORRECTLY. CHECK CONFIG.","WARNING")
-                    honCMD().append_line_to_file(processed_data_dict['app_log'],f"Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'","WARNING")
-                    honCMD().stopSELF()
-                # if processed_data_dict['core_assignment'] != "one core/server":
-                #     total_cores = psutil.cpu_count(logical = True)
-                #     if total_cores > 4 and total_cores < 30:
-                #         honPID.cpu_affinity([0,1])
-                #     elif total_cores >= 30:
-                #         honPID.cpu_affinity([0,1,2,3])
-                #     else:
-                #         honPID.cpu_affinity([0,0])
-                # else:
-                honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
-
-                self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
-                
-                #
-                # Reload the dictionary. This is important as we want to start with a blank slate with every server restart.
-                honCMD().initialise_variables("restart")
-                return True
-            else:
-                self.server_status.update({'crash':True})
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Insufficient RAM to start server.","WARNING")
-                return "ram"
-        else:
+        #   check for existing process for this instance
+        if honCMD.check_proc(processed_data_dict['hon_file_name']):
             proc_found = False
             print("detected already running hon instance, attempting to hook on..")
-            pids = honCMD.count_proc(processed_data_dict['hon_file_name'])
-            if pids:
-                for pid in pids:
-                    if self.playerCount_pid_raw(pid) == -1:
-                        print(f"ATTENTION: detected additional instances of {processed_data_dict['hon_file_name']} already running. They are stuck processes and have been terminated.")
-                        honPID = psutil.Process(pid=self.honEXE.pid)
-                        honPID.terminate()
-
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
-                    proc_found = True
-                    self.honEXE = proc
-                    self.honP=proc.pid
-            if not proc_found:
-                print("there was an issue starting the server")
+                    #   terminate processes which are reporting a playercount of -1. This means it's failed to launch
+                    #   Healthy playercount is either -3 (off) or >= 0 (alive)
+                    if self.playerCount_pid_raw(proc.pid) == -1:
+                        print(f"Terminated stuck instance: {processed_data_dict['hon_file_name']} (PID: {proc.pid})")
+                        proc.terminate()
+                    else: # update the process information with the healthy instance PID. Healthy playercount is either -3 (off) or >= 0 (alive)
+                        proc_found = True
+                        self.honEXE = proc
+                        self.honP=proc.pid
+            if proc_found:
+                try:
+                    #   update the global dictionary with process information
+                    print(f"HoN PID: {self.honP}") # announce new PID
+                    self.server_status.update({'hon_exe':self.honEXE})
+                    self.server_status.update({'hon_pid':self.honP})
+                    self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honEXE.pid)})
+                    self.server_status.update({'hon_pid_owner':self.honEXE.username()})
+                    honCMD().initialise_variables("restart")
+                    self.server_status.update({'realtime_priority':True})
+                    return True
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 return False
+
+        """ The process hasn't been found. Begin code to prepare starting server """
+        
+        #   prepare UDP listener port for the UDP auto-server selection listener, for best ping response
+        if processed_data_dict['use_proxy'] == 'False':
+            udp_listener_port = int(processed_data_dict['game_starting_port']) - 1
+        else:
+            udp_listener_port = int(processed_data_dict['game_starting_port']) + 10000 - 1
+
+        if not honCMD.check_port(udp_listener_port):
             try:
-                self.server_status.update({'hon_exe':self.honEXE})
-                self.server_status.update({'hon_pid':self.honP})
-                print(f"HoN PID: {self.honP}")
-                self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honEXE.pid)})
-                # self.server_status.update({'hon_pid_hook':honPID})
-                self.hon_user = self.honEXE.username()
-                self.server_status.update({'hon_pid_owner':self.hon_user})
-                honCMD().initialise_variables("restart")
-                self.server_status.update({'realtime_priority':True})
-                return True
+                # create a thread
+                thread = Thread(target=udp_lsnr.Listener.start_listener)
+                thread.start()
             except:
                 print(traceback.format_exc())
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Couldn't start the UDP listener required for auto server selection\n{traceback.format_exc()}","WARNING")
 
 
+        free_mem = psutil.virtual_memory().free
+        #   HoN server instances use up to 1GM RAM per instance. Check if this is free before starting.
+        if free_mem > 1000000000:
+            #   set the environment
+            #   Server instances write files to location dependent on USERPROFILE and APPDATA variables
+            os.environ["USERPROFILE"] = processed_data_dict['hon_home_dir']
+            os.environ["APPDATA"] = processed_data_dict['hon_root_dir']
+            #   Clean up temporary old files
+            #   These exist because the files have been replaced with newer versions. To avoid collision, the previous files were renamed
+            old_hon_exe1 = f"{processed_data_dict['hon_directory']}HON_SERVER_{processed_data_dict['svr_id']}_old.exe"
+            old_hon_exe2 = f"{processed_data_dict['hon_directory']}KONGOR_ARENA_{processed_data_dict['svr_id']}_old.exe"
+            if exists(old_hon_exe1):
+                try:
+                    os.remove(old_hon_exe1)
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            if exists(old_hon_exe2):
+                try:
+                    os.remove(old_hon_exe2)
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+
+            # gather networking details
+            print("collecting port info...")
+            tempData = {}
+            svr_port = int(processed_data_dict['game_starting_port']) + processed_data_dict['incr_port']
+            svr_proxyport = svr_port + 10000
+            svr_proxyLocalVoicePort = int(processed_data_dict['voice_starting_port']) + processed_data_dict['incr_port']
+            svr_proxyRemoteVoicePort = svr_proxyLocalVoicePort + 10000
+            if 'static_ip' not in processed_data_dict:
+                try:
+                    svr_ip = dmgr.mData.getData(self,"svr_ip")
+                except:
+                    print(traceback.format_exc())
+                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    svr_ip = processed_data_dict['svr_ip']
+            else:
+                svr_ip = processed_data_dict['svr_ip']
+            tempData.update({'svr_port':svr_port})
+            tempData.update({'svr_proxyLocalVoicePort':svr_proxyLocalVoicePort})
+            tempData.update({'svr_proxyport':svr_proxyport})
+            tempData.update({'svr_proxyRemoteVoicePort':svr_proxyRemoteVoicePort})
+            
+            # update the global dictionary
+            honCMD.updateStatus(self,tempData)
+
+            #   Start the HoN Server!
+            if processed_data_dict['use_proxy']=='True':
+                if not honCMD.check_port(svr_proxyport):
+                    print (f"proxy port {svr_proxyport} not online")
+                    return "proxy"
+
+            # remove any pending shutdown or pending restart files on startup
+            honCMD.check_for_updates(self,"pending_restart")
+            honCMD.check_for_updates(self,"pending_shutdown")
+
+
+            # prepare the server commandline, and start the server!
+            hon_commandline = dmgr.mData().return_commandline(processed_data_dict)
+            DETACHED_PROCESS = 0x00000008
+            self.honEXE = subprocess.Popen(hon_commandline,close_fds=True, creationflags=DETACHED_PROCESS)
+            
+            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
+
+            # update the dictionary with the process PID information
+            print(f"HoN PID: {self.honP}")
+            honPID = psutil.Process(pid=self.honEXE.pid)
+            self.server_status.update({'hon_exe':self.honEXE})
+            self.server_status.update({'hon_pid':self.honEXE.pid})
+            self.server_status.update({'hon_pid_hook':honPID})
+            self.server_status.update({'hon_pid_owner':honPID.username()})
+
+            if processed_data_dict['core_assignment'] not in ("one core/server","two cores/server","two servers/core","three servers/core","four servers/core"):
+                log_msg = f"Program closing. Current value for core assignment: {processed_data_dict['core_assignment']}.\Accepted values: 'one core/server','two cores/server','two servers/core','three servers/core','four servers/core'"
+                print(log_msg)
+                honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"WARNING")
+                honCMD().stopSELF(log_msg)
+
+            honPID.cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
+
+            self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
+
+            # Reload the dictionary. This is important as we want to start with a blank slate with every server restart.
+            honCMD().initialise_variables("restart")
+            return True
+        else:
+            # insufficient RAM
+
+            # Crash variable used to determine whether it's a standard server shut off or something went wrong
+            self.server_status.update({'crash':True})
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Insufficient RAM to start server.","WARNING")
+            return "ram"
                 
-    #
-    #   Stop server
-    def stopSERVER(self,force):
+    def stopSERVER(self,force,reason):
+        """ StopServer: used to terminate the HoN server instance
+        force is a boolean used to enforce the stoppage despite playercount """
+        
         if self.playerCount_pid() == 0 or force:
-            if self.server_status['hon_exe'] == "empty":
-                for proc in psutil.process_iter():
-                    if proc.name() == processed_data_dict['hon_file_name']:
-                        proc.terminate()
-            else: self.server_status['hon_exe'].terminate()
-            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopped.","INFO")
-            # if processed_data_dict['use_proxy'] == 'True':
-            #     try:
-            #         p = psutil.Process(self.server_status['proxy_pid'])
-            #         p.terminate()
-            #     except:
-            #        print(traceback.format_exc())
-            #        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            for proc in psutil.process_iter():
+                if proc.name() == processed_data_dict['hon_file_name']:
+                    proc.terminate()
+                    log_msg = f"Server stopped (PID={proc.pid}).\nReason: {reason}"
+                    print(log_msg)
+                    honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
             self.server_status.update({'update_embeds':True})
             self.server_status.update({'crash':False})
             return True
         return
-    def forceSERVER(self):
-        if self.server_status['hon_exe'] == "empty":
-            for proc in psutil.process_iter():
-                if proc.name() == processed_data_dict['hon_file_name']:
-                    proc.terminate()
-        else: self.server_status['hon_exe'].terminate()
-        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server force stopped.","INFO")
-        # if processed_data_dict['use_proxy'] == 'True':        
-        #     try:
-        #         p = psutil.Process(self.server_status['proxy_pid'])
-        #         p.terminate()
-        #     except:
-        #        print(traceback.format_exc())
-        #        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-        self.server_status.update({'update_embeds':True})
-        return True
 
     def restartSERVER(self,force,reason):
         if self.playerCount_pid() == 0 or force:
             hard_reset = honCMD().check_for_updates("pending_restart")
             if hard_reset:
                 self.server_status.update({'hard_reset':True})
-                honCMD().restartSELF()
+                honCMD().restartSELF("Server was about to restart normally, then found a scheduled restart file.")
             else:
-                print(reason)
-                honCMD().append_line_to_file(processed_data_dict['app_log'],f"Server about to restart. Reason: {reason}","INFO")
+                log_msg = f"Server about to restart. Reason: {reason}"
+                print(log_msg)
+                honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
                 try:
-                    honCMD().stopSERVER(force)
+                    honCMD().stopSERVER(force,"stopping as part of restart function")
                 except:
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
@@ -1065,48 +1036,27 @@ class honCMD():
                 #
                 #   Once detects server is offline with above code start the server
                 try:
-                    honCMD().startSERVER(False)
+                    honCMD().startSERVER("Starting as part of restart function")
                 except:
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         else:
             self.server_status.update({'update_embeds':True})
             self.server_status.update({'tempcount':-5})
+            
         return True
 
     def restartSELF(self,reason):
-        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server restarting HARD - means we are restarting the actual service or adminbot console for updating.","INFO")
-        #honCMD().stopSERVER(True)
-        #incoming_config = dmgr.mData.returnDict_temp(processed_data_dict)
-        # if len(incoming_config) > 0:
-        #     if processed_data_dict['use_console'] == 'True':
-        #         if incoming_config['use_console'] == 'True':
-        #             os.chdir(processed_data_dict['sdc_home_dir'])
-        #             os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
-        #             os._exit(0)
-        #         elif incoming_config['use_console'] == 'False':
-        #             os.chdir(processed_data_dict['sdc_home_dir'])
-        #             os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
-        #             os._exit(0)
-        #     if processed_data_dict['use_console'] == 'False':
-        #         if incoming_config['use_console'] == 'False':
-        #             os._exit(1)
-        #         elif incoming_config['use_console'] == 'True':
-        #             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"I have turned off because I am unable to transition from a windows service to console mode automatically. Sorry about that. Please start me manually in whatever mode you require.","WARNING")
-        # No changed configuration inbound
+        log_msg = f"Server restarting HARD - means we are restarting the actual service or adminbot console in addition to the hon server.\nReason: {reason}"
+        print(log_msg)
+        honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
         os.chdir(processed_data_dict['sdc_home_dir'])
-        #os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe restart")
         subprocess.Popen([f"start",f"adminbot{processed_data_dict['svr_id']}-launch.exe","restart"],shell=True)
-        # else:
-        #     if processed_data_dict['use_console'] == 'True':
-        #         os.chdir(processed_data_dict['sdc_home_dir'])
-        #         os.startfile(f"adminbot{processed_data_dict['svr_id']}-launch.exe")
-        #         os._exit(0)
-        #     else:
-        #         os._exit(1)
-    def stopSELF(self):
-        honCMD().append_line_to_file(processed_data_dict['app_log'],"Server stopping HARD - means we are intentionally stopping the service via server administrator.","INFO")
+
+    def stopSELF(self,reason):
+        log_msg = f"Server stopping HARD - means we are intentionally stopping the service or adminbot console.\nReason: {reason}"
+        honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
         try:
-            honCMD().stopSERVER(True)
+            honCMD().stopSERVER(True,"Stopping as part of hard shutdown.")
         except:
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             return

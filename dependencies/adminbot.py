@@ -78,7 +78,6 @@ if is_admin():
             if other_pid != current_pid:
                 p.kill()
     def handler(signum, frame):
-        #svr_cmd.stopSERVER(True)
         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Received SIGNUM: {signum} , frame: {frame}","INFO")
         exit(1)
     signal.signal(signal.SIGINT, handler)
@@ -196,7 +195,7 @@ if is_admin():
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             # await ctx.invoke(bot.get_command('getStatus'))
             try:
-                result = srvcmd.honCMD().startSERVER(False)
+                result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
                 if result == True:
                     print("server started successfully")
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
@@ -957,7 +956,7 @@ if is_admin():
                         #   Sends the start server command
                         elif (react.emoji.name == "🔼"):
                             heart = await ctx.invoke(bot.get_command('statusheart'))
-                            if svr_cmd.startSERVER(True):
+                            if svr_cmd.startSERVER("Someone pressed start server in discord."):
                                 await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
                             if not heart:
                                 await ctx.invoke(bot.get_command('startheart'))
@@ -965,17 +964,12 @@ if is_admin():
                         #
                         #   Sends the stop server command
                         elif (react.emoji.name == "🔽"):
-                            svr_cmd.stopSERVER(False)
-                            # if svr_cmd.stopSERVER():
-                            #     await ctx.invoke(bot.get_command('stopheart'))
+                            svr_cmd.stopSERVER(False,"Graceful shutdown from discord embed")
                             
                         #
                         #   only admins can force stop.
-                        #elif (react.emoji.name == "🛑") and processed_data_dict['discord_admin'] in modRole:
                         elif (react.emoji.name == "🛑") and str(react.member.id) in processed_data_dict['discord_admin']:
-                            svr_cmd.stopSERVER(True)
-                            # if svr_cmd.forceSERVER():
-                            #     await ctx.invoke(bot.get_command('stopheart'))
+                            svr_cmd.stopSERVER(True,"Force stopped from discord embed")
                             if len(embed_log) == 0:
                                 temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Initialising...")
                                 try:
@@ -1027,7 +1021,7 @@ if is_admin():
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
             tempData = {'bot_first_run':True}
             svr_cmd.updateStatus(tempData)
-            result = srvcmd.honCMD().startSERVER(False)
+            result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
             if result == True:
                 print("server started successfully")
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
