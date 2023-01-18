@@ -2344,20 +2344,13 @@ if is_admin():
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
                         bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
-                        if bot_running:
-                            # if deployed_status['use_console'] == 'False':
-                                # if initialise.stop_service(self,service_name,True):
-                                #     tex.insert(END,f"{service_name} stopped successfully.\n")
-                                # else:
-                                #     tex.insert(END,f"{service_name} failed to stop.\n")
-                            #else:
-                                initialise.stop_bot(self,f"{service_name}.exe")
-                                initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
-                                initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
-                        else:
-                            initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
-                            initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
-                            #viewButton.refresh()
+
+                        bot_running=initialise.check_proc(f"{service_name}.exe")
+                        hon_running=initialise.check_proc(f"KONGOR_ARENA_{id}.exe")
+                        if bot_running or hon_running:
+                                    initialise.stop_bot(self,f"{service_name}.exe")
+                                    initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                                    initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
@@ -2624,13 +2617,8 @@ if is_admin():
                                     tex.insert(END,f"{service_name} failed to stop.\n")
                                 tex.see(tk.END)
                         bot_running=initialise.check_proc(f"{service_name}.exe")
-                        if bot_running:
-                                # if deployed_status['use_console'] == 'False':
-                                    # if initialise.stop_service(self,service_name,True):
-                                    #     tex.insert(END,f"{service_name} stopped successfully.\n")
-                                    # else:
-                                    #     tex.insert(END,f"{service_name} failed to stop.\n")
-                                #else:
+                        hon_running=initialise.check_proc(f"KONGOR_ARENA_{id}.exe")
+                        if bot_running or hon_running:
                                     initialise.stop_bot(self,f"{service_name}.exe")
                                     initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
                                     initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
