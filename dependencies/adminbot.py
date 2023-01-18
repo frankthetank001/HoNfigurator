@@ -38,7 +38,7 @@ elif __file__:
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+    except Exception:
         return False
 if is_admin():
     def show_exception_and_exit(exc_type, exc_value, tb):
@@ -88,7 +88,7 @@ if is_admin():
     if exists(old_adminbot_exe):
         try:
             os.remove(old_adminbot_exe)
-        except:
+        except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     # class logging:
@@ -154,7 +154,7 @@ if is_admin():
                         temp_log = await ctx.invoke(bot.get_command('embedLog'), log_msg="Welcome owner... :) " + "``"+hsl.time()+"``")
                         try:
                             embedObj = await discord_admin.send(embed=temp_log)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         embed_log.append(embedObj)
@@ -163,7 +163,7 @@ if is_admin():
                     try:
                         await embed_log[0].edit(embed=logEmbed)
                         await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     # await user.send("hello")
@@ -175,7 +175,7 @@ if is_admin():
                         for i in range(len(embed_ids)):
                             embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                         embedFile.close()
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 except discord.errors.NotFound:
@@ -186,11 +186,11 @@ if is_admin():
                         for i in range(len(embed_ids)):
                             embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                         embedFile.close()
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     print("No permissions to the previous message.. clearing message cache")
-                except:
+                except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             # await ctx.invoke(bot.get_command('getStatus'))
@@ -206,7 +206,7 @@ if is_admin():
                                 embedObj = await discord_admin.send(embed=temp_log)
                             else:
                                 embedObj = await ctx.author.send(embed=temp_log)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         embed_log.append(embedObj)
@@ -214,7 +214,7 @@ if is_admin():
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Server Started."))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 elif result == "ram":
@@ -228,7 +228,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -236,7 +236,7 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Not enough free RAM or server already running."))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 elif result == "proxy":
@@ -250,7 +250,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -258,7 +258,7 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Game trying to start on PROXY port which isn't online."))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         return
@@ -273,7 +273,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -281,11 +281,11 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [ERR] Starting the server failed."))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     return
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             try:
@@ -299,7 +299,7 @@ if is_admin():
                 except discord.errors.Forbidden:
                     print("Owner is not reachable. We will message the person to send me a command then.")
                     owner_reachable = False
-                except:
+                except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print(traceback.format_exc())
@@ -322,7 +322,7 @@ if is_admin():
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
                     await ctx.message.delete()
-                except: pass
+                except Exception: pass
                 if hoster == svr_hoster:
                     await asyncio.sleep(svr_id)
                 for embedList in embed_ids:
@@ -357,18 +357,18 @@ if is_admin():
             if hoster == svr_identifier or hoster == svr_hoster:
                 try:
                     await ctx.message.delete()
-                except: pass
+                except Exception: pass
                 if hoster == svr_hoster:
                     await asyncio.sleep(svr_id_delay)
                     waited = True
                 try:
                     await ctx.invoke(bot.get_command('desync'),hoster)
-                except:
+                except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 try:
                     await ctx.invoke(bot.get_command('destroylinkshere'),hoster)
-                except:
+                except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 sent_embed = await ctx.invoke(bot.get_command('initiateEmbed'))
@@ -385,7 +385,7 @@ if is_admin():
                             for i in range(len(embed_ids)):
                                 embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                             embedFile.close()
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if len(embed_log) == 0:
@@ -395,14 +395,14 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] link exists and has been replaced"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         break
@@ -426,7 +426,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -434,10 +434,10 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Link successfully created in ``{tempGuild} ({tempChannel})`` by ``{ctx.author}``"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     embed_ids.append(sent_embed_holder)
@@ -463,7 +463,7 @@ if is_admin():
             #if hoster == svr_hoster:
             try:
                 await ctx.message.delete()
-            except: pass
+            except Exception: pass
             global embed_obj
             embed_obj = []
 
@@ -477,7 +477,7 @@ if is_admin():
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
                     await ctx.message.delete()
-                except: pass
+                except Exception: pass
                 # if hoster == svr_hoster:
                 #     if not waited:
                 #         await asyncio.sleep(svr_id_delay)
@@ -506,7 +506,7 @@ if is_admin():
                             #   fetches message
                             tempEmbed = await tempChannel.fetch_message(int(embed[2]))
                             embed_obj.append(tempEmbed)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 """
@@ -530,7 +530,7 @@ if is_admin():
                         #   fetches message
                         tempEmbed = await tempChannel.fetch_message(embed[2])
                         embed_obj.append(tempEmbed)
-                    except:
+                    except Exception:
                         print("clearning unknown message from cache")
                         embed_ids.remove(embed)
                         try:
@@ -538,7 +538,7 @@ if is_admin():
                             for i in range(len(embed_ids)):
                                 embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                             embedFile.close()
-                        except:
+                        except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if len(embed_log) == 0:
@@ -548,7 +548,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -556,7 +556,7 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     #await ctx.author.send(svr_identifier + f" Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``")
@@ -567,7 +567,7 @@ if is_admin():
                                 embedObj = await discord_admin.send(embed=temp_log)
                             else:
                                 embedObj = await ctx.author.send(embed=temp_log)
-                        except:
+                        except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         embed_log.append(embedObj)
@@ -575,7 +575,7 @@ if is_admin():
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
-                    except:
+                    except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #for embedObjects in embed_obj:
@@ -589,7 +589,7 @@ if is_admin():
                             embedObj = await discord_admin.send(embed=temp_log)
                         else:
                             embedObj = await ctx.author.send(embed=temp_log)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     embed_log.append(embedObj)
@@ -597,7 +597,7 @@ if is_admin():
                 logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Connected to **"+str(len(embed_ids))+"** server links"))
                 try:
                     await embed_log[0].edit(embed=logEmbed)
-                except:
+                except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
@@ -611,7 +611,7 @@ if is_admin():
                 #                 embedObj = await discord_admin.send(embed=temp_log)
                 #             else:
                 #                 embedObj = await ctx.author.send(embed=temp_log)
-                #         except:
+                #         except Exception:
                             # print(traceback.format_exc())
                             # svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #         embed_log.append(embedObj)
@@ -619,7 +619,7 @@ if is_admin():
                 #     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Links are already synced"))
                 #     try:
                 #         await embed_log[0].edit(embed=logEmbed)
-                #     except:
+                #     except Exception:
                         # print(traceback.format_exc())
                         # svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 heart = await ctx.invoke(bot.get_command('statusheart'))
@@ -646,7 +646,7 @@ if is_admin():
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
                     await ctx.message.delete()
-                except: pass
+                except Exception: pass
                 if hoster == svr_hoster:
                     if not waited:
                         await asyncio.sleep(svr_id_delay)
@@ -683,7 +683,7 @@ if is_admin():
                                         embedObj = await discord_admin.send(embed=temp_log)
                                     else:
                                         embedObj = await ctx.author.send(embed=temp_log)
-                                except:
+                                except Exception:
                                     print(traceback.format_exc())
                                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                                 embed_log.append(embedObj)
@@ -691,7 +691,7 @@ if is_admin():
                             logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Destroyed link in: ``{str(ctx.guild.name)} ({str(tempChannel.name)})``"))
                             try:
                                 await embed_log[0].edit(embed=logEmbed)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     except discord.errors.Forbidden:
@@ -702,7 +702,7 @@ if is_admin():
                             for i in range(len(embed_ids)):
                                 embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                             embedFile.close()
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if len(embed_log) == 0:
@@ -712,7 +712,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -720,7 +720,7 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     except discord.errors.NotFound:
@@ -731,7 +731,7 @@ if is_admin():
                             for i in range(len(embed_ids)):
                                 embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                             embedFile.close()
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         if len(embed_log) == 0:
@@ -741,7 +741,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -749,10 +749,10 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] No access/unknown message. Removed from cache"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 try:
@@ -760,7 +760,7 @@ if is_admin():
                     for i in range(len(embed_ids)):
                         embedFile.write(str(embed_ids[i][0])+","+str(embed_ids[i][1])+","+str(embed_ids[i][2])+"\n")
                     embedFile.close()
-                except:
+                except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 # if hoster == svr_hoster:
@@ -782,7 +782,7 @@ if is_admin():
             if hoster == svr_hoster or hoster == svr_identifier:
                 try:
                     await ctx.message.delete()
-                except: pass
+                except Exception: pass
                 if hoster == svr_hoster:
                     if not waited:
                         await asyncio.sleep(svr_id_delay)
@@ -819,7 +819,7 @@ if is_admin():
                                     embedObj = await discord_admin.send(embed=temp_log)
                                 else:
                                     embedObj = await ctx.author.send(embed=temp_log)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                             embed_log.append(embedObj)
@@ -827,7 +827,7 @@ if is_admin():
                         logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Destroyed link in: ``{str(tempGuild.name)} ({str(tempChannel.name)})``"))
                         try:
                             await embed_log[0].edit(embed=logEmbed)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     #
@@ -849,7 +849,7 @@ if is_admin():
                                 embedObj = await discord_admin.send(embed=temp_log)
                             else:
                                 embedObj = await ctx.author.send(embed=temp_log)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         embed_log.append(embedObj)
@@ -857,11 +857,11 @@ if is_admin():
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Deleted **"+links_deleted+"** server links"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     #await ctx.author.send(svr_identifier + f" Destroyed all links.")
-                except:
+                except Exception:
                     embed_obj = []
                     embed_ids = []
                     #
@@ -876,7 +876,7 @@ if is_admin():
                                 embedObj = await discord_admin.send(embed=temp_log)
                             else:
                                 embedObj = await ctx.author.send(embed=temp_log)
-                        except:
+                        except Exception:
                             print(traceback.format_exc())
                             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         embed_log.append(embedObj)
@@ -884,7 +884,7 @@ if is_admin():
                     logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [OK] Deleted **"+links_deleted+"** server links"))
                     try:
                         await embed_log[0].edit(embed=logEmbed)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 if hoster == svr_hoster:
@@ -921,12 +921,12 @@ if is_admin():
                     embed = await ctx.invoke(bot.get_command('helpembed'))
                     try:
                         await ctx.message.delete()
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     try:
                         await discord_admin.send(embed=embed)
-                    except:
+                    except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         """
@@ -977,14 +977,14 @@ if is_admin():
                                         embedObj = await discord_admin.send(embed=temp_log)
                                     else:
                                         embedObj = await ctx.author.send(embed=temp_log)
-                                except:
+                                except Exception:
                                     print(traceback.format_exc())
                                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                                 embed_log.append(embedObj)
                             logEmbed = await ctx.invoke(bot.get_command('embedLog'), log_msg=(f"``{hsl.time()}`` [WARN] {react.member} Force Stopped {svr_identifier}"))
                             try:
                                 await embed_log[0].edit(embed=logEmbed)
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         @bot.command()
@@ -1023,18 +1023,26 @@ if is_admin():
             svr_cmd.updateStatus(tempData)
             result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
             if result == True:
-                print("server started successfully")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+                log_msg = "server started successfully"
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"INFO")
             elif result == "ram":
-                print("not enough free RAM to start the server.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
+                log_msg = "not enough free RAM to start the server."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
             elif result == "proxy":
-                print("Proxy port is not online.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
+                log_msg = "Proxy port is not online."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+            elif result == "process not found":
+                log_msg = f"existing hon process is running, however it is not returning a valid return code. Please investigate {processed_data_dict['hon_file_name']}. Possibly terminate the process manually."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
             else:
-                print("starting the server completely failed.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
-        except:
+                log_msg = "starting the server completely failed for an unaccounted for reason."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+        except Exception:
             print(traceback.format_exc())
             svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         await heart.heartbeat.startheart_bkp()

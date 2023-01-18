@@ -37,7 +37,7 @@ class Listener():
         try:
             serverName = str.encode(returnDict['svr_hoster'],'utf8')
             version = str.encode(mData().check_hon_version(f"{returnDict['hon_directory']}hon_x64.exe"),'utf8')
-        except:
+        except Exception:
             print(traceback.format_exc())
             Logger().append_line_to_file(f"{returnDict['app_log']}",f"{traceback.format_exc()}","WARNING")
             Logger().append_line_to_file(f"{returnDict['app_log']}",f"Servers may be ineligible for auto-server selection until the above error is resolved.","WARNING")
@@ -119,6 +119,6 @@ class Listener():
                     response[44] = message[44]
                     response[45] = message[45]
                     UDPServerSocket.sendto(bytesToSend, address)
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 Logger().append_line_to_file(f"{returnDict['app_log']}",f"{traceback.format_exc()}","WARNING")

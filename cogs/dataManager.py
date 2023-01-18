@@ -222,7 +222,7 @@ class mData():
         self.confDict_deployed.update({"svr_proxyRemoteVoicePort":self.confDict_deployed['svr_proxyLocalVoicePort']+10000})
         try:
             self.confDict_deployed.update({"svr_affinity":mData.check_affinity(svr_id,self.confDict_deployed['core_assignment'])})
-        except:pass
+        except Exception:pass
         if self.confDict_deployed['master_server'] == "honmasterserver.com":
             self.confDict_deployed.update({"hon_file_name":f"HON_SERVER_{svr_id}.exe"})
         else:
@@ -230,7 +230,7 @@ class mData():
         #
         try:
             hon_dir = self.confDict_deployed['hon_directory']
-        except: hon_dir = self.confDict_root['hon_directory']
+        except Exception: hon_dir = self.confDict_root['hon_directory']
         self.confDict_deployed.update({"hon_exe":f"{hon_dir}{self.confDict_deployed['hon_file_name']}"})
         self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
 
@@ -245,7 +245,7 @@ class mData():
         
         try:
             gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
-        except: gameDllHash = "null"
+        except Exception: gameDllHash = "null"
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
             self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-70.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
@@ -406,7 +406,7 @@ class mData():
         if dtype == "svr_ip":
             try:
                 external_ip = urllib.request.urlopen('https://4.ident.me').read().decode('utf8')
-            except:
+            except Exception:
                 external_ip = urllib.request.urlopen('http://api.ipify.org').read().decode('utf8')
             return external_ip
         if dtype == "cores":
@@ -474,7 +474,7 @@ class mData():
                 dns = socket.gethostbyaddr(self.confDict['svr_ip'])
                 dns = dns[0]
                 return dns
-            except:
+            except Exception:
                 print("no DNS lookup for host.")
         if dtype == "lastRestartLoc":
             tmp = f"{self.confDict['sdc_home_dir']}\\last_restart_time"

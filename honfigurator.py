@@ -1087,7 +1087,7 @@ if is_admin():
                     if waiting > wait:
                         initialise.print_and_tex(self,f"[{self.service_name_bot}] Problem starting.",'warning')
                         break
-                if self.deployed_status['use_console'] == 'True':
+                if use_console == True:
                     mode = "console"
                 else:
                     mode = "windows service"
