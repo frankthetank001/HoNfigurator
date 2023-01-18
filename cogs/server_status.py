@@ -49,7 +49,9 @@ class honCMD():
         for proc in psutil.process_iter():
             if proc.name() == proc_name:
                 procs.append(proc.pid)
-        return procs
+        if len(procs) > 0:
+            return procs
+        else: return False
     def check_proc(proc_name):
         for proc in psutil.process_iter():
             if proc.name() == proc_name:
@@ -970,27 +972,33 @@ class honCMD():
         else:
             proc_found = False
             print("detected already running hon instance, attempting to hook on..")
+            pids = honCMD.count_proc(processed_data_dict['hon_file_name'])
+            if pids:
+                for pid in pids:
+                    if self.playerCount_pid_raw(pid) == -1:
+                        print(f"ATTENTION: detected additional instances of {processed_data_dict['hon_file_name']} already running. They are stuck processes and have been terminated.")
+                        honPID = psutil.Process(pid=self.honEXE.pid)
+                        honPID.terminate()
+
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
-                    if self.playerCount_pid_raw(proc.pid) >= 0:
-                        proc_found = True
-                        self.honEXE=proc
-                        self.honP=proc.pid
-                        self.hon_user = proc.username()
-                    else:
-                        print(f"ATTENTION: detected additional instances of {processed_data_dict['hon_file_name']} already running. They are stuck processes and have been terminated.")
-                        proc.terminate()
+                    proc_found = True
+                    self.honEXE = proc
+                    self.honP=proc.pid
+            if not proc_found:
+                print("there was an issue starting the server")
+                return False
             try:
-                if proc_found:
-                    self.server_status.update({'hon_exe':self.honEXE})
-                    self.server_status.update({'hon_pid':self.honP})
-                    print(f"HoN PID: {self.honP}")
-                    honPID = psutil.Process(pid=self.honEXE.pid)
-                    self.server_status.update({'hon_pid_hook':honPID})
-                    self.server_status.update({'hon_pid_owner':self.hon_user})
-                    honCMD().initialise_variables("restart")
-                    self.server_status.update({'realtime_priority':True})
-                    return True
+                self.server_status.update({'hon_exe':self.honEXE})
+                self.server_status.update({'hon_pid':self.honP})
+                print(f"HoN PID: {self.honP}")
+                # honPID = psutil.Process(pid=self.honEXE.pid)
+                # self.server_status.update({'hon_pid_hook':honPID})
+                self.hon_user = self.honEXE.username()
+                self.server_status.update({'hon_pid_owner':self.hon_user})
+                honCMD().initialise_variables("restart")
+                self.server_status.update({'realtime_priority':True})
+                return True
             except:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
