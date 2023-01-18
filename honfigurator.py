@@ -184,7 +184,7 @@ if is_admin():
                         deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{deployed_status['svr_id']}"})
                     os.chdir(deployed_status['sdc_home_dir'])
                     #os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
-                    Thread(target=os.startfile,args=[f"{self.dataDict['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe"]).start()
+                    Thread(target=os.startfile,args=[f"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe"]).start()
                     #sp.Popen([f"adminbot{deployed_status['svr_id']}-launch.exe"])
                     try:
                         os.chdir(application_path)
