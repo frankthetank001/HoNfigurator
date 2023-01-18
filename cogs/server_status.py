@@ -72,13 +72,13 @@ class honCMD():
                 except Exception as e:
                     print(e)
     def check_port(port):
-            result = os.system(f'netstat -oan |findstr 0.0.0.0:{port}')
-            if result == 0:
-                #print(f"Port {int(port)} is open")
-                return True
-            else:
-                #print(f"Port {int(port)} is not open")
-                return False
+        command = subprocess.Popen(['netstat','-oanp','udp'],stdout=subprocess.PIPE)
+        result = command.stdout.read()
+        result = result.decode()
+        if f"0.0.0.0:{port}" in result:
+            return True
+        else:
+            return False
     """
     Game server updates
     """
@@ -849,7 +849,7 @@ class honCMD():
     def startSERVER(self,reason):
         """startServer(): Check for running server instances, or start one if none is running"""
 
-        log_msg = f"Starting HoN server.\nReason: {reason}"
+        log_msg = f"Starting HoN server. Reason: {reason}"
         print(log_msg)
         honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
 
@@ -864,17 +864,20 @@ class honCMD():
                     if self.playerCount_pid_raw(proc.pid) == -1:
                         print(f"Terminated stuck instance: {processed_data_dict['hon_file_name']} (PID: {proc.pid})")
                         proc.terminate()
-                    else: # update the process information with the healthy instance PID. Healthy playercount is either -3 (off) or >= 0 (alive)
+            for proc in psutil.process_iter():
+                if proc.name() == processed_data_dict['hon_file_name']:
+                    if self.playerCount_pid_raw(proc.pid) == 0:
+                        #   update the process information with the healthy instance PID. Healthy playercount is either -3 (off) or >= 0 (alive)
                         proc_found = True
                         self.honEXE = proc
                         self.honP=proc.pid
             if proc_found:
                 try:
                     #   update the global dictionary with process information
-                    print(f"HoN PID: {self.honP}") # announce new PID
+                    print(f"Server found (PID={self.honP})") # announce new PID
                     self.server_status.update({'hon_exe':self.honEXE})
                     self.server_status.update({'hon_pid':self.honP})
-                    self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honEXE.pid)})
+                    self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honP)})
                     self.server_status.update({'hon_pid_owner':self.honEXE.username()})
                     honCMD().initialise_variables("restart")
                     self.server_status.update({'realtime_priority':True})
@@ -966,10 +969,10 @@ class honCMD():
             DETACHED_PROCESS = 0x00000008
             self.honEXE = subprocess.Popen(hon_commandline,close_fds=True, creationflags=DETACHED_PROCESS)
             
-            honCMD().append_line_to_file(processed_data_dict['app_log'],"Server starting.","INFO")
+            honCMD().append_line_to_file(processed_data_dict['app_log'],f"Server starting. Reason: {reason}","INFO")
 
             # update the dictionary with the process PID information
-            print(f"HoN PID: {self.honP}")
+            print(f"Server started (PID={self.honEXE.pid})")
             honPID = psutil.Process(pid=self.honEXE.pid)
             self.server_status.update({'hon_exe':self.honEXE})
             self.server_status.update({'hon_pid':self.honEXE.pid})
@@ -1005,7 +1008,7 @@ class honCMD():
             for proc in psutil.process_iter():
                 if proc.name() == processed_data_dict['hon_file_name']:
                     proc.terminate()
-                    log_msg = f"Server stopped (PID={proc.pid}).\nReason: {reason}"
+                    log_msg = f"Server stopped (PID={proc.pid}). Reason: {reason}"
                     print(log_msg)
                     honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
             self.server_status.update({'update_embeds':True})
@@ -1024,7 +1027,7 @@ class honCMD():
                 print(log_msg)
                 honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
                 try:
-                    honCMD().stopSERVER(force,"stopping as part of restart function")
+                    honCMD().stopSERVER(force,reason)
                 except:
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 #
@@ -1036,24 +1039,24 @@ class honCMD():
                 #
                 #   Once detects server is offline with above code start the server
                 try:
-                    honCMD().startSERVER("Starting as part of restart function")
+                    honCMD().startSERVER(reason)
                 except:
                     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         else:
             self.server_status.update({'update_embeds':True})
             self.server_status.update({'tempcount':-5})
-            
+
         return True
 
     def restartSELF(self,reason):
-        log_msg = f"Server restarting HARD - means we are restarting the actual service or adminbot console in addition to the hon server.\nReason: {reason}"
+        log_msg = f"Server restarting HARD - means we are restarting the actual service or adminbot console in addition to the hon server. Reason: {reason}"
         print(log_msg)
         honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
         os.chdir(processed_data_dict['sdc_home_dir'])
         subprocess.Popen([f"start",f"adminbot{processed_data_dict['svr_id']}-launch.exe","restart"],shell=True)
 
     def stopSELF(self,reason):
-        log_msg = f"Server stopping HARD - means we are intentionally stopping the service or adminbot console.\nReason: {reason}"
+        log_msg = f"Server stopping HARD - means we are intentionally stopping the service or adminbot console. Reason: {reason}"
         honCMD().append_line_to_file(processed_data_dict['app_log'],log_msg,"INFO")
         try:
             honCMD().stopSERVER(True,"Stopping as part of hard shutdown.")

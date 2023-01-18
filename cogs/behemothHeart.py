@@ -547,7 +547,7 @@ class heartbeat(commands.Cog):
         #  playercount = 0
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5  / heartbeat_freq # how long we wait before checking if the lobby has been created yet
-        threshold_health_checks = 30 / heartbeat_freq
+        threshold_health_checks = 120 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
         threshold_game_end_check = 180 / heartbeat_freq
         replay_threshold = 330 / heartbeat_freq
@@ -689,9 +689,9 @@ class heartbeat(commands.Cog):
                             if 'svr_proxyPort' in processed_data_dict_bkp:
                                 proxy_online=svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyPort']))
                                 if proxy_online:
-                                    print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} healthy")
+                                    print(f"Health check: server proxy port {processed_data_dict_bkp['svr_proxyPort']} healthy")
                                 else:
-                                    print(f"Health check: proxy port {processed_data_dict_bkp['svr_proxyPort']} not online")
+                                    print(f"Health check: server proxy port {processed_data_dict_bkp['svr_proxyPort']} not online")
                                     svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}","The proxy port has stopped listening.","WARNING")
             except:
                 print(traceback.format_exc())
@@ -709,7 +709,8 @@ class heartbeat(commands.Cog):
                 if server_status_bkp['server_ready'] == False:
                     if svrcmd.honCMD.check_port(int(processed_data_dict_bkp['svr_proxyLocalVoicePort'])):
                         waiting = False
-                        print(f"Port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} is open")
+                        print(f"Health check: local voice port {processed_data_dict_bkp['svr_proxyLocalVoicePort']} healthy")
+                        print(f"Server ready")
                         server_status_bkp.update({'server_ready':True})
                     else:
                         if not waiting:
