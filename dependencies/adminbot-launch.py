@@ -15,6 +15,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
     raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running <honfigurator-home>\\honfigurator-install-dependencies.bat.")
     sys.exit(-1)
 sys.excepthook = show_exception_and_exit
+
 def check_proc(proc_name):
     for proc in psutil.process_iter():
         if proc.name() == proc_name:
@@ -87,19 +88,18 @@ if exists(old_adminbot_launch_exe):
         print(traceback.format_exc())
 
 basename=os.path.basename(sys.argv[0])
-exe=basename.split("-")
-name=f"{exe[0]}.exe"
+if "-" in basename:
+    exe=basename.split("-")
+    name=f"{exe[0]}.exe"
+else:
+    exe=basename.split(".")
+    name=f"{exe[0]}{confDict['svr_id']}.exe"
 for p in psutil.process_iter():
     if name in p.name():
         current_pid = os.getpid()
         other_pid = p.pid
         if other_pid != current_pid:
             p.kill()
-# for p in psutil.process_iter():
-#     if name in p.name():
-#         cmdline = p.cmdline()
-#         if len(cmdline) > 1 and cmdline[1] == "adminbot.py":
-#             p.kill()
 if confDict['use_console'] == 'True':
     print("starting in console mode")
     subprocess.Popen([name,'adminbot.py'])
