@@ -2733,6 +2733,8 @@ if is_admin():
                             print(e)
                         if log != False:
                             cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
+                        else:
+                            cookie = True
                         schd_restart = False
                         schd_shutdown = False
                         schd_restart=initialise.check_schd_restart(deployed_status)
