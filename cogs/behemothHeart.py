@@ -541,6 +541,7 @@ class heartbeat(commands.Cog):
         counter_health_checks = 0
         counter_ipcheck = 0
         counter_game_end = 0
+        counter_pending_players_leaving = 0
         waited=0
         wait=1800 / heartbeat_freq
         #  Debug setting
@@ -548,6 +549,7 @@ class heartbeat(commands.Cog):
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5  / heartbeat_freq # how long we wait before checking if the lobby has been created yet
         threshold_health_checks = 120 / heartbeat_freq
+        threshold_pending_players_leaving = 120 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
         threshold_game_end_check = 180 / heartbeat_freq
         replay_threshold = 330 / heartbeat_freq
@@ -742,6 +744,7 @@ class heartbeat(commands.Cog):
                             #   player has connected, check the match ID.
                             #   This works because there was no match ID, now there is. This won't trigger if the console is restarted while a player is connected.
                             svr_state.check_current_match_id(True)
+                            match_status_bkp.update({'at_least_2_players':True})
                         else:
                             #   check the match ID if 2 or more players are connected and the console has been restarted.
                             #   It has no other way to tell if it's an old match ID or a new one
@@ -771,15 +774,19 @@ class heartbeat(commands.Cog):
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
-                        # match_time = match_status_bkp['match_time']
-                        # if ":" in match_time:
-                        #     match_too_long = match_time.split(":")
-                        #     match_too_long_hrs = int(match_too_long[0])
-                        #     match_too_long_mins = int(match_too_long[1])
-                        #     if match_too_long_hrs >= 1:
-                        #         msg = f"Server restarting due to match ongoing for 1+ with only 1 players connected."
-                        #         print(msg)
-                        #         svr_state.restartSERVER(True,msg)
+                        if match_status_bkp['at_least_2_players']:
+                            match_time = match_status_bkp['match_time']
+                            if ":" in match_time:
+                                match_too_long = match_time.split(":")
+                                match_too_long_hrs = int(match_too_long[0])
+                                match_too_long_mins = int(match_too_long[1])
+                                if match_too_long_mins >= 45:
+                                    counter_pending_players_leaving +=1
+                                    if counter_pending_players_leaving >= threshold_pending_players_leaving:
+                                        counter_pending_players_leaving = 0
+                                        msg = f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game."
+                                        print(msg)
+                                        svr_state.restartSERVER(True,msg)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"{traceback.format_exc()}","WARNING")

@@ -833,6 +833,7 @@ class honCMD():
         self.server_status.update({"hard_reset":False})
         self.server_status.update({'crash':True})
         self.server_status.update({'server_start_attempts':0})
+        self.server_status.update({'at_least_2_players':False})
         honCMD().reset_log_mtime_files()
 
         #
