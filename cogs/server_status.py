@@ -55,7 +55,6 @@ class honCMD():
     def check_proc(proc_name):
         for proc in psutil.process_iter():
             if proc.name() == proc_name:
-                print(f"found PID: {proc.pid}")
                 return True
         return False
     def stop_proc_by_name(proc_name):
