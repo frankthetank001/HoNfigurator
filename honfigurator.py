@@ -48,7 +48,7 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import winreg
-import speedtest
+#import speedtest
 
 i=0
 for proc in psutil.process_iter():
