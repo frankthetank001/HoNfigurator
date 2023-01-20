@@ -366,7 +366,7 @@ class heartbeat(commands.Cog):
                 self.server_status.update({'tempcount_bkp':playercount})
                 print(f"players: {playercount}")
 
-    async def startheart_bkp(self):
+    async def startheart_bkp():
         global alive_bkp
         global alive
         alive_bkp='True'
@@ -416,7 +416,6 @@ class heartbeat(commands.Cog):
         svr_state.append_line_to_file(f"{processed_data_dict_bkp['app_log']}",f"Starting heartbeat, data dump: {processed_data_dict_bkp}","INFO")
         print(processed_data_dict_bkp)
         while alive_bkp == 'True':
-            heartbeat.run_heartbeat_poll()
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(processed_data_dict_bkp['hon_file_name'])
             except Exception: pass
