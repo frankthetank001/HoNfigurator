@@ -36,12 +36,6 @@ svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
 #   game server data like svr_ip, svr_port, svr_name etc that is sent to the master server
 #server_data_dict = dmgr.parse_config(f"{processed_data_dict['hon_game_dir']}\\startup.cfg")
-server_data_dict = dmgr.parse_config(f"{hon_game_dir}\\startup.cfg")
-svr_name = server_data_dict['svr_name']
-svr_name = svr_name.strip('"')
-svr_location = server_data_dict['svr_location']
-svr_port = server_data_dict['svr_port']
-svr_port = svr_port.strip('"')
 #svr_proxy_enabled = server_data_dict['man_enableProxy']
 
 if processed_data_dict['master_server'] == "honmasterserver.com":
