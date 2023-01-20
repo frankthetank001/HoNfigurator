@@ -306,7 +306,7 @@ if is_admin():
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
                 print("starting backup heart until discord !createinks command is run.")
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
-                await heart.heartbeat.startheart_bkp()
+                await heart.heartbeat().startheart_bkp()
         #@bot.event
         # async def on_ready():
             
