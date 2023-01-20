@@ -306,7 +306,7 @@ if is_admin():
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
                 print("starting backup heart until discord !createinks command is run.")
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
-                await heart.heartbeat().startheart_bkp()
+                await heart.heartbeat.startheart_bkp()
         #@bot.event
         # async def on_ready():
             
@@ -1015,37 +1015,37 @@ if is_admin():
                 #     if isinstance(error, commands.CommandNotFound):
                 #         await ctx.send("words i guess")
                 await ctx.invoke(bot.get_command('portalhelp'))
-        async def run_bot_local(self):
-            try:
-                print("bot started in local mode.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
-                tempData = {'bot_first_run':True}
-                svr_cmd.updateStatus(tempData)
-                result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
-                if result == True:
-                    log_msg = "server started successfully"
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"INFO")
-                elif result == "ram":
-                    log_msg = "not enough free RAM to start the server."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
-                elif result == "proxy":
-                    log_msg = "Proxy port is not online."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
-                elif result == "process not found":
-                    log_msg = f"existing hon process is running, however it is not returning a valid return code. Please investigate {processed_data_dict['hon_file_name']}. Possibly terminate the process manually."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
-                else:
-                    log_msg = "starting the server completely failed for an unaccounted for reason."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
-            except Exception:
-                print(traceback.format_exc())
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            await heart.heartbeat.startheart_bkp(self)
+    async def run_bot_local():
+        try:
+            print("bot started in local mode.")
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+            tempData = {'bot_first_run':True}
+            svr_cmd.updateStatus(tempData)
+            result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
+            if result == True:
+                log_msg = "server started successfully"
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"INFO")
+            elif result == "ram":
+                log_msg = "not enough free RAM to start the server."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+            elif result == "proxy":
+                log_msg = "Proxy port is not online."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+            elif result == "process not found":
+                log_msg = f"existing hon process is running, however it is not returning a valid return code. Please investigate {processed_data_dict['hon_file_name']}. Possibly terminate the process manually."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+            else:
+                log_msg = "starting the server completely failed for an unaccounted for reason."
+                print(log_msg)
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+        except Exception:
+            print(traceback.format_exc())
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        await heart.heartbeat.startheart_bkp()
     def run_bot_disc():
         if processed_data_dict['disable_bot'] == 'False':
             hsl(bot)
@@ -1053,7 +1053,7 @@ if is_admin():
             bot.run(processed_data_dict['token'])
     if __name__ == '__main__':
         if processed_data_dict['disable_bot'] == 'True':
-            asyncio.run(hsl.run_bot_local())
+            asyncio.run(run_bot_local())
         else:
             run_bot_disc()
 else:
