@@ -2387,9 +2387,9 @@ if is_admin():
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         hon_running=initialise.check_proc(f"KONGOR_ARENA_{i}.exe")
                         if bot_running or hon_running:
-                                    initialise.stop_bot(self,f"{service_name}.exe")
-                                    initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
-                                    initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
