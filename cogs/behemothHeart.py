@@ -64,7 +64,7 @@ class heartbeat(commands.Cog):
         self.server_status.update({'server_ready':False})
         bkup_heart_file=f"{self.processed_data_dict['sdc_home_dir']}\\cogs\\bkup_heart"
         with open(bkup_heart_file, 'w') as f:
-            f.write(self.processed_data_dict['disable_bots'])
+            f.write(self.processed_data_dict['disable_bot'])
 
         
         svr_state.check_current_match_id(False)
@@ -99,7 +99,6 @@ class heartbeat(commands.Cog):
         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
         print(self.processed_data_dict)
         while alive:
-            heartbeat.run_heartbeat_poll()
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
             except Exception: pass
