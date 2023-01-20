@@ -48,6 +48,8 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import winreg
+import speedtest
+
 i=0
 for proc in psutil.process_iter():
     if proc.name() == "honfigurator.exe":
@@ -223,6 +225,15 @@ if is_admin():
             for proc in psutil.process_iter():
                 if proc.name() == proc_name:
                     proc.kill()
+        def upload_speed():
+            def bytes_to_mb(bytes):
+                KB = 1024 # One Kilobyte is 1024 bytes
+                MB = KB * 1024 # One MB is 1024 KB
+                return int(bytes/MB)
+            speed_test = speedtest.Speedtest()
+            upload_speed = bytes_to_mb(speed_test.upload())
+            print("Your upload speed is", upload_speed, "MB")
+            return upload_speed
         def add_hosts_entry(self):
             global ip_addr
 
@@ -1113,7 +1124,6 @@ if is_admin():
             self.initdict = dmgr.mData()
             self.dataDict = self.initdict.returnDict()
             print (self.dataDict)
-            
             return
         def onerror(func, path, exc_info):
             """
@@ -1133,7 +1143,7 @@ if is_admin():
                 func(path)
             else:
                 raise
-        def update_local_config(self,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
             #
@@ -1329,6 +1339,28 @@ if is_admin():
         #         if svrloc == reg.lower():
         #             self.svr_loc.set(reglist[0][reglist[0].index(reg)])
         #             self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+        def switch_widget_state(self,var,index,mode):
+            if self.disablebot.get() == False:
+                current_text = self.tab1_discordadmin.get()
+                self.tab1_discordadmin.delete(0,END)
+                self.tab1_discordadmin.insert(0,f"{current_text} (DISABLED)")
+                self.tab1_discordadmin.configure(state="disabled",foreground="grey")
+
+                
+                current_text = self.tab1_bottokd.get()
+                self.tab1_bottokd.delete(0,END)
+                self.tab1_bottokd.insert(0,f"{current_text} (DISABLED)")
+                self.tab1_bottokd.configure(state="disabled",foreground="grey")
+            else:
+                current_text = self.tab1_discordadmin.get()
+                self.tab1_discordadmin.configure(state="enabled",foreground="white")
+                self.tab1_discordadmin.delete(0,END)
+                self.tab1_discordadmin.insert(0,current_text.replace(" (DISABLED)",""))
+
+                current_text = self.tab1_bottokd.get()
+                self.tab1_bottokd.configure(state="enabled",foreground="white")
+                self.tab1_bottokd.delete(0,END)
+                self.tab1_bottokd.insert(0,current_text.replace(" (DISABLED)",""))
         def svr_num_link(self,var,index,mode):
             if self.svr_id_var.get() == "(for single server)":
                 return
@@ -2124,9 +2156,13 @@ if is_admin():
             tab1_console_btn.grid(column= 1, row = 9,sticky="w",pady=2)
             # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
             #
-            
             #    Setup Info
             applet.Label(tab1, text="Discord Data",background=maincolor,foreground='white').grid(columnspan=1,column=4, row=1,sticky="w")
+            #    Decide if bots are enabled
+            # if self.dataDict['disable_bot'] == 'True':
+            #     bots_enabled = "disabled"
+            # else:
+            #     bots_enabled = "enabled"
             #   discord admin
             applet.Label(tab1, text="Bot Owner (discord ID):",background=maincolor,foreground='white').grid(column=3, row=2,sticky="e",padx=[20,0])
             self.tab1_discordadmin = applet.Entry(tab1,foreground=textcolor,width=45)
@@ -2141,31 +2177,35 @@ if is_admin():
                     f"The secret token which your bot uses to authenticate to Discord. View github to see instructions on creating your own Discord bot.\nPermissions integer: 533650040896.\nRequires message content intent.")
             self.tab1_bottokd.insert(0,self.dataDict['token'])
             self.tab1_bottokd.grid(column= 4, row = 3,sticky="w",pady=4,padx=[0,20])
+            #  Run without bots 
+            applet.Label(tab1, text="Enable discord bots:",background=maincolor,foreground='white').grid(column=3, row=4,sticky="e",padx=[20,0])
+            self.disablebot = tk.BooleanVar(app)
+            if self.dataDict['disable_bot'] == 'True':
+                self.disablebot.set(False)
+            else:
+                self.disablebot.set(True)
+            tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.disablebot)
+            labl_ttp = honfigurator.CreateToolTip(tab1_disablebot_btn, \
+                    f"Run the with the addition of discord bots (receive personalised alerts).")
+            tab1_disablebot_btn.grid(column= 4, row = 4,sticky="w",pady=4)
+            self.disablebot.trace_add('write', self.switch_widget_state)
+            honfigurator.switch_widget_state(self,NULL,NULL,NULL)
             #  allow bot matches 
-            applet.Label(tab1, text="Allow bot matches:",background=maincolor,foreground='white').grid(column=3, row=4,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Allow bot matches:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
             self.botmatches = tk.BooleanVar(app)
             tab1_botmatches_btn = applet.Checkbutton(tab1,variable=self.botmatches)
             labl_ttp = honfigurator.CreateToolTip(tab1_botmatches_btn, \
                     f"Bot matches are disabled by default. Check this box to enable bot matches to be played.")
-            tab1_botmatches_btn.grid(column= 4, row = 4,sticky="w",pady=4)
+            tab1_botmatches_btn.grid(column= 4, row = 5,sticky="w",pady=4)
             #  Debug mode 
-            applet.Label(tab1, text="Debug mode:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
+            applet.Label(tab1, text="Debug mode:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
             self.debugmode = tk.BooleanVar(app)
             if self.dataDict['debug_mode'] == 'True':
                 self.debugmode.set(True)
             tab1_debugmode_btn = applet.Checkbutton(tab1,variable=self.debugmode)
             labl_ttp = honfigurator.CreateToolTip(tab1_debugmode_btn, \
                     f"Enhanced logging, specifically in eventlog sent to Discord DM by bot. Only relevant if discord bots are enabled.")
-            tab1_debugmode_btn.grid(column= 4, row = 5,sticky="w",pady=4)
-            #  Run without bots 
-            applet.Label(tab1, text="Run without discord bots:",background=maincolor,foreground='white').grid(column=3, row=6,sticky="e",padx=[20,0])
-            self.disablebot = tk.BooleanVar(app)
-            if self.dataDict['disable_bot'] == 'True':
-                self.disablebot.set(True)
-            tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.disablebot)
-            labl_ttp = honfigurator.CreateToolTip(tab1_disablebot_btn, \
-                    f"Run the app in default mode without enabling on Discord bots.")
-            tab1_disablebot_btn.grid(column= 4, row = 6,sticky="w",pady=4)
+            tab1_debugmode_btn.grid(column= 4, row = 6,sticky="w",pady=4)
             # auto configure servers on update
             applet.Label(tab1, text="Auto-Configure servers on update:",background=maincolor,foreground='white').grid(column=3, row=7,sticky="e",padx=[20,0])
             self.autoupdate = tk.BooleanVar(app)
@@ -2344,13 +2384,12 @@ if is_admin():
                                 else:
                                     tex.insert(END,f"{service_name} failed to stop.\n")
                         bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe")
-
                         bot_running=initialise.check_proc(f"{service_name}.exe")
-                        hon_running=initialise.check_proc(f"KONGOR_ARENA_{id}.exe")
+                        hon_running=initialise.check_proc(f"KONGOR_ARENA_{i}.exe")
                         if bot_running or hon_running:
                                     initialise.stop_bot(self,f"{service_name}.exe")
-                                    initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                                    initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                                    initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
+                                    initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
