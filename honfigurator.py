@@ -1108,12 +1108,12 @@ if is_admin():
                 initialise.print_and_tex(self,f"[{self.service_name_bot}] APPLIED v{self.bot_version} in {mode} mode!",'interest')
                 if self.dataDict['use_proxy'] == 'False':
                     #initialise.print_and_tex(self,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
-                    ports_to_forward_game.append(self.startup['svr_port'])
-                    ports_to_forward_voice.append(self.startup['svr_proxyLocalVoicePort'])
+                    ports_to_forward_game.append(self.dataDict['svr_port'])
+                    ports_to_forward_voice.append(self.dataDict['svr_proxyLocalVoicePort'])
                 elif self.dataDict['use_proxy'] == 'True':
                     #initialise.print_and_tex(self,f"Server ports (PROXY): Game ({self.startup['svr_proxyPort']}), Voice ({self.startup['svr_proxyRemoteVoicePort']})\n")
-                    ports_to_forward_game.append(self.startup['svr_proxyPort'])
-                    ports_to_forward_voice.append(self.startup['svr_proxyRemoteVoicePort'])
+                    ports_to_forward_game.append(self.dataDict['svr_proxyPort'])
+                    ports_to_forward_voice.append(self.dataDict['svr_proxyRemoteVoicePort'])
             else:
                 initialise.print_and_tex(self,f"ADMINBOT{self.svr_id} v{self.bot_version}")
                 initialise.print_and_tex(self,"NO UPDATES OR CONFIGURATION CHANGES MADE")
@@ -1792,12 +1792,12 @@ if is_admin():
                             #initialise.print_and_tex(self,f"[adminbot{serverid}] OK")
                         else:
                             initialise.print_and_tex(self,f"[adminbot{serverid}] Failed to start.")
-                initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Game): "+', '.join(ports_to_forward_game)),'interest')
-                initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Voice): "+', '.join(ports_to_forward_voice)),'interest')
+                initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Game): {', '.join(map(str,ports_to_forward_game))}",'interest')
+                initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Voice): {', '.join(map(str,ports_to_forward_voice))}",'interest')
                 if self.dataDict['use_proxy'] == 'False':
                     initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))),'interest')
                 else:
-                    initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): \""+str((int(self.dataDict['game_starting_port']) + 10000 - 1))),'interest')
+                    initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) + 10000 - 1))),'interest')
                 return
         def check_deployed_update(self):
             global ports_to_forward_game
