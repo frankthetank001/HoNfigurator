@@ -22,7 +22,6 @@ class heartbeat(commands.Cog):
         self.bot = bot
         self.alive = False
         self.processed_data_dict = svr_state.getDataDict()
-        app_log = self.processed_data_dict['app_log']
         #self.svr_ctrl = svrcmd.honCMD()
     # @bot.command()
     # async def getStatus(self,ctx):
@@ -41,8 +40,7 @@ class heartbeat(commands.Cog):
             print(traceback.format_exc())
             print("most likely because the auto-sync function is being used, therefore we can't send a log message to anyone yet.")
 
-    def print_and_log(log_msg,log_lvl):
-        global app_log
+    def print_and_log(app_log,log_msg,log_lvl):
         print(log_msg)
         svr_state.append_line_to_file(f"{app_log}",log_msg,log_lvl)
         
@@ -106,7 +104,7 @@ class heartbeat(commands.Cog):
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
             except Exception: pass
             if alive_bkp==True:
-                heartbeat.print_and_log("switching to local heartbeat - without discord bots.","INFO")
+                heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","switching to local heartbeat - without discord bots.","INFO")
                 alive_bkp=False
             if exists(bkup_heart_file):
                 with open(bkup_heart_file,'r') as f:
@@ -316,7 +314,7 @@ class heartbeat(commands.Cog):
                         self.server_status.update({'cookie':cookie})
                         self.server_status.update({'tempcount':-5})
                         if cookie == False:
-                            heartbeat.print_and_log(f"``{heartbeat.time()}`` [ERROR] No session cookie.","WARNING")
+                            heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"``{heartbeat.time()}`` [ERROR] No session cookie.","WARNING")
                             logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
                             try:
                                 await embed_log.edit(embed=logEmbed)
@@ -535,7 +533,7 @@ class heartbeat(commands.Cog):
                                 svr_state.restartSERVER(False,f"The user account which started the server is not the same one which just configured the server. Restarting to load server on {current_login} login")
                         else:
                             if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
-                                heartbeat.print_and_log(f"Currently running under user: {server_status_bkp['hon_pid_owner']}, should be 'NT Authority\\System'",'INFO')
+                                heartbeat.print_and_log(f"{processed_data_dict_bkp['app_log']}",f"Currently running under user: {server_status_bkp['hon_pid_owner']}, should be 'NT Authority\\System'",'INFO')
                                 svr_state.restartSERVER(False,"Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system.")
                         #   every counter_ipcheck_threshold seconds, check if the public IP has changed for the server. Schedule a restart if it has
                         if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
