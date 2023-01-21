@@ -1426,7 +1426,6 @@ if is_admin():
             global update_counter
             global updating
             
-            updating = True
             update_counter=0
             timeout=0
             patch_succesful = False
@@ -1434,6 +1433,7 @@ if is_admin():
             latest_version=svrcmd.honCMD().check_upstream_patch()
             if latest_version == '4.10.3': latest_version = '4.10.3.0'
             if ((current_version != latest_version) and latest_version != False) or force:
+                updating = True
                 print(f"Update available. {current_version} --> {latest_version}")
                 tex.insert(END,f"Update available. {current_version} --> {latest_version}")
                 tex.see(tk.END)
