@@ -31,6 +31,7 @@ svr_id_total = processed_data_dict['svrid_total']
 svr_ip = processed_data_dict['svr_ip']
 svr_dns = processed_data_dict['svr_dns']
 svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
+event_list = []
 
 #
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
@@ -104,6 +105,30 @@ class timeout:
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
 
+class offlineEmbedManager():
+    def __init__(self):
+        return
+    async def embedLog(self,log_msg):
+        global event_list
+        
+        list_limit = 15
+        event_list = open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt").readlines()
+        event_list.append(log_msg)
+        event_string = ""
+        if len(event_list)>list_limit:
+            event_list.remove(event_list[0])
+            for event_msg in event_list:
+                event_string = (event_string+event_msg)
+        # if len(event_list)<=list_limit:
+        #     for event_msg in event_list:
+        #         event_string = (event_string+event_msg)
+        with open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt", 'w') as f:
+            for line in event_list:
+                line = line.replace("\n","")
+                f.write(f"{line}\n")
+        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=''.join(event_list), color=stripColor_log)
+        return created_embed
+    
 class embedManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -423,18 +448,21 @@ class embedManager(commands.Cog):
 
     @bot.command()
     async def embedLog(self,ctx,log_msg):
+        global event_list
+        
         list_limit = 15
-        self.event_list.append(log_msg + "\n")
-        self.event_log =  (self.event_log + log_msg + "\n")
-        self.event_string = ""
-        if len(self.event_list)>list_limit:
-            self.event_list.remove(self.event_list[0])
-            for event_msg in self.event_list:
-                self.event_string = (self.event_string+event_msg)
-        if len(self.event_list)<=list_limit:
-            for event_msg in self.event_list:
-                self.event_string = (self.event_string+event_msg)
-        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=self.event_string, color=stripColor_log)
+        event_list = open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt").readlines()
+        event_list.append(log_msg)
+        event_string = ""
+        if len(event_list)>list_limit:
+            event_list.remove(event_list[0])
+            for event_msg in event_list:
+                event_string = (event_string+event_msg)
+        with open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt", 'w') as f:
+            for line in event_list:
+                line = line.replace("\n","")
+                f.write(f"{line}\n")
+        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=''.join(event_list), color=stripColor_log)
         return created_embed
 
 def setup(bot):
