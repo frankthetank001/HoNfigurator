@@ -532,7 +532,7 @@ class heartbeat(commands.Cog):
                                 svr_state.restartSERVER(False,f"The user account which started the server is not the same one which just configured the server. Restarting to load server on {current_login} login")
                         else:
                             if server_status_bkp['hon_pid_owner'] != "NT AUTHORITY\\SYSTEM":
-                                heartbeat.print_and_log(f"Currently running under user: {server_status_bkp['hon_pid_owner']}, should be 'NT Authority\\System'")
+                                heartbeat.print_and_log(f"Currently running under user: {server_status_bkp['hon_pid_owner']}, should be 'NT Authority\\System'",'INFO')
                                 svr_state.restartSERVER(False,"Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system.")
                         #   every counter_ipcheck_threshold seconds, check if the public IP has changed for the server. Schedule a restart if it has
                         if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in processed_data_dict_bkp:
