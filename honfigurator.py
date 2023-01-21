@@ -1392,6 +1392,7 @@ if is_admin():
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
             if latest_version == '4.10.3': latest_version = '4.10.3.0'
+            elif latest_version == '4.10.4': latest_version = '4.10.4.0'
 
             if ((current_version != latest_version) and latest_version != False and not updating) or force:
                 updating = True
