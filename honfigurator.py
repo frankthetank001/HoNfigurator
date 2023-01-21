@@ -1146,50 +1146,6 @@ if is_admin():
                 func(path)
             else:
                 raise
-        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
-            conf_local = configparser.ConfigParser()
-            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
-
-            discordadmin = discordadmin.replace(" (DISABLED)","")
-            bottoken = bottoken.replace(" (DISABLED)","")
-            #
-            #   local config
-            if not conf_local.has_section("OPTIONS"):
-                conf_local.add_section("OPTIONS")
-            conf_local.set("OPTIONS","svr_hoster",hoster)
-            #conf_local.set("OPTIONS","svr_region",region)
-            conf_local.set("OPTIONS","svr_region_short",regionshort)
-            conf_local.set("OPTIONS","svr_id",str(serverid))
-            if static_ip != '':
-                conf_local.set("OPTIONS","static_ip",'True')
-                conf_local.set("OPTIONS","svr_ip",str(static_ip))
-            else:
-                conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
-            conf_local.set("OPTIONS","svr_total",servertotal)
-            conf_local.set("OPTIONS","token",bottoken)
-            conf_local.set("OPTIONS","hon_directory",hondirectory)
-            conf_local.set("OPTIONS","hon_manager_dir",honreplay)
-            conf_local.set("OPTIONS","discord_admin",discordadmin)
-            conf_local.set("OPTIONS","master_server",master_server)
-            conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
-            conf_local.set("OPTIONS","core_assignment",core_assignment)
-            conf_local.set("OPTIONS","process_priority",process_priority)
-            conf_local.set("OPTIONS","incr_port_by",increment_port)
-            conf_local.set("OPTIONS","game_starting_port",game_port)
-            conf_local.set("OPTIONS","voice_starting_port",voice_port)
-            conf_local.set("OPTIONS","github_branch",str(selected_branch))
-            conf_local.set("OPTIONS","debug_mode",str(debug_mode))
-            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
-            conf_local.set("OPTIONS","svr_login",svr_login)
-            conf_local.set("OPTIONS","svr_password",svr_password)
-            conf_local.set("OPTIONS","use_console",str(use_console))
-            conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
-            conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-            conf_local.set("OPTIONS","auto_update",str(auto_update))
-            with open(config_local, "w") as c:
-                conf_local.write(c)
-            c.close()
-            initialise.print_and_tex(self,"Wrote new configuration.",'interest')
         def git_current_branch(self):
             try:
                 os.chdir(application_path)
@@ -1493,7 +1449,50 @@ if is_admin():
                     tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                     print(f"Server is already at the latest version ({latest_version}).")
                     tex.see(tk.END)
-            
+        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+            conf_local = configparser.ConfigParser()
+            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+
+            discordadmin = discordadmin.replace(" (DISABLED)","")
+            bottoken = bottoken.replace(" (DISABLED)","")
+            #
+            #   local config
+            if not conf_local.has_section("OPTIONS"):
+                conf_local.add_section("OPTIONS")
+            conf_local.set("OPTIONS","svr_hoster",hoster)
+            #conf_local.set("OPTIONS","svr_region",region)
+            conf_local.set("OPTIONS","svr_region_short",regionshort)
+            conf_local.set("OPTIONS","svr_id",str(serverid))
+            if static_ip != '':
+                conf_local.set("OPTIONS","static_ip",'True')
+                conf_local.set("OPTIONS","svr_ip",str(static_ip))
+            else:
+                conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+            conf_local.set("OPTIONS","svr_total",servertotal)
+            conf_local.set("OPTIONS","token",bottoken)
+            conf_local.set("OPTIONS","hon_directory",hondirectory)
+            conf_local.set("OPTIONS","hon_manager_dir",honreplay)
+            conf_local.set("OPTIONS","discord_admin",discordadmin)
+            conf_local.set("OPTIONS","master_server",master_server)
+            conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+            conf_local.set("OPTIONS","core_assignment",core_assignment)
+            conf_local.set("OPTIONS","process_priority",process_priority)
+            conf_local.set("OPTIONS","incr_port_by",increment_port)
+            conf_local.set("OPTIONS","game_starting_port",game_port)
+            conf_local.set("OPTIONS","voice_starting_port",voice_port)
+            conf_local.set("OPTIONS","github_branch",str(selected_branch))
+            conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+            conf_local.set("OPTIONS","svr_login",svr_login)
+            conf_local.set("OPTIONS","svr_password",svr_password)
+            conf_local.set("OPTIONS","use_console",str(use_console))
+            conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+            conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+            conf_local.set("OPTIONS","auto_update",str(auto_update))
+            with open(config_local, "w") as c:
+                conf_local.write(c)
+            c.close()
+            initialise.print_and_tex(self,"Wrote new configuration.",'interest')
         def return_currentver(self):
             manifest=f"{self.dataDict['hon_directory']}Update\\manifest.xml"
             if exists(manifest):
@@ -1602,47 +1601,48 @@ if is_admin():
 
                 
                 # write config to file
-                conf_local = configparser.ConfigParser()
-                conf_global = configparser.ConfigParser()
+                honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                # conf_local = configparser.ConfigParser()
+                # conf_global = configparser.ConfigParser()
                 
-                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                honreplay = os.path.join(honreplay,'')
+                # hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+                # honreplay = os.path.join(honreplay,'')
                 
-                self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+                # self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
-                if not conf_local.has_section("OPTIONS"):
-                    conf_local.add_section("OPTIONS")
-                conf_local.set("OPTIONS","svr_hoster",hoster)
-                conf_local.set("OPTIONS","svr_region_short",regionshort)
-                conf_local.set("OPTIONS","svr_id",str(serverid))
-                if static_ip != '':
-                    conf_local.set("OPTIONS","static_ip",'True')
-                    conf_local.set("OPTIONS","svr_ip",str(static_ip))
-                else:
-                    conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
-                conf_local.set("OPTIONS","svr_total",servertotal)
-                conf_local.set("OPTIONS","token",bottoken)
-                conf_local.set("OPTIONS","hon_directory",hondirectory)
-                conf_local.set("OPTIONS","hon_manager_dir",honreplay)
-                conf_local.set("OPTIONS","discord_admin",discordadmin)
-                conf_local.set("OPTIONS","master_server",master_server)
-                conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
-                conf_local.set("OPTIONS","core_assignment",core_assignment)
-                conf_local.set("OPTIONS","process_priority",process_priority)
-                conf_local.set("OPTIONS","incr_port_by",increment_port)
-                conf_local.set("OPTIONS","game_starting_port",game_port)
-                conf_local.set("OPTIONS","voice_starting_port",voice_port)
-                conf_local.set("OPTIONS","github_branch",str(selected_branch))
-                conf_local.set("OPTIONS","debug_mode",str(debug_mode))
-                conf_local.set("OPTIONS","use_proxy",str(use_proxy))
-                conf_local.set("OPTIONS","svr_login",svr_login)
-                conf_local.set("OPTIONS","svr_password",svr_password)
-                conf_local.set("OPTIONS","use_console",str(use_console))
-                conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
-                conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-                with open(config_local, "w") as a:
-                    conf_local.write(a)
-                a.close()
+                # if not conf_local.has_section("OPTIONS"):
+                #     conf_local.add_section("OPTIONS")
+                # conf_local.set("OPTIONS","svr_hoster",hoster)
+                # conf_local.set("OPTIONS","svr_region_short",regionshort)
+                # conf_local.set("OPTIONS","svr_id",str(serverid))
+                # if static_ip != '':
+                #     conf_local.set("OPTIONS","static_ip",'True')
+                #     conf_local.set("OPTIONS","svr_ip",str(static_ip))
+                # else:
+                #     conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+                # conf_local.set("OPTIONS","svr_total",servertotal)
+                # conf_local.set("OPTIONS","token",bottoken)
+                # conf_local.set("OPTIONS","hon_directory",hondirectory)
+                # conf_local.set("OPTIONS","hon_manager_dir",honreplay)
+                # conf_local.set("OPTIONS","discord_admin",discordadmin)
+                # conf_local.set("OPTIONS","master_server",master_server)
+                # conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+                # conf_local.set("OPTIONS","core_assignment",core_assignment)
+                # conf_local.set("OPTIONS","process_priority",process_priority)
+                # conf_local.set("OPTIONS","incr_port_by",increment_port)
+                # conf_local.set("OPTIONS","game_starting_port",game_port)
+                # conf_local.set("OPTIONS","voice_starting_port",voice_port)
+                # conf_local.set("OPTIONS","github_branch",str(selected_branch))
+                # conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+                # conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+                # conf_local.set("OPTIONS","svr_login",svr_login)
+                # conf_local.set("OPTIONS","svr_password",svr_password)
+                # conf_local.set("OPTIONS","use_console",str(use_console))
+                # conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+                # conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+                # with open(config_local, "w") as a:
+                #     conf_local.write(a)
+                # a.close()
 
                 self.dataDict = self.initdict.returnDict()
 
