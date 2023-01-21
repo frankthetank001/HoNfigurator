@@ -1477,10 +1477,10 @@ if is_admin():
                         updating = False
                         return True
                     else:
-                        initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'interest')
+                        initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'warning')
                         updating = False
                         return False
-                initialise.print_and_tex(self,"not all servers are ready for update. Trying again later",'interest')
+                initialise.print_and_tex(self,"not all servers are ready for update. Trying again later",'warning')
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                 print(f"Server is already at the latest version ({latest_version}).")
