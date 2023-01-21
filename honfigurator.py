@@ -1149,6 +1149,9 @@ if is_admin():
         def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+
+            discordadmin = discordadmin.replace(" (DISABLED)","")
+            bottoken = bottoken.replace(" (DISABLED)","")
             #
             #   local config
             if not conf_local.has_section("OPTIONS"):
