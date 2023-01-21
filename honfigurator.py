@@ -1,6 +1,22 @@
 #import pkg_resources
+
 import sys
 import subprocess as sp
+import os
+
+def show_exception_and_exit(exc_type, exc_value, tb):
+    traceback.print_exception(exc_type, exc_value, tb)
+    print("Trying to attempt to update honfigurator to fix this...")
+    try:
+        os.chdir(application_path)
+    except Exception as e:
+        print(e)
+    output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+    tex.see(tk.END)
+    return output.returncode
+    raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+    sys.exit(-1)
+sys.excepthook = show_exception_and_exit
 
 try:
     import pkg_resources  # TODO: handle exception if this doesnt exist and install it
@@ -31,7 +47,6 @@ from PIL import Image, ImageTk
 import configparser
 import psutil
 import socket
-import os
 from asyncio.windows_events import NULL
 import time
 from os.path import exists
@@ -68,19 +83,6 @@ if getattr(sys, 'frozen', False):
 elif __file__:
     application_path = os.path.dirname(__file__)
 if is_admin():
-    def show_exception_and_exit(exc_type, exc_value, tb):
-        traceback.print_exception(exc_type, exc_value, tb)
-        print("Trying to attempt to update honfigurator to fix this...")
-        try:
-            os.chdir(application_path)
-        except Exception as e:
-            print(e)
-        output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
-        tex.see(tk.END)
-        return output.returncode
-        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
-        sys.exit(-1)
-    sys.excepthook = show_exception_and_exit
     exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
     sp.Popen(exp, shell=True).wait()
 
@@ -117,6 +119,7 @@ if is_admin():
     update_counter = 0
     refresh_counter = 0
     refresh_delay = 20
+    updating = False
 
     class bcolors:
         HEADER = '\033[95m'
@@ -1340,7 +1343,7 @@ if is_admin():
         #             self.svr_loc.set(reglist[0][reglist[0].index(reg)])
         #             self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
         def switch_widget_state(self,var,index,mode):
-            if self.disablebot.get() == False:
+            if self.enablebot.get() == True:
                 current_text = self.tab1_discordadmin.get()
                 self.tab1_discordadmin.delete(0,END)
                 self.tab1_discordadmin.insert(0,f"{current_text} (DISABLED)")
@@ -1421,30 +1424,19 @@ if is_admin():
             global update_counter
             global first_check_complete
             global update_counter
-
+            global updating
+            
+            updating = True
             update_counter=0
             timeout=0
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            if (current_version != latest_version and latest_version != False) or force:
+            if latest_version == '4.10.3': latest_version = '4.10.3.0'
+            if ((current_version != latest_version) and latest_version != False) or force:
                 print(f"Update available. {current_version} --> {latest_version}")
                 tex.insert(END,f"Update available. {current_version} --> {latest_version}")
                 tex.see(tk.END)
-                # rename files to prepare for patching
-                # for i in range(self.dataDict['svr_total']):
-                #     if exists(f"KONGOR_ARENA_{i}"):
-                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
-                #     if exists(f"KONGOR ARENA MANAGER old.exe"):
-                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
-                #     if exists(f"k2_x64.dll"):
-                #         shutil.move("k2_x64.dll","k2_x64_old.dll")
-                #     if exists("game\\game_shared_x64.dll"):
-                #         shutil.move("game\\game_shared_x64.dll","game\\game_shared_x64_old.dll")
-                #     if exists("game\\game_x64.dll"):
-                #         shutil.move("game\\game_x64.dll","game\\game_x64_old.dll")
-                #     if exists("game\\cgame_x64.dll"):
-                #         shutil.move("game\\cgame_x64.dll","game\\cgame_x64_old.dll")
                 ready_for_update = honfigurator.stop_all_for_update(self)
                 if ready_for_update:
                     os.chdir(hondirectory)
@@ -1455,19 +1447,16 @@ if is_admin():
                         svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    # if exists("hon_x64_tmp.exe"):
-                    #    os.remove("hon_x64_tmp.exe")
-                    # if exists("hon_x64.exe"):
-                    #    shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
-                    #sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
-                    sp.call(["hon_update_x64.exe"])
-                    while dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") != latest_version:
+                    #sp.Popen(["hon_update_x64.exe"])
+                    sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+                    while (current_version != latest_version):
+                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         time.sleep(30)
                         print("still updating...")
                         timeout+=1
                         if timeout==6:
-                            if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
-                                svrcmd.honCMD.stop_proc_by_name("hon_x64_tmp.exe")
+                            if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
+                                svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                             break
                     try:
                         os.chdir(application_path)
@@ -1483,11 +1472,15 @@ if is_admin():
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                             svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
+                        honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         update_counter = update_delay
+                        updating = False
+                        return True
                     else:
-                        print("Patch failed!")
-                        tex.insert(END,"Patch failed!\n Relaunching servers")
-                    honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'interest')
+                        updating = False
+                        return False
+                initialise.print_and_tex(self,"not all servers are ready for update. Trying again later",'interest')
             else:
                 tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                 print(f"Server is already at the latest version ({latest_version}).")
@@ -1819,13 +1812,13 @@ if is_admin():
                         use_console=False
                     #initialise.print_and_tex(self,f"\nServer requires update (adminbot{i})")
                     #initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
-                    #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
+                    #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
                     honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     #if initialise.playerCountX(self,i) >= 0:
                     initialise.print_and_tex(self,f"\n************* Configuring adminbot{i} *************","header")
                     initialise.print_and_tex(self,f"HoNfigurator version change from {deployed_ver} ---> {current_ver}.",'warning')
                     initialise(deployed_server).configureEnvironment(True,use_console)
-                    #honfigurator.sendData(self,False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
+                    #honfigurator.sendData(self,False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             players=False
             print("attempting to stop servers")
@@ -1843,7 +1836,8 @@ if is_admin():
                                 else:
                                     initialise.print_and_tex(self,f"{service_name} failed to stop.")
                         bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe") # if there is still an adminbot process - the app is running in console mode, stop it
-                        if bot_running:
+                        hon_running=svrcmd.honCMD.check_proc(deployed_status['hon_file_name'])
+                        if bot_running or hon_running:
                             initialise.stop_bot(self,f"{service_name}.exe")
                             initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
@@ -1861,6 +1855,7 @@ if is_admin():
                 initialise.print_and_tex(self,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
                 return False
             else:
+                print("Stopped all hon servers. Moving to update.")
                 service_manager_name = "HoN Server Manager"
                 manager_application = "KONGOR ARENA MANAGER.exe"
                 service_manager = initialise.get_service(service_manager_name)
@@ -2178,17 +2173,17 @@ if is_admin():
             self.tab1_bottokd.insert(0,self.dataDict['token'])
             self.tab1_bottokd.grid(column= 4, row = 3,sticky="w",pady=4,padx=[0,20])
             #  Run without bots 
-            applet.Label(tab1, text="Enable discord bots:",background=maincolor,foreground='white').grid(column=3, row=4,sticky="e",padx=[20,0])
-            self.disablebot = tk.BooleanVar(app)
+            applet.Label(tab1, text="Disable discord bots:",background=maincolor,foreground='white').grid(column=3, row=4,sticky="e",padx=[20,0])
+            self.enablebot = tk.BooleanVar(app)
             if self.dataDict['disable_bot'] == 'True':
-                self.disablebot.set(False)
+                self.enablebot.set(True)
             else:
-                self.disablebot.set(True)
-            tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.disablebot)
+                self.enablebot.set(False)
+            tab1_disablebot_btn = applet.Checkbutton(tab1,variable=self.enablebot)
             labl_ttp = honfigurator.CreateToolTip(tab1_disablebot_btn, \
                     f"Run the with the addition of discord bots (receive personalised alerts).")
             tab1_disablebot_btn.grid(column= 4, row = 4,sticky="w",pady=4)
-            self.disablebot.trace_add('write', self.switch_widget_state)
+            self.enablebot.trace_add('write', self.switch_widget_state)
             honfigurator.switch_widget_state(self,NULL,NULL,NULL)
             #  allow bot matches 
             applet.Label(tab1, text="Allow bot matches:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
@@ -2236,12 +2231,12 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,True,self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
                     f"Configure the currently selected server ID only.")
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,True,self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_allbutton, \
                     f"Configure ALL total servers.")
@@ -2249,7 +2244,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,True,self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -3021,6 +3016,8 @@ if is_admin():
                 global refresh_counter
                 global refresh_delay
                 global first_check_complete
+                global updating
+
                 update_counter+=1
                 refresh_counter+=1
                 #if (tabgui.index("current")) == 0:
@@ -3030,7 +3027,8 @@ if is_admin():
                     print("checking for honfigurator update")
                     self.update_repository(NULL,NULL,NULL)
                     print("checking for hon update")
-                    Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.disablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                    if not updating:
+                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,True,self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
