@@ -36,12 +36,6 @@ svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
 #   game server data like svr_ip, svr_port, svr_name etc that is sent to the master server
 #server_data_dict = dmgr.parse_config(f"{processed_data_dict['hon_game_dir']}\\startup.cfg")
-server_data_dict = dmgr.parse_config(f"{hon_game_dir}\\startup.cfg")
-svr_name = server_data_dict['svr_name']
-svr_name = svr_name.strip('"')
-svr_location = server_data_dict['svr_location']
-svr_port = server_data_dict['svr_port']
-svr_port = svr_port.strip('"')
 #svr_proxy_enabled = server_data_dict['man_enableProxy']
 
 if processed_data_dict['master_server'] == "honmasterserver.com":
@@ -181,7 +175,7 @@ class embedManager(commands.Cog):
                     # lobby active
                     elif playercount >= 1:
                         await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print("we mustn't have data for this yet")
@@ -218,7 +212,7 @@ class embedManager(commands.Cog):
                     # lobby active
                     elif playercount >= 1:
                         await ctx.invoke(bot.get_command('active'),rec_embed = embedObjects,playercount = playercount)
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 print("we mustn't have any data for this yet")
                 svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -233,7 +227,7 @@ class embedManager(commands.Cog):
         created_embed.set_thumbnail(url=offline)
         try:
             await rec_embed.edit(embed=created_embed)
-        except:
+        except Exception:
             print(traceback.format_exc())
             svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
@@ -247,7 +241,7 @@ class embedManager(commands.Cog):
         created_embed.set_footer(text=f"v{bot_version}  |  เกมส์ที่เล่นจบ: {self.server_status['total_games_played']}  |  รอผู้เล่นสร้างห้อง: {self.server_status['last_restart']}\nLast Alive: {embedManager.time()}")
         try:
             await rec_embed.edit(embed=created_embed)
-        except:
+        except Exception:
             print(traceback.format_exc())
             svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         return
@@ -279,7 +273,7 @@ class embedManager(commands.Cog):
             created_embed.set_thumbnail(url=online)
         try:
             await rec_embed.edit(embed=created_embed)
-        except:
+        except Exception:
             print(traceback.format_exc())
             svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         return
@@ -292,7 +286,7 @@ class embedManager(commands.Cog):
         created_embed = discord.Embed(title=f"{processed_data_dict['svr_region_short']} {processed_data_dict['svr_id_w_total']}                             กรุณารอเซิฟเวอร์กำลังรีสตาร์ท...", color=stripColor_restart)
         try:
             await rec_embed.edit(embed=created_embed)
-        except:
+        except Exception:
             print(traceback.format_exc())
             svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
@@ -327,7 +321,7 @@ class embedManager(commands.Cog):
             created_embed.set_thumbnail(url=hosted)
             try:
                 await rec_embed.edit(embed=created_embed)
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         #
@@ -405,7 +399,7 @@ class embedManager(commands.Cog):
                 created_embed.set_thumbnail(url=online)
             try:
                 await rec_embed.edit(embed=created_embed)
-            except:
+            except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 

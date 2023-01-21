@@ -60,7 +60,7 @@ class mData():
             try:
                 shutil.move(resource_path("config\\global_config.ini.incoming"),resource_path("config\\global_config.ini"))
             except Exception as e: print(e)
-
+        
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
         self.confDict = {}
@@ -111,8 +111,10 @@ class mData():
             self.confDict.update({'compiled_hash':'requires build'})
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
-        if 'disable_bot' not in self.confDict:
-            self.confDict.update({'disable_bot':'False'})
+        # TODO: hardcoding disable bot, maybe clean this later
+        # if 'disable_bot' not in self.confDict:
+        #     self.confDict.update({'disable_bot':'False'})
+        self.confDict.update({'disable_bot':'True'})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
@@ -175,13 +177,14 @@ class mData():
         # for option in conf_parse_local.options("OPTIONS"):
         #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
-            self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+                self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
         #if 'hon_root_dir' not in self.confDict_root:
             #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
         #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
             #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
         # else:
         #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
+        self.confDict_deployed = {k:v[0] for k,v in self.confDict_deployed.items()}
         self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
         self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
         self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
@@ -213,13 +216,17 @@ class mData():
             self.confDict_deployed.update({'voice_starting_port':self.confDict_root['voice_starting_port']})
         if 'auto_update' not in self.confDict_deployed:
             self.confDict_deployed.update({'auto_update':'True'})
+        # for k,v in self.confDict_deployed.items():
+        #     if type(v) == list:
+        #         v = v[0]
+        #         self.confDict_deployed.update({k:v})
         self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
         self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
         self.confDict_deployed.update({"svr_proxyRemoteVoicePort":self.confDict_deployed['svr_proxyLocalVoicePort']+10000})
         try:
             self.confDict_deployed.update({"svr_affinity":mData.check_affinity(svr_id,self.confDict_deployed['core_assignment'])})
-        except:pass
+        except Exception:pass
         if self.confDict_deployed['master_server'] == "honmasterserver.com":
             self.confDict_deployed.update({"hon_file_name":f"HON_SERVER_{svr_id}.exe"})
         else:
@@ -227,7 +234,7 @@ class mData():
         #
         try:
             hon_dir = self.confDict_deployed['hon_directory']
-        except: hon_dir = self.confDict_root['hon_directory']
+        except Exception: hon_dir = self.confDict_root['hon_directory']
         self.confDict_deployed.update({"hon_exe":f"{hon_dir}{self.confDict_deployed['hon_file_name']}"})
         self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
 
@@ -242,7 +249,7 @@ class mData():
         
         try:
             gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
-        except: gameDllHash = "null"
+        except Exception: gameDllHash = "null"
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
             self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-70.exe"})
             self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
@@ -326,9 +333,13 @@ class mData():
     #     conf_parse_local.read(f"{os.path.dirname(os.path.realpath(__file__))}\\..\\config\\local_config.ini")
     #     for option in conf_parse_local.options("OPTIONS"):
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})    
+    def return_commandline(self,processed_data_dict):
+        return [processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {processed_data_dict['svr_ip']}; Set svr_port {processed_data_dict['svr_port']}; Set svr_proxyPort {processed_data_dict['svr_proxyPort']}; Set svr_proxyLocalVoicePort {processed_data_dict['svr_proxyLocalVoicePort']}; Set svr_proxyRemoteVoicePort {processed_data_dict['svr_proxyRemoteVoicePort']}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']]
     def incr_port(svr_id,incr_port_by):
             incr_port = 0
             for i in range(0,svr_id):
+                if type(incr_port_by) == list:
+                    incr_port_by = int(incr_port_by[0])
                 incr_val = int(incr_port_by)
                 incr_port = incr_val * i
             #print("port iteration: " +str(incr_port))
@@ -399,7 +410,7 @@ class mData():
         if dtype == "svr_ip":
             try:
                 external_ip = urllib.request.urlopen('https://4.ident.me').read().decode('utf8')
-            except:
+            except Exception:
                 external_ip = urllib.request.urlopen('http://api.ipify.org').read().decode('utf8')
             return external_ip
         if dtype == "cores":
@@ -467,7 +478,7 @@ class mData():
                 dns = socket.gethostbyaddr(self.confDict['svr_ip'])
                 dns = dns[0]
                 return dns
-            except:
+            except Exception:
                 print("no DNS lookup for host.")
         if dtype == "lastRestartLoc":
             tmp = f"{self.confDict['sdc_home_dir']}\\last_restart_time"
