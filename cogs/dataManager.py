@@ -110,8 +110,10 @@ class mData():
             self.confDict.update({'compiled_hash':'requires build'})
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
-        if 'disable_bot' not in self.confDict:
-            self.confDict.update({'disable_bot':'False'})
+        # TODO: hardcoding disable bot, maybe clean this later
+        # if 'disable_bot' not in self.confDict:
+        #     self.confDict.update({'disable_bot':'False'})
+        self.confDict.update({'disable_bot':'True'})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})

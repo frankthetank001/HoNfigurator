@@ -119,6 +119,7 @@ if is_admin():
     update_counter = 0
     refresh_counter = 0
     refresh_delay = 20
+    updating = False
 
     class bcolors:
         HEADER = '\033[95m'
@@ -1145,46 +1146,6 @@ if is_admin():
                 func(path)
             else:
                 raise
-        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
-            conf_local = configparser.ConfigParser()
-            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
-            #
-            #   local config
-            if not conf_local.has_section("OPTIONS"):
-                conf_local.add_section("OPTIONS")
-            conf_local.set("OPTIONS","svr_hoster",hoster)
-            #conf_local.set("OPTIONS","svr_region",region)
-            conf_local.set("OPTIONS","svr_region_short",regionshort)
-            conf_local.set("OPTIONS","svr_id",str(serverid))
-            if static_ip != '':
-                conf_local.set("OPTIONS","static_ip",'True')
-                conf_local.set("OPTIONS","svr_ip",str(static_ip))
-            else:
-                conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
-            conf_local.set("OPTIONS","svr_total",servertotal)
-            conf_local.set("OPTIONS","token",bottoken)
-            conf_local.set("OPTIONS","hon_directory",hondirectory)
-            conf_local.set("OPTIONS","hon_manager_dir",honreplay)
-            conf_local.set("OPTIONS","discord_admin",discordadmin)
-            conf_local.set("OPTIONS","master_server",master_server)
-            conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
-            conf_local.set("OPTIONS","core_assignment",core_assignment)
-            conf_local.set("OPTIONS","process_priority",process_priority)
-            conf_local.set("OPTIONS","incr_port_by",increment_port)
-            conf_local.set("OPTIONS","game_starting_port",game_port)
-            conf_local.set("OPTIONS","voice_starting_port",voice_port)
-            conf_local.set("OPTIONS","github_branch",str(selected_branch))
-            conf_local.set("OPTIONS","debug_mode",str(debug_mode))
-            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
-            conf_local.set("OPTIONS","svr_login",svr_login)
-            conf_local.set("OPTIONS","svr_password",svr_password)
-            conf_local.set("OPTIONS","use_console",str(use_console))
-            conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
-            conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-            conf_local.set("OPTIONS","auto_update",str(auto_update))
-            with open(config_local, "w") as c:
-                conf_local.write(c)
-            c.close()
         def git_current_branch(self):
             try:
                 os.chdir(application_path)
@@ -1423,30 +1384,20 @@ if is_admin():
             global update_counter
             global first_check_complete
             global update_counter
-
+            global updating
+            
             update_counter=0
             timeout=0
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            if (current_version != latest_version and latest_version != False) or force:
+            if latest_version == '4.10.3': latest_version = '4.10.3.0'
+
+            if ((current_version != latest_version) and latest_version != False and not updating) or force:
+                updating = True
                 print(f"Update available. {current_version} --> {latest_version}")
                 tex.insert(END,f"Update available. {current_version} --> {latest_version}")
                 tex.see(tk.END)
-                # rename files to prepare for patching
-                # for i in range(self.dataDict['svr_total']):
-                #     if exists(f"KONGOR_ARENA_{i}"):
-                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
-                #     if exists(f"KONGOR ARENA MANAGER old.exe"):
-                #         shutil.move(f"KONGOR_ARENA_{i}.exe",f"KONGOR_ARENA_{i}_old.exe")
-                #     if exists(f"k2_x64.dll"):
-                #         shutil.move("k2_x64.dll","k2_x64_old.dll")
-                #     if exists("game\\game_shared_x64.dll"):
-                #         shutil.move("game\\game_shared_x64.dll","game\\game_shared_x64_old.dll")
-                #     if exists("game\\game_x64.dll"):
-                #         shutil.move("game\\game_x64.dll","game\\game_x64_old.dll")
-                #     if exists("game\\cgame_x64.dll"):
-                #         shutil.move("game\\cgame_x64.dll","game\\cgame_x64_old.dll")
                 ready_for_update = honfigurator.stop_all_for_update(self)
                 if ready_for_update:
                     os.chdir(hondirectory)
@@ -1457,19 +1408,16 @@ if is_admin():
                         svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
-                    # if exists("hon_x64_tmp.exe"):
-                    #    os.remove("hon_x64_tmp.exe")
-                    # if exists("hon_x64.exe"):
-                    #    shutil.copy("hon_x64.exe","hon_x64_tmp.exe")
-                    #sp.call(["hon_x64_tmp.exe","-update","-masterserver",master_server])
-                    sp.call(["hon_update_x64.exe"])
-                    while dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") != latest_version:
+                    #sp.Popen(["hon_update_x64.exe"])
+                    sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+                    while (current_version != latest_version):
+                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         time.sleep(30)
                         print("still updating...")
                         timeout+=1
                         if timeout==6:
-                            if svrcmd.honCMD.check_proc("hon_x64_tmp.exe"):
-                                svrcmd.honCMD.stop_proc_by_name("hon_x64_tmp.exe")
+                            if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
+                                svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                             break
                     try:
                         os.chdir(application_path)
@@ -1485,16 +1433,66 @@ if is_admin():
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                             svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
+                        honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         update_counter = update_delay
+                        updating = False
+                        return True
                     else:
-                        print("Patch failed!")
-                        tex.insert(END,"Patch failed!\n Relaunching servers")
-                    honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'warning')
+                        updating = False
+                        return False
+                initialise.print_and_tex(self,"not all servers are ready for update. Trying again later",'warning')
             else:
-                tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
-                print(f"Server is already at the latest version ({latest_version}).")
-                tex.see(tk.END)
-            
+                if updating:
+                    initialise.print_and_tex(self,"already updating.")
+                else:
+                    tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
+                    print(f"Server is already at the latest version ({latest_version}).")
+                    tex.see(tk.END)
+        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+            conf_local = configparser.ConfigParser()
+            self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+
+            discordadmin = discordadmin.replace(" (DISABLED)","")
+            bottoken = bottoken.replace(" (DISABLED)","")
+            #
+            #   local config
+            if not conf_local.has_section("OPTIONS"):
+                conf_local.add_section("OPTIONS")
+            conf_local.set("OPTIONS","svr_hoster",hoster)
+            #conf_local.set("OPTIONS","svr_region",region)
+            conf_local.set("OPTIONS","svr_region_short",regionshort)
+            conf_local.set("OPTIONS","svr_id",str(serverid))
+            if static_ip != '':
+                conf_local.set("OPTIONS","static_ip",'True')
+                conf_local.set("OPTIONS","svr_ip",str(static_ip))
+            else:
+                conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+            conf_local.set("OPTIONS","svr_total",servertotal)
+            conf_local.set("OPTIONS","token",bottoken)
+            conf_local.set("OPTIONS","hon_directory",hondirectory)
+            conf_local.set("OPTIONS","hon_manager_dir",honreplay)
+            conf_local.set("OPTIONS","discord_admin",discordadmin)
+            conf_local.set("OPTIONS","master_server",master_server)
+            conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+            conf_local.set("OPTIONS","core_assignment",core_assignment)
+            conf_local.set("OPTIONS","process_priority",process_priority)
+            conf_local.set("OPTIONS","incr_port_by",increment_port)
+            conf_local.set("OPTIONS","game_starting_port",game_port)
+            conf_local.set("OPTIONS","voice_starting_port",voice_port)
+            conf_local.set("OPTIONS","github_branch",str(selected_branch))
+            conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+            conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+            conf_local.set("OPTIONS","svr_login",svr_login)
+            conf_local.set("OPTIONS","svr_password",svr_password)
+            conf_local.set("OPTIONS","use_console",str(use_console))
+            conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+            conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+            conf_local.set("OPTIONS","auto_update",str(auto_update))
+            with open(config_local, "w") as c:
+                conf_local.write(c)
+            c.close()
+            initialise.print_and_tex(self,"Wrote new configuration.",'interest')
         def return_currentver(self):
             manifest=f"{self.dataDict['hon_directory']}Update\\manifest.xml"
             if exists(manifest):
@@ -1603,47 +1601,48 @@ if is_admin():
 
                 
                 # write config to file
-                conf_local = configparser.ConfigParser()
-                conf_global = configparser.ConfigParser()
+                honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                # conf_local = configparser.ConfigParser()
+                # conf_global = configparser.ConfigParser()
                 
-                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                honreplay = os.path.join(honreplay,'')
+                # hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+                # honreplay = os.path.join(honreplay,'')
                 
-                self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
+                # self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
-                if not conf_local.has_section("OPTIONS"):
-                    conf_local.add_section("OPTIONS")
-                conf_local.set("OPTIONS","svr_hoster",hoster)
-                conf_local.set("OPTIONS","svr_region_short",regionshort)
-                conf_local.set("OPTIONS","svr_id",str(serverid))
-                if static_ip != '':
-                    conf_local.set("OPTIONS","static_ip",'True')
-                    conf_local.set("OPTIONS","svr_ip",str(static_ip))
-                else:
-                    conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
-                conf_local.set("OPTIONS","svr_total",servertotal)
-                conf_local.set("OPTIONS","token",bottoken)
-                conf_local.set("OPTIONS","hon_directory",hondirectory)
-                conf_local.set("OPTIONS","hon_manager_dir",honreplay)
-                conf_local.set("OPTIONS","discord_admin",discordadmin)
-                conf_local.set("OPTIONS","master_server",master_server)
-                conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
-                conf_local.set("OPTIONS","core_assignment",core_assignment)
-                conf_local.set("OPTIONS","process_priority",process_priority)
-                conf_local.set("OPTIONS","incr_port_by",increment_port)
-                conf_local.set("OPTIONS","game_starting_port",game_port)
-                conf_local.set("OPTIONS","voice_starting_port",voice_port)
-                conf_local.set("OPTIONS","github_branch",str(selected_branch))
-                conf_local.set("OPTIONS","debug_mode",str(debug_mode))
-                conf_local.set("OPTIONS","use_proxy",str(use_proxy))
-                conf_local.set("OPTIONS","svr_login",svr_login)
-                conf_local.set("OPTIONS","svr_password",svr_password)
-                conf_local.set("OPTIONS","use_console",str(use_console))
-                conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
-                conf_local.set("OPTIONS","disable_bot",str(disable_bot))
-                with open(config_local, "w") as a:
-                    conf_local.write(a)
-                a.close()
+                # if not conf_local.has_section("OPTIONS"):
+                #     conf_local.add_section("OPTIONS")
+                # conf_local.set("OPTIONS","svr_hoster",hoster)
+                # conf_local.set("OPTIONS","svr_region_short",regionshort)
+                # conf_local.set("OPTIONS","svr_id",str(serverid))
+                # if static_ip != '':
+                #     conf_local.set("OPTIONS","static_ip",'True')
+                #     conf_local.set("OPTIONS","svr_ip",str(static_ip))
+                # else:
+                #     conf_local.set("OPTIONS","svr_ip",self.dataDict['svr_ip'])
+                # conf_local.set("OPTIONS","svr_total",servertotal)
+                # conf_local.set("OPTIONS","token",bottoken)
+                # conf_local.set("OPTIONS","hon_directory",hondirectory)
+                # conf_local.set("OPTIONS","hon_manager_dir",honreplay)
+                # conf_local.set("OPTIONS","discord_admin",discordadmin)
+                # conf_local.set("OPTIONS","master_server",master_server)
+                # conf_local.set("OPTIONS","allow_botmatches",f'{botmatches}')
+                # conf_local.set("OPTIONS","core_assignment",core_assignment)
+                # conf_local.set("OPTIONS","process_priority",process_priority)
+                # conf_local.set("OPTIONS","incr_port_by",increment_port)
+                # conf_local.set("OPTIONS","game_starting_port",game_port)
+                # conf_local.set("OPTIONS","voice_starting_port",voice_port)
+                # conf_local.set("OPTIONS","github_branch",str(selected_branch))
+                # conf_local.set("OPTIONS","debug_mode",str(debug_mode))
+                # conf_local.set("OPTIONS","use_proxy",str(use_proxy))
+                # conf_local.set("OPTIONS","svr_login",svr_login)
+                # conf_local.set("OPTIONS","svr_password",svr_password)
+                # conf_local.set("OPTIONS","use_console",str(use_console))
+                # conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
+                # conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+                # with open(config_local, "w") as a:
+                #     conf_local.write(a)
+                # a.close()
 
                 self.dataDict = self.initdict.returnDict()
 
@@ -1845,7 +1844,8 @@ if is_admin():
                                 else:
                                     initialise.print_and_tex(self,f"{service_name} failed to stop.")
                         bot_running=svrcmd.honCMD.check_proc(f"{service_name}.exe") # if there is still an adminbot process - the app is running in console mode, stop it
-                        if bot_running:
+                        hon_running=svrcmd.honCMD.check_proc(deployed_status['hon_file_name'])
+                        if bot_running or hon_running:
                             initialise.stop_bot(self,f"{service_name}.exe")
                             initialise.stop_bot(self,f"KONGOR_ARENA_{i}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{i}.exe")
@@ -1863,6 +1863,7 @@ if is_admin():
                 initialise.print_and_tex(self,"There are still some games in progress. Update requires that all servers are shutdown.\nA scheduled shutdown has been commenced. Server will update and restart automatically when all games complete","WARNING")
                 return False
             else:
+                print("Stopped all hon servers. Moving to update.")
                 service_manager_name = "HoN Server Manager"
                 manager_application = "KONGOR ARENA MANAGER.exe"
                 service_manager = initialise.get_service(service_manager_name)
@@ -2239,6 +2240,10 @@ if is_admin():
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
             #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_savesettings = applet.Button(tab1, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_savesettings.grid(columnspan=5,column=0, row=12,stick='n',padx=[350,0],pady=[0,0])
+            labl_ttp = honfigurator.CreateToolTip(tab1_savesettings, \
+                    f"Save the current configuration settings.")
             tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
@@ -2251,7 +2256,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -3023,6 +3028,8 @@ if is_admin():
                 global refresh_counter
                 global refresh_delay
                 global first_check_complete
+                global updating
+
                 update_counter+=1
                 refresh_counter+=1
                 #if (tabgui.index("current")) == 0:
@@ -3032,7 +3039,8 @@ if is_admin():
                     print("checking for honfigurator update")
                     self.update_repository(NULL,NULL,NULL)
                     print("checking for hon update")
-                    Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                    if not updating:
+                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
