@@ -103,7 +103,7 @@ class heartbeat(commands.Cog):
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
             except Exception: pass
             if alive_bkp==True:
-                heartbeat().print_and_log("switching to local heartbeat - without discord bots.","INFO")
+                heartbeat.print_and_log(self,"switching to local heartbeat - without discord bots.","INFO")
                 alive_bkp=False
             if exists(bkup_heart_file):
                 with open(bkup_heart_file,'r') as f:
@@ -153,7 +153,7 @@ class heartbeat(commands.Cog):
                             # server may have crashed, check if we can restart.
                             try:
                                 if svr_state.startSERVER("Attempting to start crashed instance"):
-                                    heartbeat().print_and_log(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {self.processed_data_dict['hon_game_dir']} for any crash dump files.","WARNING")
+                                    heartbeat.print_and_log(self,f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {self.processed_data_dict['hon_game_dir']} for any crash dump files.","WARNING")
                                     if self.processed_data_dict['discord_bots'] == 'True': logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` [DEBUG] RESTARTING SERVER FOR UPDATE")
                                     continue
                                 else:
@@ -240,7 +240,7 @@ class heartbeat(commands.Cog):
                                 if proxy_online:
                                     print(f"Health check: server proxy port {self.processed_data_dict['svr_proxyPort']} healthy")
                                 else:
-                                    heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening.","WARNING")
+                                    heartbeat.print_and_log(self,f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening.","WARNING")
                                     logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening.")
             except Exception:
                 print(traceback.format_exc())
@@ -313,7 +313,7 @@ class heartbeat(commands.Cog):
                         self.server_status.update({'cookie':cookie})
                         self.server_status.update({'tempcount':-5})
                         if cookie == False:
-                            heartbeat.print_and_log(f"``{heartbeat.time()}`` [ERROR] No session cookie.","WARNING")
+                            heartbeat.print_and_log(self,f"``{heartbeat.time()}`` [ERROR] No session cookie.","WARNING")
                             logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` [ERROR] No session cookie.")
                             try:
                                 await embed_log.edit(embed=logEmbed)
@@ -321,7 +321,7 @@ class heartbeat(commands.Cog):
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                         else:
-                            heartbeat.print_and_log(f"``{heartbeat.time()}`` [OK] Connection recovered.","INFO")
+                            heartbeat.print_and_log(self,f"``{heartbeat.time()}`` [OK] Connection recovered.","INFO")
                             logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` [OK] Connection recovered.")
                             try:
                                 await embed_log.edit(embed=logEmbed)
