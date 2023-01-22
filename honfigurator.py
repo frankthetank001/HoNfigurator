@@ -20,7 +20,7 @@ sys.excepthook = show_exception_and_exit
 
 try:
     import pkg_resources  # TODO: handle exception if this doesnt exist and install it
-    required = {'discord.py==1.7.3',
+    required = {'discord.py==2.1.0',
                 'GitPython==3.1.27',
                 'psutil==5.9.1',
                 'python_hosts==1.0.3',
@@ -34,6 +34,32 @@ try:
         python = python.split("\n")
         python = python[0]
         sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
+except Exception as e:
+    print(e)
+try:
+    required = ['discord.py==2.1.0',
+                'GitPython==3.1.27',
+                'psutil==5.9.1',
+                'python_hosts==1.0.3',
+                'WMI==1.5.1',
+                'requests',
+                'pillow']
+    installed_packages = sp.run(['pip','freeze'],stdout=sp.PIPE,text=True)
+    installed_packages = installed_packages.stdout
+    installed_packages_list = installed_packages.split('\n')
+    missing = set(required) - set(installed_packages_list)
+    for i in missing:
+        if "==" not in missing:
+            missing.remove(i)
+    if missing:
+        python = sp.getoutput('where python')
+        python = python.split("\n")
+        python = python[0]
+        result = sp.run([python, '-m', 'pip', 'install', *missing])
+        if result.returncode == 0:
+            print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}\Relaunching code.......")
+            python = sys.executable
+            os.execl(python, '"' + python + '"', *sys.argv)
 except Exception as e:
     print(e)
 
@@ -1391,7 +1417,10 @@ if is_admin():
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            if latest_version == '4.10.3': latest_version = '4.10.3.0'
+            
+            latest_version_list = latest_version.split('.')
+            if len(latest_version_list) == 3:
+                latest_version = f"{'.'.join(latest_version_list)}.0"
 
             if ((current_version != latest_version) and latest_version != False and not updating) or force:
                 updating = True
@@ -1411,8 +1440,8 @@ if is_admin():
                     #sp.Popen(["hon_update_x64.exe"])
                     sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
                     while (current_version != latest_version):
-                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         time.sleep(30)
+                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         print("still updating...")
                         timeout+=1
                         if timeout==6:

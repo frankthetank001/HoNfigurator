@@ -9,7 +9,10 @@ from datetime import datetime
 import traceback
 
 
-bot = commands.Bot(command_prefix='!', case_insensitive=True)
+discver = (discord.__version__).split(".")
+intents = discord.Intents.default()
+if int(discver[0]) >= 2: intents.message_content=True
+bot = commands.Bot(command_prefix='!',case_insensitive=True,intents=intents)
 
 dmgr = mData()
 svr_state = svrcmd.honCMD()
@@ -108,25 +111,33 @@ class timeout:
 class offlineEmbedManager():
     def __init__(self):
         return
-    async def embedLog(self,log_msg):
+    async def embedLog(self,log_msg,alert):
         global event_list
         
-        list_limit = 15
-        event_list = open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt").readlines()
+        list_limit = 5
+        event_list = open(processed_data_dict['dm_discord_hist']).readlines()
+        
         event_list.append(log_msg)
-        event_string = ""
-        if len(event_list)>list_limit:
+
+        while len(event_list)>list_limit:
             event_list.remove(event_list[0])
-            for event_msg in event_list:
-                event_string = (event_string+event_msg)
-        # if len(event_list)<=list_limit:
-        #     for event_msg in event_list:
-        #         event_string = (event_string+event_msg)
-        with open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt", 'w') as f:
+
+        with open(processed_data_dict['dm_discord_hist'], 'w') as f:
             for line in event_list:
                 line = line.replace("\n","")
                 f.write(f"{line}\n")
-        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=''.join(event_list), color=stripColor_log)
+        msg = ""
+        for l in event_list:
+            if alert:
+                if l == log_msg:
+                    msg = msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"
+                else:
+                    msg = msg+"```css\n"+l+"```"
+            else: 
+                msg = msg+"```css\n"+l+"```"
+        #msg = "```\ncss"+'```\ncss'.join(event_list)
+        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"{msg}", color=stripColor_log)
+        created_embed.set_footer(text="Different coloured text indicates an alert.")
         return created_embed
     
 class embedManager(commands.Cog):
@@ -447,23 +458,13 @@ class embedManager(commands.Cog):
         return created_embed
 
     @bot.command()
-    async def embedLog(self,ctx,log_msg):
-        global event_list
+    async def embedLog(self,log_msg,alert):
+        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert)
         
-        list_limit = 15
-        event_list = open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt").readlines()
-        event_list.append(log_msg)
-        event_string = ""
-        if len(event_list)>list_limit:
-            event_list.remove(event_list[0])
-            for event_msg in event_list:
-                event_string = (event_string+event_msg)
-        with open(f"{processed_data_dict['sdc_home_dir']}\\cogs\\log_embed.txt", 'w') as f:
-            for line in event_list:
-                line = line.replace("\n","")
-                f.write(f"{line}\n")
-        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=''.join(event_list), color=stripColor_log)
         return created_embed
 
-def setup(bot):
-    bot.add_cog(embedManager(bot))
+async def setup(bot):
+    if int(discver[0]) >=2:
+        await bot.add_cog(embedManager(bot))
+    else:
+        bot.add_cog(embedManager(bot))

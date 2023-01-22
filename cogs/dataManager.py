@@ -111,9 +111,9 @@ class mData():
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
         # TODO: hardcoding disable bot, maybe clean this later
-        # if 'disable_bot' not in self.confDict:
-        #     self.confDict.update({'disable_bot':'False'})
-        self.confDict.update({'disable_bot':'True'})
+        if 'disable_bot' not in self.confDict:
+            self.confDict.update({'disable_bot':'False'})
+        #self.confDict.update({'disable_bot':'True'})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
@@ -132,7 +132,9 @@ class mData():
         self.confDict.update({"svr_game_shared_dll":f"{self.confDict['hon_directory']}game\\game_shared_x64.dll"})
         self.confDict.update({"svr_game_dll":f"{self.confDict['hon_directory']}game\\game_x64.dll"})
         self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\\messages"})
-        self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\message{self.confDict['svr_identifier']}.txt"})
+        self.confDict.update({"ch_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\ch_message{self.confDict['svr_identifier']}-data.txt"})
+        self.confDict.update({"dm_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-data.txt"})
+        self.confDict.update({"dm_discord_hist":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-hist.txt"})
         self.confDict.update({"app_name":f"adminbot{self.svr_id}"})
         self.confDict.update({"app_log":f"{self.confDict['sdc_home_dir']}\\{self.confDict['app_name']}.log"})
         if 'static_ip' not in self.confDict:

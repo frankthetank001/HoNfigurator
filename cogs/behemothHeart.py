@@ -1,5 +1,6 @@
 from asyncio.windows_events import NULL
 from os.path import exists
+import discord
 from discord.ext import commands
 import asyncio
 import cogs.server_status as svrcmd
@@ -11,14 +12,18 @@ import time
 
 svr_state = svrcmd.honCMD()
 #hard_reset = False
-bot = commands.Bot(command_prefix='!', case_insensitive=True)
+
+discver = (discord.__version__).split(".")
+intents = discord.Intents.default()
+if int(discver[0]) >= 2: intents.message_content=True
+bot = commands.Bot(command_prefix='!',case_insensitive=True,intents=intents)
+
 alive = False
 alive_bkp = False
-global embed_log
+global dm_active_embed
 
 class heartbeat(commands.Cog):
     def __init__(self, bot):
-        global app_log
         self.bot = bot
         self.alive = False
         self.processed_data_dict = svr_state.getDataDict()
@@ -29,9 +34,9 @@ class heartbeat(commands.Cog):
         await ctx.send("💓")
     @bot.command()
     async def getembedlog(self,ctx,log_embed):
-        global embed_log
+        global dm_active_embed
         try:
-            embed_log = log_embed[0]
+            dm_active_embed = log_embed
         except Exception: 
             print(traceback.format_exc())
             print("most likely because the auto-sync function is being used, therefore we can't send a log message to anyone yet.")
@@ -42,19 +47,7 @@ class heartbeat(commands.Cog):
         
     @bot.command()
     async def startheart(self,ctx):
-        async def send_user_msg(ctx,log_msg):
-            rate_limited = bot.is_ws_ratelimited()
-            if not rate_limited:
-                logEmbed = await bot_message.embedLog(ctx,f"``{heartbeat.time()}`` {log_msg}")
-                try:
-                    await embed_log.edit(embed=logEmbed)
-                except Exception:
-                    print(traceback.format_exc())
-                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            else:
-                heartbeat.print_and_log("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
-
-        global embed_log
+        global dm_active_embed
         global alive
         global alive_bkp
 
@@ -71,6 +64,37 @@ class heartbeat(commands.Cog):
         self.server_status.update({'hard_reset':False})
         self.server_status.update({'server_ready':False})
         
+        async def send_user_msg(ctx,log_msg,alert,data):
+            global dm_active_embed
+
+            rate_limited = bot.is_ws_ratelimited()
+            if not rate_limited:
+                if alert:
+                    try:
+                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                        await dm_active_embed[0].delete()
+                        dm_active_embed[0] = await ctx.send(embed=user_embed)
+                        embedFile = open(data['dm_discord_temp'], 'w')
+                        embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
+                        embedFile.close()
+                    except Exception:
+                        print(traceback.format_exc())
+                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                else:
+                    try:
+                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                        try:
+                            await dm_active_embed[0].edit(embed=user_embed)
+                        except (discord.errors.NotFound,discord.errors.Forbidden):
+                            dm_active_embed[0] = await ctx.send(embed=user_embed)
+                    except Exception:
+                        print(traceback.format_exc())
+                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            else:
+                heartbeat.print_and_log("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
+
+
+
         svr_state.check_current_match_id(False)
 
         #
@@ -105,7 +129,6 @@ class heartbeat(commands.Cog):
 
         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
         print(self.processed_data_dict)
-
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
@@ -161,8 +184,8 @@ class heartbeat(commands.Cog):
                                 # server may have crashed, check if we can restart.
                                 try:
                                     if svr_state.startSERVER("Attempting to start crashed instance"):
-                                        heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. Check {self.processed_data_dict['hon_game_dir']} for any crash dump files.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.")
+                                        heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. ``{self.processed_data_dict['hon_game_dir']}`` for any crash dump files.","WARNING")
+                                        if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.",False,self.processed_data_dict)
                                         continue
                                     else:
                                         start_attempts+=1
@@ -226,19 +249,19 @@ class heartbeat(commands.Cog):
                         if running_cmdline != incoming_cmd:
                             log_msg = "A configuration change has been detected. The server is being restarted to load the new configuration."
                             svr_state.restartSERVER(False,log_msg)
-                            if ctx != None: logEmbed = await send_user_msg(ctx,log_msg)
+                            if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
                         #   check whether the code should "summon" the hon server instance, because it's running under a different user context
                         elif self.processed_data_dict['use_console'] == 'True':
                             current_login = os.getlogin()
                             if current_login not in self.server_status['hon_pid_owner']:
                                 log_msg = f"The user account which started the server is not the same one which just configured the server. Restarting to load server on {current_login} login"
                                 svr_state.restartSERVER(False,log_msg)
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
                         else:
                             if "SYSTEM" not in self.server_status['hon_pid_owner'].upper():
                                 log_msg = "Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system."
                                 svr_state.restartSERVER(False,log_msg)
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
                         #   every counter_ipcheck_threshold seconds, check if the public IP has changed for the server. Schedule a restart if it has
                         if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in self.processed_data_dict:
                             counter_ipcheck = 0
@@ -246,7 +269,7 @@ class heartbeat(commands.Cog):
                             if check_ip != self.processed_data_dict['svr_ip']:
                                 #TODO: Check if this causes any restart loop due to svr_ip not updating?
                                 svr_state.restartSERVER(False,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.")
-                                if ctx != None: await send_user_msg(ctx,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.")
+                                if ctx != None: await send_user_msg(ctx,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.",False,self.processed_data_dict)
                 # every x seconds, check if the proxy port is still listening.
                 counter_health_checks +=1
                 if counter_health_checks>=threshold_health_checks or healthcheck_first_run:
@@ -263,7 +286,7 @@ class heartbeat(commands.Cog):
                                     log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening.\n{self.match_status['match_id']} was ongoing and might be affected."
                                 else:
                                     log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening."
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -299,12 +322,12 @@ class heartbeat(commands.Cog):
                         svr_state.check_current_game_time()
                         try:
                             time_lagged = svrcmd.honCMD.count_skipped_frames(self)
-                            if time_lagged > 1:
+                            if time_lagged > 5:
                                 replace_me = [" ","#","\"","."]
                                 hoster = self.processed_data_dict['svr_hoster']
                                 for v in replace_me:
                                     if v in hoster: hoster = hoster.replace(v,"")
-                                if ctx != None: await send_user_msg(ctx,f"[ERR] **{time_lagged}** second lag spike over the last **5** minutes.\nPlease check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))")
+                                if ctx != None: await send_user_msg(ctx,f"[ERR] **{time_lagged}** second lag spike over the last **5** minutes.\nPlease check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))",True,self.processed_data_dict)
                         except Exception:
                             print(traceback.format_exc())
                             svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -340,20 +363,10 @@ class heartbeat(commands.Cog):
                             #self.server_status.update({'tempcount':-5})
                             if cookie == False:
                                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"No session cookie.","WARNING")
-                                if ctx != None: logEmbed = await send_user_msg(ctx,f"[ERR] Session cookie lost.")
-                                try:
-                                    await embed_log.edit(embed=logEmbed)
-                                except Exception:
-                                    print(traceback.format_exc())
-                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                if ctx != None: logEmbed = await send_user_msg(ctx,f"[ERR] Session cookie lost.",True,self.processed_data_dict)
                             else:
                                 heartbeat.print_and_log(f"Connection restored.","INFO")
-                                if ctx != None: await send_user_msg(ctx,f"[OK] Connection restored.")
-                                try:
-                                    await embed_log.edit(embed=logEmbed)
-                                except Exception:
-                                    print(traceback.format_exc())
-                                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                                if ctx != None: await send_user_msg(ctx,f"[OK] Connection restored.",False,self.processed_data_dict)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -367,7 +380,7 @@ class heartbeat(commands.Cog):
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
                                 svr_state.append_line_to_file(f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
-                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
+                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True,self.processed_data_dict)
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
                         if self.server_status['at_least_2_players']:
                             match_time = self.match_status['match_time']
@@ -381,7 +394,7 @@ class heartbeat(commands.Cog):
                                         counter_pending_players_leaving = 0
                                         msg = f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game."
                                         svr_state.append_line_to_file(f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.")
+                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True,self.processed_data_dict)
                                         print(msg)
                                         svr_state.restartSERVER(True,msg)
             except Exception:
@@ -450,5 +463,8 @@ class heartbeat(commands.Cog):
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     
-def setup(bot):
-    bot.add_cog(heartbeat(bot))
+async def setup(bot):
+    if int(discver[0]) >=2:
+        await bot.add_cog(heartbeat(bot))
+    else:
+        bot.add_cog(heartbeat(bot))
