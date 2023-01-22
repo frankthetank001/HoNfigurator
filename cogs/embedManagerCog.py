@@ -114,7 +114,7 @@ class offlineEmbedManager():
     async def embedLog(self,log_msg,alert):
         global event_list
         
-        list_limit = 5
+        list_limit = 10
         event_list = open(processed_data_dict['dm_discord_hist']).readlines()
         
         event_list.append(log_msg)
@@ -132,9 +132,9 @@ class offlineEmbedManager():
                 if l == log_msg:
                     msg = msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"
                 else:
-                    msg = msg+"```css\n"+l+"```"
+                    msg = msg+"```glsl\n"+l+"```"
             else: 
-                msg = msg+"```css\n"+l+"```"
+                msg = msg+"```glsl\n"+l+"```"
         #msg = "```\ncss"+'```\ncss'.join(event_list)
         created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"{msg}", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates an alert.")
