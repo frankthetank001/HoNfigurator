@@ -92,6 +92,12 @@ class heartbeat(commands.Cog):
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             else:
                 heartbeat.print_and_log("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
+                event_list = open(data['dm_discord_hist']).readlines()
+                event_list.append(log_msg)
+                with open(data['dm_discord_hist'], 'w') as f:
+                    for line in event_list:
+                        line = line.replace("\n","")
+                        f.write(f"{line}\n")
 
 
 

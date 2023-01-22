@@ -19,24 +19,6 @@ def show_exception_and_exit(exc_type, exc_value, tb):
 sys.excepthook = show_exception_and_exit
 
 try:
-    import pkg_resources  # TODO: handle exception if this doesnt exist and install it
-    required = {'discord.py==2.1.0',
-                'GitPython==3.1.27',
-                'psutil==5.9.1',
-                'python_hosts==1.0.3',
-                'WMI==1.5.1',
-                'requests',
-                'pillow'}
-    installed = {pkg.key for pkg in pkg_resources.working_set}
-    missing = required - installed
-    if missing:
-        python = sp.getoutput('where python')
-        python = python.split("\n")
-        python = python[0]
-        sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
-except Exception as e:
-    print(e)
-try:
     required = ['discord.py==2.1.0',
                 'GitPython==3.1.27',
                 'psutil==5.9.1',
