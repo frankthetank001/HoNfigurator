@@ -1025,7 +1025,7 @@ if is_admin():
             await ctx.invoke(bot.get_command('portalhelp'))
     async def main():
         if processed_data_dict['disable_bot'] == 'True':
-            asyncio.run(hsl(None).run_bot_local())
+            await hsl().run_bot_local()
         else:
             if int(discver[0]) >= 2:
                 hsl().wait_until_ready.start()

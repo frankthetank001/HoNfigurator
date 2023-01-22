@@ -48,18 +48,16 @@ try:
     installed_packages = installed_packages.stdout
     installed_packages_list = installed_packages.split('\n')
     missing = set(required) - set(installed_packages_list)
-    for i in missing:
-        if "==" not in missing:
-            missing.remove(i)
     if missing:
-        python = sp.getoutput('where python')
-        python = python.split("\n")
-        python = python[0]
-        result = sp.run([python, '-m', 'pip', 'install', *missing])
-        if result.returncode == 0:
-            print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}\Relaunching code.......")
-            python = sys.executable
-            os.execl(python, '"' + python + '"', *sys.argv)
+        if "==" in missing:
+            python = sp.getoutput('where python')
+            python = python.split("\n")
+            python = python[0]
+            result = sp.run([python, '-m', 'pip', 'install', *missing])
+            if result.returncode == 0:
+                print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}\Relaunching code.......")
+                python = sys.executable
+                os.execl(python, '"' + python + '"', *sys.argv)
 except Exception as e:
     print(e)
 
