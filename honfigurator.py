@@ -40,6 +40,8 @@ try:
                 print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}\Relaunching code.......")
                 python = sys.executable
                 os.execl(python, '"' + python + '"', *sys.argv)
+            else:
+                print(f"Error updating packages: {missing}\n error {result.stderr}")
 except Exception as e:
     print(e)
 
