@@ -22,10 +22,10 @@ def show_exception_and_exit(exc_type, exc_value, tb):
     except Exception as e:
         print(e)
     def git_pull():
-        output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+        output = sp.run(["git", "pull"],stdout=sp.PIPE,stderr=sp.PIPE,text=True)
         return output
     def git_reset():
-        output = sp.run(["git", "reset", "--hard"],stdout=sp.PIPE, text=True)
+        output = sp.run(["git", "reset", "--hard"],stdout=sp.PIPE,stderr=sp.PIPE,text=True)
         return output
     print("Trying to attempt to update honfigurator to fix this...")
     output = git_pull()
@@ -54,8 +54,6 @@ def show_exception_and_exit(exc_type, exc_value, tb):
         raw_input = input(stderr.write(error_msg))
     sys.exit()
 sys.excepthook = show_exception_and_exit
-print()
-print()
 packages_updated = setup.update_dependencies()
 if packages_updated:
     if packages_updated.returncode == 0:
