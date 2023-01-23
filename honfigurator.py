@@ -43,6 +43,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
             output = git_reset()
             if 'HEAD is now at' in output.stdout:
                 git_pull()
+                python = sys.executable
                 os.execl(python, '"' + python + '"', *sys.argv)
         elif raw_input.lower() == 'n':
             print("exiting code then until local changes are sorted out.")
