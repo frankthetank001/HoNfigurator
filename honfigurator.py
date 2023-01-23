@@ -1391,10 +1391,10 @@ if is_admin():
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
-            
-            latest_version_list = latest_version.split('.')
-            if len(latest_version_list) == 3:
-                latest_version = f"{'.'.join(latest_version_list)}.0"
+            if latest_version != False:
+                latest_version_list = latest_version.split('.')
+                if len(latest_version_list) == 3:
+                    latest_version = f"{'.'.join(latest_version_list)}.0"
 
             if ((current_version != latest_version) and latest_version != False and not updating) or force:
                 updating = True
