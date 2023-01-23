@@ -33,7 +33,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
         print("updated honfigurator.. attempting restart")
         python = sys.executable
         os.execl(python, '"' + python + '"', *sys.argv)
-    elif 'local changes' in output.stdout:
+    elif 'local changes' in output.stderr:
         raw_input = None
         while (raw_input not in ('y','n')):
             raw_input = input(f"There were errors attempting to recover honfigurator. You have local changes. Would you like to discard the local changes and update honfigurator? (y/n)")
@@ -50,7 +50,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
         if 'already up to date' in output.stdout.lower():
             error_msg = f"Warning: Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
         else:
-            error_msg=f"Warning: HoNfigurator has failed to update and self repair. Error updating: {output.stdout}"
+            error_msg=f"Warning: HoNfigurator has failed to update and self repair."
         raw_input = input(stderr.write(error_msg))
     sys.exit()
 sys.excepthook = show_exception_and_exit
