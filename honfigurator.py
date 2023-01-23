@@ -62,7 +62,7 @@ if packages_updated:
         print("Relaunching code...")
         python = sys.executable
         os.execl(python, '"' + python + '"', *sys.argv)
-
+print()
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
 from tkinter import Button,Label,Entry
