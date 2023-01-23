@@ -71,7 +71,7 @@ class heartbeat(commands.Cog):
             if not rate_limited:
                 if alert:
                     try:
-                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
                         await dm_active_embed[0].delete()
                         dm_active_embed[0] = await ctx.send(embed=user_embed)
                         embedFile = open(data['dm_discord_temp'], 'w')
@@ -82,7 +82,7 @@ class heartbeat(commands.Cog):
                         svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 else:
                     try:
-                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
                         try:
                             await dm_active_embed[0].edit(embed=user_embed)
                         except (discord.errors.NotFound,discord.errors.Forbidden):
@@ -124,6 +124,7 @@ class heartbeat(commands.Cog):
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
         threshold_lobbycheck = 5  / heartbeat_freq # how long we wait before checking if the lobby has been created yet
         threshold_check_lag = 300 / heartbeat_freq
+        threshold_check_lag_mins = threshold_check_lag / 60
         threshold_health_checks = 120 / heartbeat_freq
         threshold_pending_players_leaving = 120 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
@@ -326,17 +327,21 @@ class heartbeat(commands.Cog):
                     elif self.match_status['now'] == "in game":
                         #   get the current in-game match time elapsed
                         svr_state.check_current_game_time()
-                        try:
-                            time_lagged = svrcmd.honCMD.count_skipped_frames(self)
-                            if time_lagged > 5:
-                                replace_me = [" ","#","\"","."]
-                                hoster = self.processed_data_dict['svr_hoster']
-                                for v in replace_me:
-                                    if v in hoster: hoster = hoster.replace(v,"")
-                                if ctx != None: await send_user_msg(ctx,f"[ERR] **{time_lagged}** second lag spike over the last **5** minutes.\nPlease check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))",True,self.processed_data_dict)
-                        except Exception:
-                            print(traceback.format_exc())
-                            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                        counter_check_lag += 1
+                        if counter_check_lag >= threshold_check_lag:
+                            counter_check_lag = 0
+                            try:
+                                time_lagged = svrcmd.honCMD.count_skipped_frames(self)
+                                if time_lagged > 5:                            
+                                    self.processed_data_dict.update({'match_id':self.match_status['match_id']})
+                                    if ctx != None: await send_user_msg(ctx,f"""[ERR] {time_lagged} second lag spike over the last {threshold_check_lag_mins} minutes.
+Match ID: {self.match_status['match_id'].replace('M','')}
+Match Time: {self.match_status['match_time']}
+Players connected: {playercount}""",True,self.processed_data_dict)
+                                    #   Please check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))
+                            except Exception:
+                                print(traceback.format_exc())
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     else:
                         if playercount > 1:
                             #   player has connected, check the match ID.

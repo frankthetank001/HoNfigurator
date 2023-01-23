@@ -20,7 +20,7 @@ import psutil
 import signal
 import subprocess as sp
 import time
-
+import cogs.setupEnv as setup
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -46,31 +46,19 @@ if is_admin():
     def show_exception_and_exit(exc_type, exc_value, tb):
         traceback.print_exception(exc_type, exc_value, tb)
         raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
-        sys.exit(-1)
+        sys.exit()
     sys.excepthook = show_exception_and_exit
 
     svr_cmd = srvcmd.honCMD()
     dmgr = mData()
     processed_data_dict = dmgr.returnDict()
-
-    try:
-        required = ['discord.py==2.1.0']
-        installed_packages = sp.run(['pip','freeze'],stdout=sp.PIPE,text=True)
-        installed_packages = installed_packages.stdout
-        installed_packages_list = installed_packages.split('\n')
-        missing = set(required) - set(installed_packages_list)
-        if missing:
-            python = sp.getoutput('where python')
-            python = python.split("\n")
-            python = python[0]
-            result = sp.run([python, '-m', 'pip', 'install', *missing])
-            if result.returncode == 0:
-                print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}")
-                print("relaunching code in 3..2..1..")
-                os.startfile(f"{processed_data_dict['sdc_home_dir']}\\{processed_data_dict['app_name']}-launch.exe")
-                os._exit(0)
-    except Exception as e:
-        print(e)
+    #   load environment, check pip packages
+    packages_updated = setup.update_dependencies()
+    if packages_updated:
+        if packages_updated.returncode == 0:
+            print("Relaunching code...")
+            python = sys.executable
+            os.execl(python, '"' + python + '"', *sys.argv)
         
     discver = (discord.__version__).split(".")
     intents = discord.Intents.default()
@@ -189,7 +177,7 @@ if is_admin():
                     #   if file doesn't exist, create it, send the owner a message and update the file
                     else: send_fresh_message = True
                 if len(dm_active_embed) > 0:
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
                     try:
                         await dm_active_embed[0].edit(embed=user_embed)
                     except Exception:
@@ -211,7 +199,7 @@ if is_admin():
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             if send_fresh_message:
-                user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
+                user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
                 try:
                     if owner_reachable:
                         sent_message = await discord_admin_ctx.send(embed=user_embed)
