@@ -5,6 +5,9 @@ import subprocess as sp
 import os
 import cogs.setupEnv as setup
 import traceback
+from sys import stdout
+from sys import stderr
+
 
 # determine if application is a script file or frozen exe
 if getattr(sys, 'frozen', False):
@@ -45,11 +48,11 @@ def show_exception_and_exit(exc_type, exc_value, tb):
             sys.exit(0)
     else:
         if 'already up to date' in output.stdout.lower():
-            error_msg = "Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
+            error_msg = f"Warning: Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
         else:
-            error_msg=f"HoNfigurator has failed to update and self repair. Error updating: {output.stdout}"
-        raw_input = input(error_msg)
-    sys.exit(-1)
+            error_msg=f"Warning: HoNfigurator has failed to update and self repair. Error updating: {output.stdout}"
+        raw_input = input(stderr.write(error_msg))
+    sys.exit()
 sys.excepthook = show_exception_and_exit
 packages_updated = setup.update_dependencies()
 if packages_updated:
@@ -136,16 +139,6 @@ if is_admin():
     refresh_delay = 20
     updating = False
 
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKCYAN = '\033[96m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
     #
     #
     class initialise():
