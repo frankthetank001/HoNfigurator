@@ -6,9 +6,18 @@ import os
 import cogs.setupEnv as setup
 import traceback
 
+# determine if application is a script file or frozen exe
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
 
 def show_exception_and_exit(exc_type, exc_value, tb):
     traceback.print_exception(exc_type, exc_value, tb)
+    try:
+        os.chdir(application_path)
+    except Exception as e:
+        print(e)
     def git_pull():
         output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
         return output
@@ -17,11 +26,8 @@ def show_exception_and_exit(exc_type, exc_value, tb):
         return output
     print("Trying to attempt to update honfigurator to fix this...")
     output = git_pull()
-    try:
-        os.chdir(application_path)
-    except Exception as e:
-        print(e)
     if 'updating' in output.stdout:
+        print("updated honfigurator.. attempting restart")
         python = sys.executable
         os.execl(python, '"' + python + '"', *sys.argv)
     elif 'local changes' in output.stdout:
@@ -38,7 +44,11 @@ def show_exception_and_exit(exc_type, exc_value, tb):
             time.sleep(3)
             sys.exit(0)
     else:
-        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. HoNfigurator has also failed to self repair. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+        if 'already up to date' in output.stdout.lower():
+            error_msg = "Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
+        else:
+            error_msg=f"HoNfigurator has failed to update and self repair. Error updating: {output.stdout}"
+        raw_input = input(error_msg)
     sys.exit(-1)
 sys.excepthook = show_exception_and_exit
 print(abc)
@@ -88,11 +98,6 @@ def is_admin():
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
-# determine if application is a script file or frozen exe
-if getattr(sys, 'frozen', False):
-    application_path = os.path.dirname(sys.executable)
-elif __file__:
-    application_path = os.path.dirname(__file__)
 if is_admin():
     exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
     sp.Popen(exp, shell=True).wait()
