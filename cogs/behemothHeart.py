@@ -82,8 +82,8 @@ class heartbeat(commands.Cog):
         counter_ipcheck = 0
         counter_game_end = 0
         counter_pending_players_leaving = 0
-        waited=0
-        wait=1800 / heartbeat_freq
+        counter_keeper=0
+        threshold_keeper=1800 / heartbeat_freq
         #  Debug setting
         #  playercount = 0
         threshold_gamecheck = 5  / heartbeat_freq # how long we wait before checking if the game has started again
@@ -116,10 +116,10 @@ class heartbeat(commands.Cog):
                     playercount = svr_state.playerCount()
                 else:
                     playercount = svr_state.playerCount_pid()
-                waited+=1
+                counter_keeper+=1
                 # check the live DDOS blacklist for any changes requiring action in firewall
-                if (waited >= wait or self.server_status['bot_first_run'] == True) and self.processed_data_dict['svr_id'] == "1":
-                    waited+=0
+                if (counter_keeper >= threshold_keeper or self.server_status['bot_first_run'] == True) and self.processed_data_dict['svr_id'] == "1":
+                    counter_keeper+=0
                     self.server_status.update({'bot_first_run':False})
                     svrcmd.honCMD.launch_keeper()
                 # check for a scheduled restart, and queue it
