@@ -3,55 +3,56 @@
 import sys
 import subprocess as sp
 import os
+import cogs.setupEnv as setup
+import traceback
+
 
 def show_exception_and_exit(exc_type, exc_value, tb):
     traceback.print_exception(exc_type, exc_value, tb)
+    def git_pull():
+        output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+        return output
+    def git_reset():
+        output = sp.run(["git", "reset", "--hard"],stdout=sp.PIPE, text=True)
+        return output
     print("Trying to attempt to update honfigurator to fix this...")
+    output = git_pull()
     try:
         os.chdir(application_path)
     except Exception as e:
         print(e)
-    output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
-    tex.see(tk.END)
-    return output.returncode
-    raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+    if 'updating' in output.stdout:
+        python = sys.executable
+        os.execl(python, '"' + python + '"', *sys.argv)
+    elif 'local changes' in output.stdout:
+        raw_input = None
+        while (raw_input not in ('y','n')):
+            raw_input = input(f"There were errors attempting to recover honfigurator. You have local changes. Would you like to discard the local changes and update honfigurator? (y/n)")
+        if raw_input.lower() == 'y':
+            output = git_reset()
+            if 'HEAD is now at' in output.stdout:
+                git_pull()
+                os.execl(python, '"' + python + '"', *sys.argv)
+        elif raw_input.lower() == 'n':
+            print("exiting code then until local changes are sorted out.")
+            time.sleep(3)
+            sys.exit(0)
+    else:
+        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. HoNfigurator has also failed to self repair. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
     sys.exit(-1)
 sys.excepthook = show_exception_and_exit
-
-try:
-    required = ['discord.py==2.1.0',
-                'GitPython==3.1.27',
-                'psutil==5.9.1',
-                'python_hosts==1.0.3',
-                'WMI==1.5.1',
-                'requests',
-                'pillow']
-    installed_packages = sp.run(['pip','freeze'],stdout=sp.PIPE,text=True)
-    installed_packages = installed_packages.stdout
-    installed_packages_list = installed_packages.split('\n')
-    missing = set(required) - set(installed_packages_list)
-    if missing:
-        if "==" in missing:
-            python = sp.getoutput('where python')
-            python = python.split("\n")
-            python = python[0]
-            result = sp.run([python, '-m', 'pip', 'install', *missing])
-            if result.returncode == 0:
-                print(f"SUCCESS, upgraded the following packages: {', '.join(missing)}\Relaunching code.......")
-                python = sys.executable
-                os.execl(python, '"' + python + '"', *sys.argv)
-            else:
-                print(f"Error updating packages: {missing}\n error {result.stderr}")
-except Exception as e:
-    print(e)
+print(abc)
+packages_updated = setup.update_dependencies()
+if packages_updated:
+    if packages_updated.returncode == 0:
+        print("Relaunching code...")
+        python = sys.executable
+        os.execl(python, '"' + python + '"', *sys.argv)
 
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
 from tkinter import Button,Label,Entry
 from tkinter import getboolean, ttk
-#from pystray import MenuItem as item
-#import pystray
-from PIL import Image, ImageTk
 import configparser
 import psutil
 import socket
@@ -64,14 +65,16 @@ import ctypes
 from tkinter import END
 import distutils
 from distutils import dir_util
-import traceback
 import datetime
 from threading import Thread
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import winreg
-#import speedtest
+try:
+    import speedtest
+except Exception as e:
+    print(e)
 
 i=0
 for proc in psutil.process_iter():
@@ -860,8 +863,11 @@ if is_admin():
             if not exists(f"{self.sdc_home_dir}\\cogs"):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\cogs ...")
                 os.makedirs(f"{self.sdc_home_dir}\\cogs")
-            if not exists(f"{self.hon_directory}game_shared_x64.dll"):
-                shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
+            if not exists(f"{self.sdc_home_dir}\\dependencies"):
+                print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\dependencies ...")
+                os.makedirs(f"{self.sdc_home_dir}\\dependencies")
+            # if not exists(f"{self.hon_directory}game_shared_x64.dll"):
+            #     shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
             if exists(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                 if not exists(f"{self.dataDict['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                     shutil.copy(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt",f"{self.dataDict['sdc_home_dir']}\\messages\\")
@@ -944,8 +950,9 @@ if is_admin():
                     os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe')
                     shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
                 try:
-                    shutil.copy(f"[{self.dataDict['app_name']}] {application_path}\\dependencies\\python310.dll",self.dataDict['sdc_home_dir'])
-                    shutil.copy(f"[{self.dataDict['app_name']}] {application_path}\\dependencies\\vcruntime140.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\python310.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\vcruntime140.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\requirements.txt",f"{self.dataDict['sdc_home_dir']}\\dependencies\\requirements.txt")
                 except Exception as e:
                     print(e)
                 if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe') or force_update:
@@ -1400,9 +1407,10 @@ if is_admin():
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
             
-            latest_version_list = latest_version.split('.')
-            if len(latest_version_list) == 3:
-                latest_version = f"{'.'.join(latest_version_list)}.0"
+            if latest_version != False:
+                latest_version_list = latest_version.split('.')
+                if len(latest_version_list) == 3:
+                    latest_version = f"{'.'.join(latest_version_list)}.0"
 
             if ((current_version != latest_version) and latest_version != False and not updating) or force:
                 updating = True
@@ -2071,14 +2079,6 @@ if is_admin():
             if 'static_ip' in self.dataDict:
                 self.tab1_ip.insert(0,self.dataDict['svr_ip'])
             self.tab1_ip.grid(column= 2 , row = 4,sticky="w",pady=4)
-            #
-            #   region
-            # self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
-            # applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-            # tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
-            # tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
-            # self.svr_loc.trace_add('write', self.reg_def_link)
-            #   regionId
             self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
             applet.Label(tab1, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
             self.tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
