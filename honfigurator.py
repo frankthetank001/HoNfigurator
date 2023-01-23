@@ -52,7 +52,6 @@ def show_exception_and_exit(exc_type, exc_value, tb):
         error_msg = f"Warning: Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
     else:
         error_msg=f"Warning: HoNfigurator has failed to update and self repair."
-    print(output.stderr)
     raw_input = input(stderr.write(error_msg))
     sys.exit()
 sys.excepthook = show_exception_and_exit
