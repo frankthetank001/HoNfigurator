@@ -56,7 +56,6 @@ def show_exception_and_exit(exc_type, exc_value, tb):
     raw_input = input(stderr.write(error_msg))
     sys.exit()
 sys.excepthook = show_exception_and_exit
-print()
 packages_updated = setup.update_dependencies()
 if packages_updated:
     if packages_updated.returncode == 0:
@@ -101,7 +100,7 @@ if i > 2:
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+    except Exception:
         return False
 if is_admin():
     exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
@@ -183,7 +182,7 @@ if is_admin():
                 self.ver_existing = config['OPTIONS']['bot_version']
                 try:
                     self.ver_existing = float(self.ver_existing)
-                except: pass
+                except Exception: pass
             else:
                 self.ver_existing = 0
             #app_name=f"adminbot{self.dataDict['svr_id']}"
@@ -411,12 +410,12 @@ if is_admin():
                 try:
                     check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
-                except: pass
+                except Exception: pass
             elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
                     check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
-                except: pass
+                except Exception: pass
             check.terminate()
             return i
         def check_port(port):
@@ -446,12 +445,12 @@ if is_admin():
                         try:
                             check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                             i = int(check.stdout.read())
-                        except: pass
+                        except Exception: pass
                     elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                         try:
                             check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                             i = int(check.stdout.read())
-                        except: pass
+                        except Exception: pass
                     if i != -1:
                         pcount = i
                     check.terminate()
@@ -463,7 +462,7 @@ if is_admin():
                     sp.Popen(['net','start',f'{service_name}'])
                 else:
                     sp.run(['net','start',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
@@ -473,7 +472,7 @@ if is_admin():
                     sp.Popen(['net','stop',f'{service_name}'])
                 else:
                     sp.run(['net','stop',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not stop service {}'.format(service_name))
                 return False
             return True
@@ -510,15 +509,15 @@ if is_admin():
                 if dmgr.mData.get_hash(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe") != dmgr.mData.get_hash(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-                    except:
+                    except Exception:
                         try:
                             shutil.move(f"{self.dataDict['hon_directory']}\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm_old.exe")
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-                        except: pass
+                        except Exception: pass
 
             try:
                 sp.run(['nssm', "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
@@ -526,7 +525,7 @@ if is_admin():
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             try:
                 sp.run(['nssm', "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
@@ -543,7 +542,7 @@ if is_admin():
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
                 elif service_name == "HoN Proxy Manager":
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
                 if arguments is not None:
                     sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
@@ -560,7 +559,7 @@ if is_admin():
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             try:
                 sp.run(['nssm', "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
@@ -619,12 +618,12 @@ if is_admin():
         def restart_service(self,service_name):
             try:
                 sp.run(['net','stop',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not stop service {}'.format(service_name))
                 return False
             try:
                 sp.run(['net','start',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
@@ -636,7 +635,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def schedule_restart_honfigurator(deployed_status):
             temFile = f"{deployed_status}\\pending_restart"
@@ -646,7 +645,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def schedule_shutdown(deployed_status):
             temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
@@ -656,7 +655,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def check_schd_restart(deployed_status):
             temFile = deployed_status['sdc_home_dir']+"\\pending_restart"
@@ -730,7 +729,7 @@ if is_admin():
                     print("firewall rule added.")
                     initialise.print_and_tex(self,f"Windows firewall configured for application: {application}",'interest')
                     return True
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def configure_firewall_port(self,name,port):
@@ -746,7 +745,7 @@ if is_admin():
                     add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip=any")
                     initialise.print_and_tex(self,f"Windows firewall configured for port: {port}",'interest')
                     return True
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def remove_firewall(self,name,application):
@@ -754,7 +753,7 @@ if is_admin():
                 check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
                 if check_rule == 0:
                     remove_rule = os.system(f"netsh advfirewall firewall delete rule name=\"{name}\"")
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def print_and_tex(self,message,*args):
@@ -931,7 +930,7 @@ if is_admin():
                     try:
                         shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
                         print(f"[{self.dataDict['app_name']}] copying server exe...")
-                    except: 
+                    except Exception: 
                         shutil.move(exe_path,f"{exe_path_cut}_old.exe")
                         shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
                         exe_force_copy=True
@@ -1019,7 +1018,7 @@ if is_admin():
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                                 except PermissionError:
                                     initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later",'warning')
-                                except: print(traceback.format_exc())
+                                except Exception: print(traceback.format_exc())
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
                             #time.sleep(1)
@@ -1030,7 +1029,7 @@ if is_admin():
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             except PermissionError:
                                 initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later",'warning')
-                            except: print(traceback.format_exc())
+                            except Exception: print(traceback.format_exc())
                             #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
@@ -2483,7 +2482,7 @@ if is_admin():
                         try: 
                             auto_refresh_var = auto_refresh.get()
                             mod_by = int(stretch.get())+3
-                        except: 
+                        except Exception: 
                             swap_anyway = True
                         if auto_refresh_var or swap_anyway:
                             Thread(target=viewButton.clear_frame).start()
@@ -2496,7 +2495,7 @@ if is_admin():
                         #     status = Entry(app,background=maincolor,foreground='white',width="200")
                         #     status.insert(0,f"Viewing hon_server_{deployed_status['svr_id']}: {latest_file}")
                         #     status.grid(row=21,column=0,sticky='w')
-                        # except:pass
+                        # except Exception:pass
                 def load_log(self,*args):
                     global bot_tab
                     try:
@@ -2505,7 +2504,7 @@ if is_admin():
                                 Thread(target=viewButton.ViewLog,args=[self]).start()
                             bot_tab=tabgui2.index("current")
                             #viewButton.ViewLog(self)
-                    except: pass
+                    except Exception: pass
 
                 def ViewLog(self):
                     global latest_file
@@ -2598,7 +2597,7 @@ if is_admin():
                         status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
                         print(latest_file)                   
                         tex.see(tk.END)
-                    except: pass
+                    except Exception: pass
 
                 def Start(self):
                     global refresh_counter
@@ -2779,7 +2778,7 @@ if is_admin():
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
                         try:
                             proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
-                        except:
+                        except Exception:
                             proc_priority = "N/A"
                         file = "Slave*.log"
                         log = False
@@ -2810,7 +2809,7 @@ if is_admin():
                             try:
                                 latest_file = max(list_of_files, key=os.path.getctime)
                                 match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
-                            except:
+                            except Exception:
                                 print(traceback.format_exc())
                         elif pcount >= 0:
                             ButtonString[1] = "Stop"
@@ -2838,7 +2837,7 @@ if is_admin():
                                     colour = 'SpringGreen4'
                                     try:
                                         LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except:
+                                    except Exception:
                                         LablString[1]=f"In-game ({pcount})"
                                 if pcount >=0:
                                     if schd_restart:
@@ -2857,7 +2856,7 @@ if is_admin():
                                     colour = 'SpringGreen4'
                                     try:
                                         LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except:
+                                    except Exception:
                                         LablString[1]=f"In-game ({pcount})"
                             # if service_state is not None and deployed_status['use_console'] == 'False':
                             #     if service_state == False or service_state['status'] == 'stopped':
@@ -2878,7 +2877,7 @@ if is_admin():
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
-                                except: pass
+                                except Exception: pass
                             elif index1==1:
                                 #labl = Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')
                                 labllist.append(Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white'))
@@ -3062,7 +3061,7 @@ if is_admin():
                         if (tabgui.index("current")) == 1:
                             try:
                                 viewButton.refresh(int(stretch.get())+3)
-                            except: pass
+                            except Exception: pass
                 refresh_next=True
                 app.after(1000,auto_refresher)
             # create a Scrollbar and associate it with txt
