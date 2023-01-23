@@ -55,6 +55,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
     sys.exit()
 sys.excepthook = show_exception_and_exit
 print()
+print()
 packages_updated = setup.update_dependencies()
 if packages_updated:
     if packages_updated.returncode == 0:
