@@ -81,9 +81,9 @@ class heartbeat(commands.Cog):
                     print(traceback.format_exc())
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if discord.errors.HTTPException:
-                        heartbeat.print_and_log(f"Most likely we are being rate limited\nResponse from last discord API request: {edit_result}")
+                        heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Most likely we are being rate limited\nResponse from last discord API request: {edit_result}","WARNING")
                     elif UnboundLocalError:
-                        heartbeat.print_and_log("previous message may have been deleted. Making a new one")
+                        heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","previous message may have been deleted. Making a new one","INFO")
                         send_new_message=True
             if send_new_message:
                 try:
@@ -99,7 +99,7 @@ class heartbeat(commands.Cog):
                     svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                     if discord.errors.HTTPException: print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
             if not msg_sent:
-                heartbeat.print_and_log("Skipping this message update, will try again later.")
+                heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","Skipping this message update, will try again later.","INFO")
                 event_list = open(data['dm_discord_hist']).readlines()
                 event_list.append(log_msg)
                 with open(data['dm_discord_hist'], 'w') as f:
@@ -385,7 +385,7 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"No session cookie.","WARNING")
                                 if ctx != None: logEmbed = await send_user_msg(ctx,f"[ERR] Session cookie lost.",True,self.processed_data_dict)
                             else:
-                                heartbeat.print_and_log(f"Connection restored.","INFO")
+                                heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Connection restored.","INFO")
                                 if ctx != None: await send_user_msg(ctx,f"[OK] Connection restored.",False,self.processed_data_dict)
             except Exception:
                 print(traceback.format_exc())
