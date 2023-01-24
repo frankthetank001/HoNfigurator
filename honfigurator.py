@@ -2636,7 +2636,7 @@ if is_admin():
                             if initialise.check_proc(deployed_status['hon_file_name']):
                                 if initialise.playerCountX(self,id) >= 0:
                                     t_out = 15
-                        viewButton.refresh()
+                        #viewButton.refresh()
                         return
                 def StartProxy(self):
                     global refresh_counter
@@ -2693,7 +2693,7 @@ if is_admin():
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
-                    viewButton.refresh()
+                    #viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
