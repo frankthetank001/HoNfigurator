@@ -253,10 +253,10 @@ class heartbeat(commands.Cog):
                         #   compare the hon process commandline arguments, to the expected commandline arguments from config file
                         running_cmdline = self.server_status['hon_pid_hook'].cmdline()
                         incoming_cmd = dmgr.mData().return_commandline(self.processed_data_dict)
-                        if running_cmdline != incoming_cmd:
-                            log_msg = "A configuration change has been detected. The server is being restarted to load the new configuration."
-                            svr_state.restartSERVER(False,log_msg)
-                            if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
+                        # if running_cmdline != incoming_cmd:
+                        #     log_msg = "A configuration change has been detected. The server is being restarted to load the new configuration."
+                        #     svr_state.restartSERVER(False,log_msg)
+                        #     if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
                         #   check whether the code should "summon" the hon server instance, because it's running under a different user context
                         if self.processed_data_dict['use_console'] == 'True':
                             current_login = os.getlogin()
