@@ -2813,6 +2813,7 @@ if is_admin():
                             c+=c_len
                             i=3
                         if pcount > 0:
+                            ButtonString[1] = "Stop"
                             logs_dir = f"{deployed_status['hon_logs_dir']}\\"
                             log_File = f"Slave*{x}*.clog"
                             list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
