@@ -128,18 +128,27 @@ if is_admin():
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
     #   Otherwise taskbar icon will be python shell icon
     myappid = 'honfiguratoricon.1.0' # arbitrary string
-    mod_by=13
+    num_rows_file = f"{application_path}\\config\\num_server_rows"
+    if exists(num_rows_file):
+        try:
+            mod_by = open(num_rows_file).readline()
+            mod_by = int(mod_by)
+        except:
+            mod_by=13
+    else:
+        mod_by=13
     auto_refresh_var = False
     bot_tab=0
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
     players_connected = False
-    update_delay = 180
+    auto_refresh_delay = 1
+    update_delay = 180 / auto_refresh_delay
     update_counter = 0
     refresh_counter = 0
-    refresh_delay = 20
+    refresh_delay = 20 / auto_refresh_delay
     updating = False
-
+    first_tab_switch = True
     #
     #
     class initialise():
@@ -2326,9 +2335,6 @@ if is_admin():
                     scrollb.grid(row=16, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
-            ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
-            LablString = ['hon_server_','test']
-            LablStringTop = ['Manager','test']
 
             # Calling this function from somewhere else via Queue
             import fnmatch
@@ -2409,6 +2415,11 @@ if is_admin():
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
                 viewButton.refresh()
+            def save_num_rows(mod_by):
+                num_rows_file = f"{application_path}\\config\\num_server_rows"
+                with open(num_rows_file,'w') as f:
+                    f.write(mod_by)
+                return
 
             def get_size(start_path):
                     total_size = 0
@@ -2466,6 +2477,7 @@ if is_admin():
                     global auto_refresh_var
                     global stretch
                     global auto_refresh
+                    global first_tab_switch
                     refresh_next=False
                     swap_anyway=False
                     if (tabgui.index("current")) == 0:
@@ -2483,7 +2495,8 @@ if is_admin():
                         except Exception: 
                             swap_anyway = True
                         if auto_refresh_var or swap_anyway:
-                            Thread(target=viewButton.clear_frame).start()
+                            if not first_tab_switch:
+                                viewButton.clear_frame()
                             Thread(target=viewButton.load_server_mgr,args=[self]).start()
                         
                         # else:
@@ -2623,7 +2636,7 @@ if is_admin():
                             if initialise.check_proc(deployed_status['hon_file_name']):
                                 if initialise.playerCountX(self,id) >= 0:
                                     t_out = 15
-                        refresh_counter = refresh_delay
+                        viewButton.refresh()
                         return
                 def StartProxy(self):
                     global refresh_counter
@@ -2673,14 +2686,14 @@ if is_admin():
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         hon_running=initialise.check_proc(f"KONGOR_ARENA_{id}.exe")
                         if bot_running or hon_running:
-                                    initialise.stop_bot(self,f"{service_name}.exe")
-                                    initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                                    initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                                 #viewButton.refresh()
                     else:
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
-                    refresh_counter=20
+                    viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
@@ -2749,20 +2762,19 @@ if is_admin():
                     global c
                     global btnlist
                     global labllist
+                    global first_tab_switch
                     global btnlistrows,btnlistcols,labllistrows,labllistcols
+                    first_tab_switch = False
                     i=2
                     c=0
-                    lablwidth = []
-                    lablrow = []
-                    lablcolumn = []
-                    lablcolour = []
-                    lablname = []
                     btnlist = []
                     labllist = []
                     labllistrows = []
                     labllistcols = []
                     btnlistrows = []
                     btnlistcols = []
+                    ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
+                    LablString = ['hon_server_','status']
                     btn = []
                     def do_everything(self,x):
                         c_len = len(ButtonString)+len(LablString)
@@ -2807,6 +2819,7 @@ if is_admin():
                             try:
                                 latest_file = max(list_of_files, key=os.path.getctime)
                                 match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                                if 'match_id' not in match_status: match_status.update({'match_id':'TBA'})
                             except Exception:
                                 print(traceback.format_exc())
                         elif pcount >= 0:
@@ -2814,90 +2827,66 @@ if is_admin():
                         else:
                             ButtonString[1] = "Start"
                         if service_state is not None and deployed_status['use_console'] == 'False':
-                            if service_state == False or service_state['status'] == 'stopped':
-                                colour = 'OrangeRed4'
                             svc_or_con="svc"
-                                #LablString[1]=f"svc-Stopped"
                         elif deployed_status['use_console'] == 'True':
-                            #colour = 'OrangeRed4'
                             svc_or_con="con"
-                            #LablString[1]=f"con-Stopped"
                         LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
-                        for index1, labl_name in enumerate(LablString):
-                            if cookie:
-                                if pcount < 0:
-                                    colour = 'OrangeRed4'
-                                    LablString[1]="Offline"
-                                elif pcount == 0:
-                                    colour = 'MediumPurple3'
-                                    LablString[1]="Available"
-                                elif pcount >0:
-                                    colour = 'SpringGreen4'
-                                    try:
-                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except Exception:
-                                        LablString[1]=f"In-game ({pcount})"
-                                if pcount >=0:
-                                    if schd_restart:
-                                        colour='indian red'
-                                        LablString[1]='schd-restart'
-                                    if schd_shutdown:
-                                        LablString[1]='schd-shutdown'
+                        if pcount < 0:
+                            colour = 'OrangeRed4'
+                            LablString[1]="Offline"
+                        elif pcount == 0:
+                            if schd_shutdown:
+                                colour = 'chocolate4'
+                                LablString[1]=f"I should be off"
+                            elif schd_restart:
+                                colour = 'chocolate4'
+                                LablString[1]=f"I should have restarted"
                             else:
-                                if pcount < 0:
-                                    colour = 'OrangeRed4'
-                                    LablString[1]="Offline"
-                                elif pcount == 0:
-                                    colour = 'MediumPurple3'
-                                    LablString[1]="connect error"
-                                elif pcount >0:
-                                    colour = 'SpringGreen4'
-                                    try:
-                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except Exception:
-                                        LablString[1]=f"In-game ({pcount})"
-                            # if service_state is not None and deployed_status['use_console'] == 'False':
-                            #     if service_state == False or service_state['status'] == 'stopped':
-                            #         colour = 'OrangeRed4'
-                            #     svc_or_con="svc"
-                            #         #LablString[1]=f"svc-Stopped"
-                            # elif deployed_status['use_console'] == 'True':
-                            #     #colour = 'OrangeRed4'
-                            #     svc_or_con="con"
-                            #     #LablString[1]=f"con-Stopped"
+                                colour = 'MediumPurple3'
+                                if cookie:
+                                    LablString[1]="Available"
+                                else: LablString[1]="Connect Error"
+                        elif pcount >0:
+                            if schd_restart:
+                                colour='indian red'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                            elif schd_shutdown:
+                                colour='indian red'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                            else:
+                                colour = 'SpringGreen4'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+
+                        for index1, labl_name in enumerate(LablString):
                             c_pos1 = index1 + c
                             if index1==0:
-                                #labl = Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')
                                 labllist.append(Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white'))
-                                # lablwidth.append(13)
-                                # lablname.append(labl_name)
-                                # lablcolour.append(colour)
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
                                 except Exception: pass
                             elif index1==1:
-                                #labl = Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')
                                 labllist.append(Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white'))
-                                # lablwidth.append(18)
-                                # lablname.append(labl_name)
-                                # lablcolour.append(colour)
                                 if 'available' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                         f"Server is available and connected to the master server.")
                                 elif 'cookie' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                                if pcount > 0:
+                                elif schd_restart:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
-                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
-                            #labl.grid(row=i, column=c_pos1)
+                                        f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                                elif schd_shutdown:
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                                elif pcount > 0:
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: f{schd_shutdown}\nScheduled restart: {schd_restart}")
                             labllistrows.append(i)
                             labllistcols.append(c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
                                 c_pos2 = index2 + c
-                                #btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
                                 btnlist.append(Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount)))
                                 if btn_name == "View Log":
                                     btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
@@ -2983,12 +2972,16 @@ if is_admin():
                     stretch = Entry(tab2,width=5)
                     stretch.insert(0,mod_by-3)
                     stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
+                    tab2_savesettings = applet.Button(tab2, text="Save Setting",command=lambda: save_num_rows(str(int(stretch.get())+3)))
+                    tab2_savesettings.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
+                    tab2_savesettings_ttp = honfigurator.CreateToolTip(tab2_savesettings, \
+                                    f"Save the setting so that next time the number of rows remains the same.")
                     auto_refresh_lbl = applet.Label(tab2,width=15,text="auto-refresh",background=maincolor,foreground='white')
-                    auto_refresh_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
+                    auto_refresh_lbl.grid(row=0, column=0,columnspan=total_columns,padx=[7,0],sticky='w',pady=[5,0])
                     auto_refresh = tk.BooleanVar(app)
                     auto_refresh.set(auto_refresh_var)
                     auto_refresh_btn = applet.Checkbutton(tab2,variable=auto_refresh)
-                    auto_refresh_btn.grid(row=1, column=0,columnspan=total_columns,padx=[230,0],sticky='w',pady=[2,4])
+                    auto_refresh_btn.grid(row=0, column=0,columnspan=total_columns,padx=[80,0],sticky='w',pady=[5,0])
                     
                     tabgui2 = ttk.Notebook(tab2)
                     tab11 = ttk.Frame(tabgui2)
@@ -3061,7 +3054,7 @@ if is_admin():
                                 viewButton.refresh(int(stretch.get())+3)
                             except Exception: pass
                 refresh_next=True
-                app.after(1000,auto_refresher)
+                app.after(int(f"{auto_refresh_delay}000"),auto_refresher)
             # create a Scrollbar and associate it with txt
             combo = TextScrollCombo(app)
             combo.config(width=600, height=600)
