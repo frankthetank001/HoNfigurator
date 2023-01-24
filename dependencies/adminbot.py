@@ -146,7 +146,6 @@ if is_admin():
             
             send_fresh_message = False
             try:
-                rate_limited = bot.is_ws_ratelimited()
                 if len(dm_active_embed) == 0:
                     # read previous message data from local file
                     if exists(processed_data_dict['dm_discord_temp']):
@@ -179,54 +178,54 @@ if is_admin():
                     else: send_fresh_message = True
                 if len(dm_active_embed) > 0:
                     user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
-                    try:
-                        if not rate_limited:
-                            await dm_active_embed[0].edit(embed=user_embed)
-                        else:
-                            print("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
-                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}","I AM RATE LIMITED. Please wait awhile to start receiving messages again.","WARNING")
-                    except Exception:
-                        print(traceback.format_exc())
-                        svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                    
-            except (discord.errors.NotFound,discord.errors.Forbidden) as e:
-                if discord.errors.NotFound: print("Previous message not found.. clearing it from message cache")
-                elif discord.errors.Forbidden: print("No permissions to the previous message.. clearing message cache")
+                    await dm_active_embed[0].edit(embed=user_embed)
+            except discord.errors.NotFound:
+                print(f"Previous message not found.. clearing it from message cache")
+                send_fresh_message=True
+            except discord.errors.Forbidden:
+                print("No permissions to the previous message.. clearing message cache")
+                send_fresh_message=True
+            except discord.errors.HTTPException:
+                print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
+                return False
+            except UnboundLocalError:
+                print("No message context found. Require new message.")
+                send_fresh_message = True
+            except Exception:
+                    print(traceback.format_exc())
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            
+            if send_fresh_message:
                 try:
                     dm_active_embed.clear()
                     with open(processed_data_dict['dm_discord_temp'], 'w'):
                         pass
-                    send_fresh_message = True
-                except Exception:
-                    print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            except Exception:
-                    print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            if send_fresh_message:
-                user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
-                try:
-                    if owner_reachable:
-                        sent_message = await discord_admin_ctx.send(embed=user_embed)
-                        dm_active_embed.append(sent_message)
-                except Exception:
-                    print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                #   now update the file
-                try:
+
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
+                    sent_message = await discord_admin_ctx.send(embed=user_embed)
+                    dm_active_embed.append(sent_message)
+                
+                    #   now update the file
                     embedFile = open(processed_data_dict['dm_discord_temp'], 'w')
                     embedFile.write(str(sent_message.channel.id)+","+str(sent_message.id)+"\n")
                     embedFile.close()
+                except discord.errors.Forbidden:
+                        print(f"The discord bot may not be a member in your discord server. Please make sure it's invited to your discrd.")
+                        return None
+                except discord.errors.HTTPException:
+                        print(f"Most likely we are being rate limited\nResponse from last discord API request: {sent_message}")
+                        return False
                 except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-
-            ctx = await bot.get_context(dm_active_embed[0])
-            if not rate_limited:
+                    return None
+            if len(dm_active_embed) > 0:
+                ctx = await bot.get_context(dm_active_embed[0])
                 asyncio.create_task(ctx.invoke(bot.get_command('removeprevious')))
-            await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log=dm_active_embed)
-            return ctx
-
+                await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log=dm_active_embed)
+                return ctx
+            else:
+                return None
 
         def time():
             return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -248,6 +247,8 @@ if is_admin():
             self.embed_log=[]
             #   loads the embed_ids list for read
             global embed_ids
+
+            rate_limited = bot.is_ws_ratelimited()
 
             try:
                 discord_admin_ctx = await bot.fetch_user(processed_data_dict['discord_admin'])
@@ -332,6 +333,8 @@ if is_admin():
                     alert = False
                 elif result == "server already started":
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Adminbot has hooked onto the already running server.","INFO")
+                    log_msg = f"[OK] Hooked onto existing HoN Server."
+                    alert=False
                 elif result == "ram":
                     print("not enough free RAM to start the server.")
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
@@ -347,7 +350,7 @@ if is_admin():
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
                     log_msg=f"``{hsl.time()}`` [ERR] Starting the server failed for unknown reason."
                     alert = True
-                if owner_reachable and log_msg:
+                if log_msg:
                     ctx = await hsl.send_user_msg(self,log_msg,alert)
             except Exception:
                 print(traceback.format_exc())
@@ -357,29 +360,15 @@ if is_admin():
                 if len(embed_ids) > 0:
                     await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
                 print("starting behemoth heart.")
-                if owner_reachable:
+                if ctx != None or ctx != False:
                     await ctx.invoke(bot.get_command('startheart'))
                 else:
-                    print("WHY AM I ENTERING THE MATRIX")
-                    await heart.heartbeat.startheart(self,None)
+                    await heart.heartbeat.startheart(self,ctx)
 
-            except UnboundLocalError:
-                temp_log = f"``{hsl.time()}``[ERROR] No message context found, please run ``!createlinks {processed_data_dict['svr_hoster']}`` in your discord channel.\nUse the !portalhelp command for a full list of commands."
-                try:
-                    await discord_admin_ctx.send(temp_log)
-                except discord.errors.Forbidden:
-                    print("Owner is not reachable. We will message the person to send me a command then.")
-                    owner_reachable = False
-                except Exception:
-                    print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                print(traceback.format_exc())
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The bot is enabled, yet no one has summoned it to discord yet. Please invite bot to discord and summon it using !createlinks {processed_data_dict['svr_hoster']}","WARNING")
-                print("starting backup heart until discord !createinks command is run.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode.","WARNING")
+            except Exception:
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                print("starting server in local mode.")
                 await heart.heartbeat.startheart(self,None)
-            except Exception as e:
-                print(e)
                 
         @bot.command()
         async def sendEmbedLog(ctx,embed_log):
@@ -964,18 +953,22 @@ if is_admin():
                     if embed[0].title == f"{svr_identifier} Adminbot Event Log":
                         await message.delete()
                         await asyncio.sleep(0.5)
+                else:
+                    if "[ERROR] No message context found" in message.content:
+                        await message.delete()
+                        await asyncio.sleep(0.5)
     @bot.command()
     async def cleardm(ctx):
         global dm_active_embed
         msg = ctx.message
         print(f"received command: {msg.content}")
         if msg.author.id == discord_admin_ctx.id:
-            # if svr_id == 1:
-            messages_to_remove = 9999
-            async for message in ctx.history(limit=messages_to_remove):
-                if message.author.id == bot.user.id:
-                    await message.delete()
-                    await asyncio.sleep(0.5)
+            if svr_id == 1:
+                messages_to_remove = 9999
+                async for message in ctx.history(limit=messages_to_remove):
+                    if message.author.id == bot.user.id:
+                        await message.delete()
+                        await asyncio.sleep(0.5)
     @bot.command()
     async def pruneall(ctx, hoster):
         msg = ctx.message
@@ -1010,16 +1003,16 @@ if is_admin():
                 except Exception:
                     print(traceback.format_exc())
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-    @bot.event
-    async def on_command_error(ctx, error):
-        print(f"Command: {ctx.message}\Error:{error}")
-        if svr_id == 1:
-            msg = ctx.message
-            if msg.author.id == discord_admin_ctx.id:
-                await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
-            #     if isinstance(error, commands.CommandNotFound):
-            #         await ctx.send("words i guess")
-            await ctx.invoke(bot.get_command('portalhelp'))
+    # @bot.event
+    # async def on_command_error(ctx, error):
+    #     print(f"Command: {ctx.message}\Error:{error}")
+    #     if svr_id == 1:
+    #         msg = ctx.message
+    #         if msg.author.id == discord_admin_ctx.id:
+    #             await ctx.send("Wrong command, Master. Help is coming in your DMs",delete_after=20)
+    #         #     if isinstance(error, commands.CommandNotFound):
+    #         #         await ctx.send("words i guess")
+    #         await ctx.invoke(bot.get_command('portalhelp'))
     async def main():
         if processed_data_dict['disable_bot'] == 'True':
             await hsl().run_bot_local()

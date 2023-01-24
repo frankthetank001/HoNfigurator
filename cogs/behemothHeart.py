@@ -65,39 +65,48 @@ class heartbeat(commands.Cog):
         self.server_status.update({'server_ready':False})
         
         async def send_user_msg(ctx,log_msg,alert,data):
+            send_new_message = False
+            msg_sent = False
             global dm_active_embed
-
-            rate_limited = bot.is_ws_ratelimited()
-            if not rate_limited:
-                if alert:
-                    try:
-                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
-                        await dm_active_embed[0].delete()
-                        dm_active_embed[0] = await ctx.send(embed=user_embed)
-                        embedFile = open(data['dm_discord_temp'], 'w')
-                        embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
-                        embedFile.close()
-                    except Exception:
-                        print(traceback.format_exc())
-                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-                else:
-                    try:
-                        user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
-                        try:
-                            await dm_active_embed[0].edit(embed=user_embed)
-                        except (discord.errors.NotFound,discord.errors.Forbidden):
-                            dm_active_embed[0] = await ctx.send(embed=user_embed)
-                    except Exception:
-                        print(traceback.format_exc())
-                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-            else:
-                heartbeat.print_and_log("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
+            
+            if ctx == False or alert:
+                send_new_message = True
+            
+            if not send_new_message:
+                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
+                try:
+                    edit_result = await dm_active_embed[0].edit(embed=user_embed)
+                    msg_sent = True
+                except (discord.errors.NotFound,discord.errors.Forbidden,discord.errors.HTTPException,UnboundLocalError):
+                    print(traceback.format_exc())
+                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    if discord.errors.HTTPException:
+                        heartbeat.print_and_log(f"Most likely we are being rate limited\nResponse from last discord API request: {edit_result}")
+                    elif UnboundLocalError:
+                        heartbeat.print_and_log("previous message may have been deleted. Making a new one")
+                        send_new_message=True
+            if send_new_message:
+                try:
+                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
+                    if ctx != False: await dm_active_embed[0].delete()
+                    dm_active_embed[0] = await ctx.send(embed=user_embed)
+                    msg_sent = True
+                    embedFile = open(data['dm_discord_temp'], 'w')
+                    embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
+                    embedFile.close()
+                except (discord.errors.HTTPException,Exception):
+                    print(traceback.format_exc())
+                    svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                    if discord.errors.HTTPException: print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
+            if not msg_sent:
+                heartbeat.print_and_log("Skipping this message update, will try again later.")
                 event_list = open(data['dm_discord_hist']).readlines()
                 event_list.append(log_msg)
                 with open(data['dm_discord_hist'], 'w') as f:
                     for line in event_list:
                         line = line.replace("\n","")
                         f.write(f"{line}\n")
+                
 
 
 
@@ -416,7 +425,21 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                 #   print the playercount when the playercount changes
                 self.server_status.update({'tempcount':playercount})
                 print(f"players: {playercount}")
-
+    @bot.command()
+    async def priority(self,ctx):
+        global dm_active_embed
+        bot_message = self.bot.get_cog("embedManager")
+        time.sleep(int(self.processed_data_dict['svr_id'])*2)
+        try:
+            user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] Summoned.",True,self.processed_data_dict)
+            await dm_active_embed[0].delete()
+            dm_active_embed[0] = await ctx.send(embed=user_embed)
+            embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')
+            embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
+            embedFile.close()
+        except Exception:
+            print(traceback.format_exc())
+            svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     @bot.command()
     async def stopheart(self,ctx):
         global alive
