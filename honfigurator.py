@@ -395,7 +395,6 @@ if is_admin():
                 service = service.as_dict()
             except Exception as ex:
                 # raise psutil.NoSuchProcess if no service with such name exists
-                print(f"{service_name} does not exist")
                 return False
                 #print(str(ex))
             return service
