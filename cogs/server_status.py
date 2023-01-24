@@ -922,7 +922,7 @@ class honCMD():
                 self.server_status.update({'hon_pid_owner':self.honEXE.username()})
                 honCMD().initialise_variables("restart")
                 self.server_status.update({'realtime_priority':True})
-                return True
+                return "server already started"
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")

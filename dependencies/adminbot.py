@@ -146,6 +146,7 @@ if is_admin():
             
             send_fresh_message = False
             try:
+                rate_limited = bot.is_ws_ratelimited()
                 if len(dm_active_embed) == 0:
                     # read previous message data from local file
                     if exists(processed_data_dict['dm_discord_temp']):
@@ -179,7 +180,11 @@ if is_admin():
                 if len(dm_active_embed) > 0:
                     user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
                     try:
-                        await dm_active_embed[0].edit(embed=user_embed)
+                        if not rate_limited:
+                            await dm_active_embed[0].edit(embed=user_embed)
+                        else:
+                            print("I AM RATE LIMITED. Please wait awhile to start receiving messages again.")
+                            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}","I AM RATE LIMITED. Please wait awhile to start receiving messages again.","WARNING")
                     except Exception:
                         print(traceback.format_exc())
                         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -217,7 +222,8 @@ if is_admin():
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
 
             ctx = await bot.get_context(dm_active_embed[0])
-            asyncio.create_task(ctx.invoke(bot.get_command('removeprevious')))
+            if not rate_limited:
+                asyncio.create_task(ctx.invoke(bot.get_command('removeprevious')))
             await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log=dm_active_embed)
             return ctx
 
@@ -318,11 +324,14 @@ if is_admin():
             # await ctx.invoke(bot.get_command('getStatus'))
             try:
                 result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
+                log_msg = False
                 if result == True:
                     print("server started successfully")
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
-                    log_msg = f"[OK] Server Started."
+                    log_msg = f"[OK] Server Started successfully."
                     alert = False
+                elif result == "server already started":
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Adminbot has hooked onto the already running server.","INFO")
                 elif result == "ram":
                     print("not enough free RAM to start the server.")
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
@@ -335,10 +344,10 @@ if is_admin():
                     alert = True
                 else:
                     print("starting the server completely failed.")
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed for an unknown reason.","FATAL")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
                     log_msg=f"``{hsl.time()}`` [ERR] Starting the server failed for unknown reason."
                     alert = True
-                if owner_reachable:
+                if owner_reachable and log_msg:
                     ctx = await hsl.send_user_msg(self,log_msg,alert)
             except Exception:
                 print(traceback.format_exc())
@@ -943,7 +952,7 @@ if is_admin():
     async def removeprevious(ctx):
         global dm_active_embed
             # if svr_id == 1:
-        messages_to_remove = 9999
+        messages_to_remove = 50
         ch_id = dm_active_embed[0].channel.id
         ch = bot.get_channel(ctx.channel.id)
         if ch == None:
