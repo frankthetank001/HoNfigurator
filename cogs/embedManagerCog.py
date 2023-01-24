@@ -9,7 +9,10 @@ from datetime import datetime
 import traceback
 
 
-bot = commands.Bot(command_prefix='!', case_insensitive=True)
+discver = (discord.__version__).split(".")
+intents = discord.Intents.default()
+if int(discver[0]) >= 2: intents.message_content=True
+bot = commands.Bot(command_prefix='!',case_insensitive=True,intents=intents)
 
 dmgr = mData()
 svr_state = svrcmd.honCMD()
@@ -31,6 +34,7 @@ svr_id_total = processed_data_dict['svrid_total']
 svr_ip = processed_data_dict['svr_ip']
 svr_dns = processed_data_dict['svr_dns']
 svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
+event_list = []
 
 #
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
@@ -104,6 +108,46 @@ class timeout:
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
 
+class offlineEmbedManager():
+    def __init__(self):
+        return
+    async def embedLog(self,log_msg,alert,data):
+        global event_list
+
+        replace_me = [" ","#","\"","."]
+        hoster = data['svr_hoster']
+        for v in replace_me:
+            if v in hoster: hoster = hoster.replace(v,"")
+        
+        list_limit = 10
+        event_list = open(processed_data_dict['dm_discord_hist']).readlines()
+        
+        event_list.append(log_msg)
+
+        while len(event_list)>list_limit:
+            event_list.remove(event_list[0])
+
+        with open(processed_data_dict['dm_discord_hist'], 'w') as f:
+            for line in event_list:
+                line = line.replace("\n","")
+                f.write(f"{line}\n")
+        msg = ""
+        for l in event_list:
+            if alert:
+                if l == log_msg:
+                    if 'second lag spike' in log_msg:
+                        msg = msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
+                    else:
+                        msg = msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"
+                else:
+                    msg = msg+"```glsl\n"+l+"```"
+            else: 
+                msg = msg+"```glsl\n"+l+"```"
+        #msg = "```\ncss"+'```\ncss'.join(event_list)
+        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"{msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
+        created_embed.set_footer(text="Different coloured text indicates an alert")
+        return created_embed
+    
 class embedManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -422,20 +466,13 @@ class embedManager(commands.Cog):
         return created_embed
 
     @bot.command()
-    async def embedLog(self,ctx,log_msg):
-        list_limit = 15
-        self.event_list.append(log_msg + "\n")
-        self.event_log =  (self.event_log + log_msg + "\n")
-        self.event_string = ""
-        if len(self.event_list)>list_limit:
-            self.event_list.remove(self.event_list[0])
-            for event_msg in self.event_list:
-                self.event_string = (self.event_string+event_msg)
-        if len(self.event_list)<=list_limit:
-            for event_msg in self.event_list:
-                self.event_string = (self.event_string+event_msg)
-        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=self.event_string, color=stripColor_log)
+    async def embedLog(self,log_msg,alert,data):
+        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert,data)
+        
         return created_embed
 
-def setup(bot):
-    bot.add_cog(embedManager(bot))
+async def setup(bot):
+    if int(discver[0]) >=2:
+        await bot.add_cog(embedManager(bot))
+    else:
+        bot.add_cog(embedManager(bot))

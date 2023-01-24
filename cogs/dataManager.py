@@ -111,9 +111,9 @@ class mData():
         if 'hon_manager_dir' not in self.confDict:
             self.confDict.update({"hon_manager_dir":f"{self.confDict['hon_root_dir']}\\hon"})
         # TODO: hardcoding disable bot, maybe clean this later
-        # if 'disable_bot' not in self.confDict:
-        #     self.confDict.update({'disable_bot':'False'})
-        self.confDict.update({'disable_bot':'True'})
+        if 'disable_bot' not in self.confDict:
+            self.confDict.update({'disable_bot':'False'})
+        #self.confDict.update({'disable_bot':'True'})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
         #self.confDict.update({"hon_file_name":f"HON_SERVER_{self.confDict['svr_id']}.exe"})
@@ -132,7 +132,9 @@ class mData():
         self.confDict.update({"svr_game_shared_dll":f"{self.confDict['hon_directory']}game\\game_shared_x64.dll"})
         self.confDict.update({"svr_game_dll":f"{self.confDict['hon_directory']}game\\game_x64.dll"})
         self.confDict.update({"discord_location":f"{self.confDict['sdc_home_dir']}\\messages"})
-        self.confDict.update({"discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\message{self.confDict['svr_identifier']}.txt"})
+        self.confDict.update({"ch_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\ch_message{self.confDict['svr_identifier']}-data.txt"})
+        self.confDict.update({"dm_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-data.txt"})
+        self.confDict.update({"dm_discord_hist":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-hist.txt"})
         self.confDict.update({"app_name":f"adminbot{self.svr_id}"})
         self.confDict.update({"app_log":f"{self.confDict['sdc_home_dir']}\\{self.confDict['app_name']}.log"})
         if 'static_ip' not in self.confDict:
@@ -332,7 +334,7 @@ class mData():
     #     for option in conf_parse_local.options("OPTIONS"):
     #         temp.update({option:conf_parse_local['OPTIONS'][option]})    
     def return_commandline(self,processed_data_dict):
-        return [processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {processed_data_dict['svr_ip']}; Set svr_port {processed_data_dict['svr_port']}; Set svr_proxyPort {processed_data_dict['svr_proxyPort']}; Set svr_proxyLocalVoicePort {processed_data_dict['svr_proxyLocalVoicePort']}; Set svr_proxyRemoteVoicePort {processed_data_dict['svr_proxyRemoteVoicePort']}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump true; Set sys_dumpOnFatal true; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']]
+        return [processed_data_dict['hon_exe'],"-dedicated","-noconfig","-execute",f"Set svr_login {processed_data_dict['svr_login']}:{processed_data_dict['svr_id']}; Set svr_password {processed_data_dict['svr_password']};Set svr_description priority:{processed_data_dict['process_priority']},cores:{processed_data_dict['core_assignment']},hon_version:{processed_data_dict['hon_version']},honfigurator_version:{processed_data_dict['bot_version']},github_branch:{processed_data_dict['github_branch']},discord_admin:{processed_data_dict['discord_admin']}; Set sv_masterName {processed_data_dict['svr_login']}:; Set svr_slave {processed_data_dict['svr_id']}; Set svr_adminPassword; Set svr_name {processed_data_dict['svr_hoster']} {processed_data_dict['svr_id']}/{processed_data_dict['svr_total']} 0; Set svr_ip {processed_data_dict['svr_ip']}; Set svr_port {processed_data_dict['svr_port']}; Set svr_proxyPort {processed_data_dict['svr_proxyPort']}; Set svr_proxyLocalVoicePort {processed_data_dict['svr_proxyLocalVoicePort']}; Set svr_proxyRemoteVoicePort {processed_data_dict['svr_proxyRemoteVoicePort']}; Set man_enableProxy {processed_data_dict['use_proxy']}; Set svr_location {processed_data_dict['svr_region_short']}; Set svr_broadcast true; Set upd_checkForUpdates false; Set sv_autosaveReplay true; Set sys_autoSaveDump false; Set sys_dumpOnFatal false; Set svr_chatPort 11031; Set svr_maxIncomingPacketsPerSecond 300; Set svr_maxIncomingBytesPerSecond 1048576; Set con_showNet false; Set http_printDebugInfo false; Set php_printDebugInfo false; Set svr_debugChatServer false; Set svr_submitStats true; Set svr_chatAddress 96.127.149.202;Set http_useCompression false; Set man_resubmitStats true; Set man_uploadReplays true; Set sv_remoteAdmins ; Set sv_logcollection_highping_value 100; Set sv_logcollection_highping_reportclientnum 1; Set sv_logcollection_highping_interval 120000","-masterserver",processed_data_dict['master_server']]
     def incr_port(svr_id,incr_port_by):
             incr_port = 0
             for i in range(0,svr_id):
