@@ -2691,7 +2691,7 @@ if is_admin():
                             initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                                 #viewButton.refresh()
                     else:
-                        print("[ABORT] players are connected. Scheduling shutdown instead..")
+                        print(f"[adminbot{id}] [ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
                     #viewButton.refresh()
                 def Clean(self):
