@@ -160,6 +160,8 @@ class offlineEmbedManager():
                     alert_msg = alert_msg+"```glsl\n"+l+"```"
             else: 
                 alert_msg = alert_msg+"```glsl\n"+l+"```"
+        if len(alert_list) == 0:
+            alert_msg = alert_msg+"```glsl\nNo alerts.```"
         #msg = "```\ncss"+'```\ncss'.join(event_list)
         created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{event_msg}\n> **Server Alerts**\n{alert_msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates a fresh alert")
