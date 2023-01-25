@@ -113,8 +113,6 @@ class mData():
         # TODO: hardcoding disable bot, maybe clean this later
         if 'disable_bot' not in self.confDict:
             self.confDict.update({'disable_bot':'False'})
-        if 'major_version' not in self.confDict:
-            self.confDict.update({'major_version':float(1)})
         #self.confDict.update({'disable_bot':'True'})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
