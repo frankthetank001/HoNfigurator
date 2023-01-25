@@ -135,6 +135,7 @@ class mData():
         self.confDict.update({"ch_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\ch_message{self.confDict['svr_identifier']}-data.txt"})
         self.confDict.update({"dm_discord_temp":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-data.txt"})
         self.confDict.update({"dm_discord_hist":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-hist.txt"})
+        self.confDict.update({"dm_discord_alert_hist":f"{self.confDict['sdc_home_dir']}\\messages\\dm_message{self.confDict['svr_identifier']}-alert-hist.txt"})
         self.confDict.update({"app_name":f"adminbot{self.svr_id}"})
         self.confDict.update({"app_log":f"{self.confDict['sdc_home_dir']}\\{self.confDict['app_name']}.log"})
         if 'static_ip' not in self.confDict:

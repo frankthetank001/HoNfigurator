@@ -91,6 +91,9 @@ if is_admin():
     if not exists(processed_data_dict['dm_discord_hist']):
         with open(processed_data_dict['dm_discord_hist'],'w'):
             pass
+    if not exists(processed_data_dict['dm_discord_alert_hist']):
+        with open(processed_data_dict['dm_discord_alert_hist'],'w'):
+            pass
     def handler(signum, frame):
         svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Received SIGNUM: {signum} , frame: {frame}","INFO")
         exit(1)
@@ -108,33 +111,6 @@ if is_admin():
     class hsl():
         def __init__(self):
             self.server_status = svr_cmd.getStatus()
-            # if processed_data_dict['disable_bot'] == 'False':
-            #     self.bot = bot
-            #     self.server_status = svr_cmd.getStatus()
-            #     #   loads the embed manager class
-            #     await bot.load_extension("cogs.embedManagerCog")
-            #     await bot.load_extension("cogs.behemothHeart")
-            #     self.embed_log=[]
-            #     #   loads the embed_ids list for read
-            #     global embed_ids
-                #
-                #   grabs the ids from test.txt and inserts them into the embed_ids list
-                # if exists(processed_data_dict['discord_temp']):
-                #     embedData = open(processed_data_dict['discord_temp'], 'r')
-                #     embed_file = embedData.readlines()
-                #     for dataLine in embed_file:
-                #         if "-" in dataLine:
-                #             embedData.close()
-                #             os.remove(processed_data_dict['discord_temp'])
-                #             break
-                #         temp_embed = dataLine.split(",")
-                #         embed_ids.append([int(temp_embed[0]),int(temp_embed[1]),int(temp_embed[2])])
-                #     embedData.close()
-                #
-                #   if file does not exists creates it
-                # else:
-                #     embedData = open(processed_data_dict['discord_temp'],'w')
-                #     embedData.close()
             return
         @bot.event
         async def on_ready():
@@ -180,20 +156,28 @@ if is_admin():
                     user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
                     await dm_active_embed[0].edit(embed=user_embed)
             except discord.errors.NotFound:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print(f"Previous message not found.. clearing it from message cache")
                 send_fresh_message=True
             except discord.errors.Forbidden:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print("No permissions to the previous message.. clearing message cache")
                 send_fresh_message=True
             except discord.errors.HTTPException:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
                 return False
             except UnboundLocalError:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print("No message context found. Require new message.")
                 send_fresh_message = True
             except Exception:
-                    print(traceback.format_exc())
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
             
             if send_fresh_message:
                 try:
