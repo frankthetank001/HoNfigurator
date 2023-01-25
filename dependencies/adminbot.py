@@ -344,7 +344,7 @@ if is_admin():
                 if len(embed_ids) > 0:
                     await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
                 print("starting behemoth heart.")
-                if ctx != None or ctx != False:
+                if ctx != None and ctx != False:
                     await ctx.invoke(bot.get_command('startheart'))
                 else:
                     await heart.heartbeat.startheart(self,ctx)
