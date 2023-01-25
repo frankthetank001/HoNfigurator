@@ -80,7 +80,7 @@ if is_admin():
     svr_id_delay = svr_id * 20
     svr_identifier = processed_data_dict['svr_identifier']
     svr_hoster = processed_data_dict['svr_hoster']
-    ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
+    ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id} v{processed_data_dict['bot_version']}")
 
     for p in psutil.process_iter():
         if processed_data_dict['app_name'] in p.name():
