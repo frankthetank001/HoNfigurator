@@ -100,12 +100,20 @@ class heartbeat(commands.Cog):
                     if discord.errors.HTTPException: print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
             if not msg_sent:
                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","Skipping this message update, will try again later.","INFO")
-                event_list = open(data['dm_discord_hist']).readlines()
-                event_list.append(log_msg)
-                with open(data['dm_discord_hist'], 'w') as f:
-                    for line in event_list:
-                        line = line.replace("\n","")
-                        f.write(f"{line}\n")
+                if alert:
+                    alert_list = open(data['dm_discord_hist']).readlines()
+                    alert_list.append(log_msg)
+                    with open(data['dm_discord_hist'], 'w') as f:
+                        for line in alert_list:
+                            line = line.replace("\n","")
+                            f.write(f"{line}\n")
+                else:
+                    event_list = open(data['dm_discord_hist']).readlines()
+                    event_list.append(log_msg)
+                    with open(data['dm_discord_hist'], 'w') as f:
+                        for line in event_list:
+                            line = line.replace("\n","")
+                            f.write(f"{line}\n")
                 
 
 
