@@ -259,9 +259,9 @@ class heartbeat(commands.Cog):
                             svr_state.stopSELF("Scheduled shutdown initiated.")
                     #   check for or action a natural restart inbetween games
                     if self.match_status['now'] in ["in lobby","in game"]:
-                        # if self.match_status['now'] == "in game":
-                        #     svr_state.wait_for_replay(replay_threshold)
-                        # else:
+                        if self.match_status['now'] == "in game":
+                            svr_state.wait_for_replay(replay_threshold)
+                        else:
                             svr_state.initialise_variables("soft")
                     
                     """  [Players: 0] idle game health checks """
