@@ -12,6 +12,12 @@ shutdown = False
 
 def show_exception_and_exit(exc_type, exc_value, tb):
     traceback.print_exception(exc_type, exc_value, tb)
+    for p in psutil.process_iter():
+        if name in p.name():
+            current_pid = os.getpid()
+            other_pid = p.pid
+            if other_pid != current_pid:
+                p.kill()
     raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running <honfigurator-home>\\honfigurator-install-dependencies.bat.")
     sys.exit(-1)
 sys.excepthook = show_exception_and_exit
@@ -94,12 +100,6 @@ if "-" in basename:
 else:
     exe=basename.split(".")
     name=f"{exe[0]}{confDict['svr_id']}.exe"
-for p in psutil.process_iter():
-    if name in p.name():
-        current_pid = os.getpid()
-        other_pid = p.pid
-        if other_pid != current_pid:
-            p.kill()
 if confDict['use_console'] == 'True':
     print("starting in console mode")
     subprocess.Popen([name,'adminbot.py'])

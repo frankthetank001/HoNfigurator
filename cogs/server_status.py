@@ -82,7 +82,7 @@ class honCMD():
     """
     Game server updates
     """
-    def check_current_match_id(self,reload):
+    def check_current_match_id(self,reload,update_id_only):
         try:
             # get list of files that matches pattern
             pattern="M*.log"
@@ -100,6 +100,8 @@ class honCMD():
             hard_data = honCMD.compare_filesizes(self,matchLoc,"match")
             soft_data = os.stat(matchLoc).st_size # initial file size
 
+            if update_id_only:
+                return True
             if 'match_id' in match_status:
                 if matchID != match_status['match_id'] or reload or (matchID == match_status['match_id'] and soft_data > hard_data and match_status['first_run'] == True):
                     #if self.server_status["bot_first_run"] == True:
@@ -546,6 +548,43 @@ class honCMD():
             elif prio == "256": prio = "REALTIME"
             return prio
         else: return "N/A"
+    def count_skipped_frames(self):
+        simple_match_data = {}
+        skipped_frames = 0
+        count_frames=False
+        count_frames_from=0
+        frame_size = 0
+        frame_sizes = []
+        if self.server_status['game_log_location'] == 'empty':
+            honCMD().get_current_game_log()
+        with open(self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
+            if match_status['skipped_frames_after_line'] == 0:
+                for num,line in list(enumerate(f, 1)):
+                    if any(x in line for x in ["PLAYER_SELECT","PLAYER_RANDOM","GAME_START","] StartMatch"]):
+                        count_frames = True
+                        count_frames_from = num
+                        match_status.update({'skipped_frames_after_line':count_frames_from})
+        if count_frames:
+            with open(self.server_status['game_log_location'], "r", encoding='utf-16-le') as f:
+                for num, line in list(enumerate(f, match_status['skipped_frames_after_line'])):
+                    if "Skipped" in line or "skipped" in line:
+                        pattern = "\(([^\)]+)\)"
+                        skipped_frames+=1
+                        try:
+                            frame_size = re.findall(r'\(([^\)]+)\)', line)
+                            frame_size = frame_size[0]
+                            frame_size = frame_size.split(" ")
+                            frame_sizes.append(int(frame_size[0]))
+                        except Exception: pass
+                match_status.update({'skipped_frames_after_line':num})
+        try:
+            total_time_lagging_msecs = sum(frame_sizes)
+            # convert to seconds
+            total_time_lagging_secs = total_time_lagging_msecs / 1000
+        except Exception:
+            total_time_lagging = None
+        return total_time_lagging_secs
+
     def simple_match_data(log,type):
         simple_match_data = {}
         simple_match_data.update({'match_time':'In-Lobby phase...'})
@@ -763,8 +802,10 @@ class honCMD():
         return match_status
    #   Starts server
     def initialise_variables(self,reset_type):
-        
         if reset_type == "soft":
+            hon_elk_update_dict = {'static_ip':processed_data_dict['static_ip'],'github_branch':processed_data_dict['github_branch'],'use_proxy':processed_data_dict['use_proxy'],'disable_bot':processed_data_dict['disable_bot'],'auto_update':processed_data_dict['auto_update'],'bot_version':processed_data_dict['bot_version']}
+            print(f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}")
+            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
             print("lobby closed.")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
@@ -772,7 +813,9 @@ class honCMD():
             self.server_status.update({"match_log_location":"empty"})
             self.server_status.update({"slave_log_location":"empty"})
             return
+        print(f"Initialising variables. Data dump: {processed_data_dict}")
         
+        honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
         #
         # Remove log files older than 7 days
         if reset_type == "reload":
@@ -843,6 +886,7 @@ class honCMD():
         match_status.update({'lobby_info_obtained':False})
         match_status.update({'now':'idle'})
         match_status.update({'first_run':True})
+        match_status.update({'skipped_frames_after_line':0})
     def assign_cpu(self):
         self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
         print(f"Server assigned to CPU cores: {processed_data_dict['svr_affinity']}")
@@ -884,7 +928,7 @@ class honCMD():
                 self.server_status.update({'hon_pid_owner':self.honEXE.username()})
                 honCMD().initialise_variables("restart")
                 self.server_status.update({'realtime_priority':True})
-                return True
+                return "server already started"
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")

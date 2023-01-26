@@ -3,47 +3,69 @@
 import sys
 import subprocess as sp
 import os
+import cogs.setupEnv as setup
+import traceback
+from sys import stdout
+from sys import stderr
+
+
+# determine if application is a script file or frozen exe
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
 
 def show_exception_and_exit(exc_type, exc_value, tb):
     traceback.print_exception(exc_type, exc_value, tb)
-    print("Trying to attempt to update honfigurator to fix this...")
     try:
         os.chdir(application_path)
     except Exception as e:
         print(e)
-    output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
-    tex.see(tk.END)
-    return output.returncode
-    raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
-    sys.exit(-1)
+    def git_pull():
+        output = sp.run(["git", "pull"],stdout=sp.PIPE,stderr=sp.PIPE,text=True)
+        return output
+    def git_reset():
+        output = sp.run(["git", "reset", "--hard"],stdout=sp.PIPE,stderr=sp.PIPE,text=True)
+        return output
+    print("Trying to attempt to update honfigurator to fix this...")
+    output = git_pull()
+    if 'updating' in output.stdout:
+        print(output.stdout)
+        print("updated honfigurator.. attempting restart")
+        python = sys.executable
+        os.execl(python, '"' + python + '"', *sys.argv)
+    elif 'local changes' in output.stderr:
+        print(output.stderr)
+        raw_input = None
+        while (raw_input not in ('y','n')):
+            raw_input = input(f"There were errors attempting to recover honfigurator. You have local changes. Would you like to discard the local changes and update honfigurator? (y/n)")
+        if raw_input.lower() == 'y':
+            output = git_reset()
+            if 'HEAD is now at' in output.stdout:
+                git_pull()
+                python = sys.executable
+                os.execl(python, '"' + python + '"', *sys.argv)
+        elif raw_input.lower() == 'n':
+            print("exiting code then until local changes are sorted out.")
+            time.sleep(3)
+            sys.exit(0)
+    if 'already up to date' in output.stdout.lower():
+        error_msg = f"Warning: Although HoNfigurator is up-to-date with the upstream github repository, there is some issue preventing the launch locally on this computer. Please provide a screenshot of the above errors to @FrankTheGodDamnMotherFuckenTank#8426"
+    else:
+        error_msg=f"Warning: HoNfigurator has failed to update and self repair."
+    raw_input = input(stderr.write(error_msg))
+    sys.exit()
 sys.excepthook = show_exception_and_exit
-
-try:
-    import pkg_resources  # TODO: handle exception if this doesnt exist and install it
-    required = {'discord.py==1.7.3',
-                'GitPython==3.1.27',
-                'psutil==5.9.1',
-                'python_hosts==1.0.3',
-                'WMI==1.5.1',
-                'requests',
-                'pillow'}
-    installed = {pkg.key for pkg in pkg_resources.working_set}
-    missing = required - installed
-    if missing:
-        python = sp.getoutput('where python')
-        python = python.split("\n")
-        python = python[0]
-        sp.check_call([python, '-m', 'pip', 'install', *missing], stdout=sp.DEVNULL)
-except Exception as e:
-    print(e)
-
+packages_updated = setup.update_dependencies()
+if packages_updated:
+    if packages_updated.returncode == 0:
+        print("Relaunching code...")
+        python = sys.executable
+        os.execl(python, '"' + python + '"', *sys.argv)
 from asyncio.subprocess import DEVNULL
 import tkinter as tk
 from tkinter import Button,Label,Entry
 from tkinter import getboolean, ttk
-#from pystray import MenuItem as item
-#import pystray
-from PIL import Image, ImageTk
 import configparser
 import psutil
 import socket
@@ -56,14 +78,16 @@ import ctypes
 from tkinter import END
 import distutils
 from distutils import dir_util
-import traceback
 import datetime
 from threading import Thread
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import winreg
-#import speedtest
+try:
+    import speedtest
+except Exception as e:
+    print(e)
 
 i=0
 for proc in psutil.process_iter():
@@ -75,13 +99,8 @@ if i > 2:
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+    except Exception:
         return False
-# determine if application is a script file or frozen exe
-if getattr(sys, 'frozen', False):
-    application_path = os.path.dirname(sys.executable)
-elif __file__:
-    application_path = os.path.dirname(__file__)
 if is_admin():
     exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
     sp.Popen(exp, shell=True).wait()
@@ -109,28 +128,27 @@ if is_admin():
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
     #   Otherwise taskbar icon will be python shell icon
     myappid = 'honfiguratoricon.1.0' # arbitrary string
-    mod_by=13
+    num_rows_file = f"{application_path}\\config\\num_server_rows"
+    if exists(num_rows_file):
+        try:
+            mod_by = open(num_rows_file).readline()
+            mod_by = int(mod_by)
+        except:
+            mod_by=13
+    else:
+        mod_by=13
     auto_refresh_var = False
     bot_tab=0
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     hon_api_updated = False
     players_connected = False
-    update_delay = 180
+    auto_refresh_delay = 1
+    update_delay = 180 / auto_refresh_delay
     update_counter = 0
     refresh_counter = 0
-    refresh_delay = 20
+    refresh_delay = 20 / auto_refresh_delay
     updating = False
-
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKCYAN = '\033[96m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+    first_tab_switch = True
     #
     #
     class initialise():
@@ -172,7 +190,7 @@ if is_admin():
                 self.ver_existing = config['OPTIONS']['bot_version']
                 try:
                     self.ver_existing = float(self.ver_existing)
-                except: pass
+                except Exception: pass
             else:
                 self.ver_existing = 0
             #app_name=f"adminbot{self.dataDict['svr_id']}"
@@ -386,7 +404,6 @@ if is_admin():
                 service = service.as_dict()
             except Exception as ex:
                 # raise psutil.NoSuchProcess if no service with such name exists
-                print(f"{service_name} does not exist")
                 return False
                 #print(str(ex))
             return service
@@ -400,12 +417,12 @@ if is_admin():
                 try:
                     check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
-                except: pass
+                except Exception: pass
             elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                 try:
                     check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{self.svr_id}.exe"],stdout=sp.PIPE, text=True)
                     i = int(check.stdout.read())
-                except: pass
+                except Exception: pass
             check.terminate()
             return i
         def check_port(port):
@@ -435,12 +452,12 @@ if is_admin():
                         try:
                             check = sp.Popen([self.dataDict['player_count_exe_loc'],f"KONGOR_ARENA_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                             i = int(check.stdout.read())
-                        except: pass
+                        except Exception: pass
                     elif i == -3 and 'kongor.online' in self.dataDict['master_server']:
                         try:
                             check = sp.Popen([self.dataDict['player_count_exe_loc'],f"HON_SERVER_{svr_id}.exe"],stdout=sp.PIPE, text=True)
                             i = int(check.stdout.read())
-                        except: pass
+                        except Exception: pass
                     if i != -1:
                         pcount = i
                     check.terminate()
@@ -452,7 +469,7 @@ if is_admin():
                     sp.Popen(['net','start',f'{service_name}'])
                 else:
                     sp.run(['net','start',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
@@ -462,7 +479,7 @@ if is_admin():
                     sp.Popen(['net','stop',f'{service_name}'])
                 else:
                     sp.run(['net','stop',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not stop service {}'.format(service_name))
                 return False
             return True
@@ -499,15 +516,15 @@ if is_admin():
                 if dmgr.mData.get_hash(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe") != dmgr.mData.get_hash(f"{self.dataDict['hon_directory']}\\nssm.exe"):
                     try:
                         shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-                    except:
+                    except Exception:
                         try:
                             shutil.move(f"{self.dataDict['hon_directory']}\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm_old.exe")
                             shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
-                        except: pass
+                        except Exception: pass
 
             try:
                 sp.run(['nssm', "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.sdc_home_dir}\\adminbot{self.dataDict['svr_id']}.exe"])
             return True
         def create_service_generic(self,service_name,application):
@@ -515,7 +532,7 @@ if is_admin():
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             try:
                 sp.run(['nssm', "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "install",service_name,f"{self.dataDict['hon_directory']}{application}"])
             return True
         def configure_service_generic(self,service_name,application,arguments):
@@ -532,7 +549,7 @@ if is_admin():
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
                 elif service_name == "HoN Proxy Manager":
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,"Application",f"{self.dataDict['hon_directory']}{application}"])
                 if arguments is not None:
                     sp.run([self.dataDict['nssm_exe'], "set",service_name,"AppParameters",arguments])
@@ -549,7 +566,7 @@ if is_admin():
                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\nssm.exe",f"{self.dataDict['hon_directory']}\\nssm.exe")
             try:
                 sp.run(['nssm', "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
-            except:
+            except Exception:
                 sp.run([self.dataDict['nssm_exe'], "set",service_name,f"Application",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe"])
             return True
         def configure_service_bot(self,service_name):
@@ -608,12 +625,12 @@ if is_admin():
         def restart_service(self,service_name):
             try:
                 sp.run(['net','stop',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not stop service {}'.format(service_name))
                 return False
             try:
                 sp.run(['net','start',f'{service_name}'])
-            except:
+            except Exception:
                 print ('could not start service {}'.format(service_name))
                 return False
             return True
@@ -625,7 +642,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def schedule_restart_honfigurator(deployed_status):
             temFile = f"{deployed_status}\\pending_restart"
@@ -635,7 +652,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def schedule_shutdown(deployed_status):
             temFile = f"{deployed_status['sdc_home_dir']}\\pending_shutdown"
@@ -645,7 +662,7 @@ if is_admin():
             if exists(remove_me):
                 try:
                     os.remove(remove_me)
-                except:
+                except Exception:
                     print(traceback.format_exc())
         def check_schd_restart(deployed_status):
             temFile = deployed_status['sdc_home_dir']+"\\pending_restart"
@@ -719,7 +736,7 @@ if is_admin():
                     print("firewall rule added.")
                     initialise.print_and_tex(self,f"Windows firewall configured for application: {application}",'interest')
                     return True
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def configure_firewall_port(self,name,port):
@@ -735,7 +752,7 @@ if is_admin():
                     add_rule = os.system(f"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow protocol=UDP localport={port} remoteip=any")
                     initialise.print_and_tex(self,f"Windows firewall configured for port: {port}",'interest')
                     return True
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def remove_firewall(self,name,application):
@@ -743,7 +760,7 @@ if is_admin():
                 check_rule = os.system(f"netsh advfirewall firewall show rule name=\"{name}\"")
                 if check_rule == 0:
                     remove_rule = os.system(f"netsh advfirewall firewall delete rule name=\"{name}\"")
-            except: 
+            except Exception: 
                 print(traceback.format_exc())
                 return False
         def print_and_tex(self,message,*args):
@@ -852,8 +869,11 @@ if is_admin():
             if not exists(f"{self.sdc_home_dir}\\cogs"):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\cogs ...")
                 os.makedirs(f"{self.sdc_home_dir}\\cogs")
-            if not exists(f"{self.hon_directory}game_shared_x64.dll"):
-                shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
+            if not exists(f"{self.sdc_home_dir}\\dependencies"):
+                print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\dependencies ...")
+                os.makedirs(f"{self.sdc_home_dir}\\dependencies")
+            # if not exists(f"{self.hon_directory}game_shared_x64.dll"):
+            #     shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
             if exists(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                 if not exists(f"{self.dataDict['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                     shutil.copy(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt",f"{self.dataDict['sdc_home_dir']}\\messages\\")
@@ -917,7 +937,7 @@ if is_admin():
                     try:
                         shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
                         print(f"[{self.dataDict['app_name']}] copying server exe...")
-                    except: 
+                    except Exception: 
                         shutil.move(exe_path,f"{exe_path_cut}_old.exe")
                         shutil.copy(f"{self.dataDict['hon_directory']}hon_x64.exe",exe_path)
                         exe_force_copy=True
@@ -936,8 +956,9 @@ if is_admin():
                     os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe')
                     shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
                 try:
-                    shutil.copy(f"[{self.dataDict['app_name']}] {application_path}\\dependencies\\python310.dll",self.dataDict['sdc_home_dir'])
-                    shutil.copy(f"[{self.dataDict['app_name']}] {application_path}\\dependencies\\vcruntime140.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\python310.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\vcruntime140.dll",self.dataDict['sdc_home_dir'])
+                    shutil.copy(f"{application_path}\\dependencies\\requirements.txt",f"{self.dataDict['sdc_home_dir']}\\dependencies\\requirements.txt")
                 except Exception as e:
                     print(e)
                 if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe') or force_update:
@@ -1004,7 +1025,7 @@ if is_admin():
                                     shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                                 except PermissionError:
                                     initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently runing so we cannot replace this file. We'll try again later",'warning')
-                                except: print(traceback.format_exc())
+                                except Exception: print(traceback.format_exc())
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
                             #time.sleep(1)
@@ -1015,7 +1036,7 @@ if is_admin():
                                 shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             except PermissionError:
                                 initialise.print_and_tex(self,"COULD NOT UPGRADE SERVICE: " + self.service_name_api +" The service is currently in use so we cannot replace this file. We'll try again later",'warning')
-                            except: print(traceback.format_exc())
+                            except Exception: print(traceback.format_exc())
                             #shutil.copy(os.path.abspath(application_path)+f"\\dependencies\\server_exe\\API_HON_SERVER.exe",f"{self.dataDict['hon_directory']}API_HON_SERVER.exe")
                             if initialise.configure_service_api(self,self.service_name_api):
                                 hon_api_updated = True
@@ -1186,56 +1207,56 @@ if is_admin():
             three_servers_core = total_cores * 3
             four_servers_core = total_cores * 4
             core_assignment = str(self.core_assign.get()).lower()
-            selected_id = str(self.svr_id_var.get())
+            selected_id = str(self.from_svr_var.get())
             if core_assignment == "one core/server":
                 if int(self.svr_total_var.get()) > total_cores:
                     self.svr_total_var.set(total_cores)
                 if int(selected_id) > int(self.svr_total_var.get()):
-                    self.svr_id_var.set(total_cores)
+                    self.from_svr_var.set(total_cores)
                 for i in range(total_cores):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
-                self.tab1_serveridd['values']=cores
+                self.tab1_from_svr['values']=cores
                 return
             elif core_assignment == "two cores/server":
                 #if int(self.svr_total_var.get()) > half_core_count:
                 self.svr_total_var.set(half_core_count)
                 if int(selected_id) > int(self.svr_total_var.get()):
-                    self.svr_id_var.set(half_core_count)
+                    self.from_svr_var.set(half_core_count)
                 for i in range(half_core_count):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
-                self.tab1_serveridd['values']=cores
+                self.tab1_from_svr['values']=cores
                 return
             elif core_assignment == "two servers/core":
                 #if int(self.svr_total_var.get()) > two_servers_core:
                 self.svr_total_var.set(two_servers_core)
                 if int(selected_id) > int(self.svr_total_var.get()):
-                    self.svr_id_var.set(two_servers_core)
+                    self.from_svr_var.set(two_servers_core)
                 for i in range(two_servers_core):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
-                self.tab1_serveridd['values']=cores
+                self.tab1_from_svr['values']=cores
                 return
             elif core_assignment == "three servers/core":
                 #if int(self.svr_total_var.get()) > two_servers_core:
                 self.svr_total_var.set(three_servers_core)
                 if int(selected_id) > int(self.svr_total_var.get()):
-                    self.svr_id_var.set(three_servers_core)
+                    self.from_svr_var.set(three_servers_core)
                 for i in range(three_servers_core):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
-                self.tab1_serveridd['values']=cores
+                self.tab1_from_svr['values']=cores
                 return
             elif core_assignment == "four servers/core":
                 #if int(self.svr_total_var.get()) > two_servers_core:
                 self.svr_total_var.set(four_servers_core)
                 if int(selected_id) > int(self.svr_total_var.get()):
-                    self.svr_id_var.set(four_servers_core)
+                    self.from_svr_var.set(four_servers_core)
                 for i in range(four_servers_core):
                     cores.append(i+1)
                 self.tab1_servertd['values']=cores
-                self.tab1_serveridd['values']=cores
+                self.tab1_from_svr['values']=cores
                 return
         def corecount(self):
             cores = []
@@ -1264,6 +1285,19 @@ if is_admin():
                 cores.append(i+1)
                 
             return cores
+        def send_msg(msg):
+            win = tk.Toplevel()
+            win.wm_title("Window")
+            var = tk.IntVar()
+
+            l = tk.Label(win, text=msg)
+            l.grid(row=0, column=0)
+
+            b = ttk.Button(win, text="Okay", command=lambda: var.set(1))
+            #b = ttk.Button(win, text="Okay", command=win.destroy())
+            b.grid(row=1, column=0)
+            b.wait_variable(var)
+            return True
         def popup_bonus():
             win = tk.Toplevel()
             win.wm_title("Window")
@@ -1314,6 +1348,11 @@ if is_admin():
                 self.tab1_bottokd.delete(0,END)
                 self.tab1_bottokd.insert(0,f"{current_text} (DISABLED)")
                 self.tab1_bottokd.configure(state="disabled",foreground="grey")
+
+                self.tab1_alert_on_crash_btn.configure(state="disabled")
+                self.tab1_alert_on_lag_btn.configure(state="disabled")
+                self.tab1_alertlist_limit.configure(state="disabled",foreground="grey")
+                self.tab1_eventlist_limit.configure(state="disabled",foreground="grey")
             else:
                 current_text = self.tab1_discordadmin.get()
                 self.tab1_discordadmin.configure(state="enabled",foreground="white")
@@ -1324,13 +1363,29 @@ if is_admin():
                 self.tab1_bottokd.configure(state="enabled",foreground="white")
                 self.tab1_bottokd.delete(0,END)
                 self.tab1_bottokd.insert(0,current_text.replace(" (DISABLED)",""))
+
+                self.tab1_alert_on_crash_btn.configure(state="enabled")
+                self.tab1_alert_on_lag_btn.configure(state="enabled")
+                self.tab1_alertlist_limit.configure(state="enabled",foreground="white")
+                self.tab1_eventlist_limit.configure(state="enabled",foreground="white")
         def svr_num_link(self,var,index,mode):
-            if self.svr_id_var.get() == "(for single server)":
+            if self.from_svr_var.get() == "(for single server)":
                 return
-            elif int(self.svr_id_var.get()) > int(self.svr_total_var.get()):
-                self.svr_id_var.set(self.svr_total_var.get())
+            elif int(self.from_svr_var.get()) > int(self.svr_total_var.get()):
+                self.from_svr_var.set(self.svr_total_var.get())
+            elif int(self.svr_total_var.get()) < int(self.to_svr_var.get()):
+                self.to_svr_var.set(self.svr_total_var.get())
             # elif str(self.core_assign.get()).lower() == "two":
             #     self.svr_total_var.set()
+        def svr_num_link2(self,var,index,mode):
+            if self.from_svr_var.get() == "(for single server)":
+                return
+            elif int(self.from_svr_var.get()) > int(self.to_svr_var.get()):
+                self.from_svr_var.set(self.to_svr_var.get())
+            elif int(self.to_svr_var.get()) > int(self.svr_total_var.get()):
+                self.to_svr_var.set(self.svr_total_var.get())
+                initialise.print_and_tex(self,f"You can't choose a \"to server\" value greater than the total server count ({self.svr_total_var.get()})",'warning')
+
         def change_to_proxy(self):
             if self.useproxy.get() == True:
                 return("test")
@@ -1380,7 +1435,7 @@ if is_admin():
                 tex.see(tk.END)
                 self.git_branch.set(current_branch)
                 return False
-        def forceupdate_hon(self,force,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def forceupdate_hon(self,force,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global update_counter
             global first_check_complete
             global update_counter
@@ -1391,6 +1446,7 @@ if is_admin():
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
+            
             if latest_version != False:
                 latest_version_list = latest_version.split('.')
                 if len(latest_version_list) == 3:
@@ -1414,8 +1470,8 @@ if is_admin():
                     #sp.Popen(["hon_update_x64.exe"])
                     sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
                     while (current_version != latest_version):
-                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         time.sleep(30)
+                        current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         print("still updating...")
                         timeout+=1
                         if timeout==6:
@@ -1436,7 +1492,7 @@ if is_admin():
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                             svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
-                        honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         update_counter = update_delay
                         updating = False
                         return True
@@ -1452,7 +1508,7 @@ if is_admin():
                     tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                     print(f"Server is already at the latest version ({latest_version}).")
                     tex.see(tk.END)
-        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
@@ -1491,6 +1547,10 @@ if is_admin():
             conf_local.set("OPTIONS","use_console",str(use_console))
             conf_local.set("OPTIONS","sdc_home_dir",self.basic_dict['sdc_home_dir'])
             conf_local.set("OPTIONS","disable_bot",str(disable_bot))
+            conf_local.set("OPTIONS","disc_alert_on_crash",str(alert_on_crash))
+            conf_local.set("OPTIONS","disc_alert_on_lag",str(alert_on_lag))
+            conf_local.set("OPTIONS","disc_alert_list_limit",str(alert_list_limit))
+            conf_local.set("OPTIONS","disc_event_list_limit",str(event_list_limit))
             conf_local.set("OPTIONS","auto_update",str(auto_update))
             with open(config_local, "w") as c:
                 conf_local.write(c)
@@ -1505,7 +1565,7 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
-        def sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
+        def sendData(self,identifier,hoster, regionshort, serverid,serverto,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
             global ports_to_forward_game
@@ -1604,12 +1664,12 @@ if is_admin():
 
                 
                 # write config to file
-                honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                 # conf_local = configparser.ConfigParser()
                 # conf_global = configparser.ConfigParser()
                 
-                # hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                # honreplay = os.path.join(honreplay,'')
+                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+                honreplay = os.path.join(honreplay,'')
                 
                 # self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
@@ -1740,44 +1800,27 @@ if is_admin():
                             initialise.start_service(self,service_proxy_name,False)
                         initialise.print_and_tex(self,"waiting 30 seconds for proxy to finish setting up ports...","warning")
                         time.sleep(30)
-                        # else:
-                        #     if service_proxy:
-                        #         if service_proxy['status'] == 'running' or service_proxy['status'] == 'paused':
-                        #             initialise.stop_service(self,service_proxy_name,False)
-                        #     if svrcmd.honCMD.check_proc(application):
-                        #         svrcmd.honCMD.stop_proc_by_name(application)
-                        #     os.chdir(self.dataDict['hon_directory'])
-                        #     os.startfile(f"proxymanager.exe")
-                        #     os.chdir(application_path)
-                        #     print("waiting 30 seconds for proxy to finish setting up ports...")
-                        #     time.sleep(30)
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
                         initialise.print_and_tex(self,"Done.",'interest')
-                if identifier == "single":
+                if identifier == "selected":
                     self.dataDict = dmgr.mData().returnDict()
                     print()
-                    initialise.print_and_tex(self,f"\n************* Configuring adminbot{serverid} *************","header")
-                    initialise(self.dataDict).configureEnvironment(force_update,use_console)
-                    hon_api_updated = False
+                    for i in range(int(serverid),int(serverto)+1):
+                        serverid = i
+                        initialise.print_and_tex(self,f"\n************* Configuring adminbot{serverid} *************","header")
+                        honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        self.dataDict = dmgr.mData().returnDict()
+                        hon_api_updated = False
+                        initialise(self.dataDict).configureEnvironment(force_update,use_console)
                 elif identifier == "all":
-                    #tex.insert(END,"==========================================\n")
                     print("Selected option to configure ALL servers\n")
                     threads = []
                     for i in range(0,int(servertotal)):
                         serverid = i + 1
-                        honfigurator.update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        honfigurator.update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         self.dataDict = dmgr.mData().returnDict()
-                        # #
-                        # #   global values
-                        # if not conf_global.has_section("OPTIONS"):
-                        #     conf_global.add_section("OPTIONS")
-                        # conf_global.set("OPTIONS","bot_version",self.dataDict['bot_version'])
-                        # with open(config_global, "w") as d:
-                        #     conf_global.write(d)
-                        # d.close()
                         hon_api_updated = False
-                        #threads.append(Thread(target=initialise(self.dataDict).configureEnvironment,args=[force_update,use_console]))
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                     # for x in threads:
                     #     x.start()
@@ -1824,7 +1867,7 @@ if is_admin():
                     #initialise.print_and_tex(self,f"\nServer requires update (adminbot{i})")
                     #initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
                     #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
-                    honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
+                    honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['disc_alert_on_crash'],deployed_server['disc_alert_on_lag'],deployed_server['disc_alert_list_limit'],deployed_server['disc_event_list_limit'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     #if initialise.playerCountX(self,i) >= 0:
                     initialise.print_and_tex(self,f"\n************* Configuring adminbot{i} *************","header")
                     initialise.print_and_tex(self,f"HoNfigurator version change from {deployed_ver} ---> {current_ver}.",'warning')
@@ -2063,14 +2106,6 @@ if is_admin():
             if 'static_ip' in self.dataDict:
                 self.tab1_ip.insert(0,self.dataDict['svr_ip'])
             self.tab1_ip.grid(column= 2 , row = 4,sticky="w",pady=4)
-            #
-            #   region
-            # self.svr_loc = tk.StringVar(app,self.dataDict["svr_region"])
-            # applet.Label(tab1, text="Location:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-            # tab1_regiond = applet.Combobox(tab1,foreground=textcolor,value=self.regions()[0],textvariable=self.svr_loc,width=16)
-            # tab1_regiond.grid(column= 1 , row = 4,sticky="w",pady=4,padx=[0,130])
-            # self.svr_loc.trace_add('write', self.reg_def_link)
-            #   regionId
             self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
             applet.Label(tab1, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
             self.tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
@@ -2079,11 +2114,11 @@ if is_admin():
             self.tab1_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
             #self.svr_reg_code.trace_add('write', self.reg_def_link)
             #   server id
-            self.svr_id_var = tk.StringVar(app,self.dataDict['svr_id'])
-            applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
-            self.tab1_serveridd = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.svr_id_var,width=5)
-            self.tab1_serveridd.grid(column= 1 , row = 5,sticky="w",pady=4,padx=[0,130])
-            self.svr_id_var.trace_add('write', self.svr_num_link)
+            # self.from_svr_var = tk.StringVar(app,self.dataDict['svr_id'])
+            # applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
+            # self.tab1_from_svr = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.from_svr_var,width=5)
+            # self.tab1_from_svr.grid(column= 1 , row = 5,sticky="w",pady=4,padx=[0,130])
+            # self.from_svr_var.trace_add('write', self.svr_num_link)
             
             #   HoN Directory
             applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
@@ -2195,7 +2230,42 @@ if is_admin():
                     f"Run the with the addition of discord bots (receive personalised alerts).")
             tab1_disablebot_btn.grid(column= 4, row = 4,sticky="w",pady=4)
             self.enablebot.trace_add('write', self.switch_widget_state)
+            # advanced discord settings
+            applet.Label(tab1, text="Configured alerts:",background=maincolor,foreground='white').grid(column=4, row=4,sticky="w",padx=[30,0])
+            # crashing
+            applet.Label(tab1, text="Server crash:",background=maincolor,foreground='white').grid(column=4, row=5,sticky="w",padx=[50,0])
+            self.alert_on_crash = tk.BooleanVar(app)
+            if self.dataDict['disc_alert_on_crash'] == 'True':
+                self.alert_on_crash.set(True)
+            self.tab1_alert_on_crash_btn = applet.Checkbutton(tab1,variable=self.alert_on_crash)
+            honfigurator.CreateToolTip(self.tab1_alert_on_crash_btn, \
+                    f"Enable alerting when the server crashes abnormally. Recommended to be ON.")
+            self.tab1_alert_on_crash_btn.grid(column= 4, row = 5,sticky="w",pady=4,padx=[120,0])
+            # lag spikes
+            applet.Label(tab1, text="Lag spike:",background=maincolor,foreground='white').grid(column=4, row=5,sticky="w",padx=[140,0])
+            self.alert_on_lag = tk.BooleanVar(app)
+            if self.dataDict['disc_alert_on_lag'] == 'True':
+                self.alert_on_lag.set(True)
+            self.tab1_alert_on_lag_btn = applet.Checkbutton(tab1,variable=self.alert_on_lag)
+            honfigurator.CreateToolTip(self.tab1_alert_on_lag_btn, \
+                    f"Enable alerting when there are large lag spikes in-game. Recommended to be ON.")
+            self.tab1_alert_on_lag_btn.grid(column= 4, row = 5,sticky="w",pady=4,padx=[200,0])
+            # event list limit
+            applet.Label(tab1, text="Event list limit:",background=maincolor,foreground='white').grid(column=4, row=6,sticky="w",padx=[50,0])
+            self.tab1_eventlist_limit = applet.Entry(tab1,foreground=textcolor,width=5)
+            self.tab1_eventlist_limit.insert(0,self.dataDict['disc_event_list_limit'])
+            honfigurator.CreateToolTip(self.tab1_eventlist_limit, \
+                    f"Limit the # of server log entries within the received discord DM.")
+            self.tab1_eventlist_limit.grid(column=4, row = 6,sticky="w",pady=4,padx=[130,0])
+            # alert list limit
+            applet.Label(tab1, text="Alert list limit:",background=maincolor,foreground='white').grid(column=4, row=7,sticky="w",padx=[50,0])
+            self.tab1_alertlist_limit = applet.Entry(tab1,foreground=textcolor,width=5)
+            self.tab1_alertlist_limit.insert(0,self.dataDict['disc_alert_list_limit'])
+            labl_ttp = honfigurator.CreateToolTip(self.tab1_alertlist_limit, \
+                    f"Limit the # of previous alerts within the received discord DM.")
+            self.tab1_alertlist_limit.grid(column=4, row = 7,sticky="w",pady=4,padx=[130,0])
             honfigurator.switch_widget_state(self,NULL,NULL,NULL)
+            ##########################
             #  allow bot matches 
             applet.Label(tab1, text="Allow bot matches:",background=maincolor,foreground='white').grid(column=3, row=5,sticky="e",padx=[20,0])
             self.botmatches = tk.BooleanVar(app)
@@ -2242,16 +2312,29 @@ if is_admin():
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_savesettings = applet.Button(tab1, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("selected",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_savesettings = applet.Button(tab1, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_savesettings.grid(columnspan=5,column=0, row=12,stick='n',padx=[350,0],pady=[0,0])
             labl_ttp = honfigurator.CreateToolTip(tab1_savesettings, \
                     f"Save the current configuration settings.")
-            tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: Thread(target=self.sendData,args=("single",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
-            tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,400],pady=[20,10])
+            tab1_singlebutton = applet.Button(tab1, text="Configure Servers:",command=lambda: Thread(target=self.sendData,args=("selected",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,600],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
                     f"Configure the currently selected server ID only.")
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            #   configurable server FROM
+            self.from_svr_var = tk.StringVar(app,"1")
+            applet.Label(tab1, text="From:",background=maincolor,foreground='white').grid(columnspan=5,column=0,row=14,stick='n',padx=[0,450],pady=[10,0])
+            self.tab1_from_svr = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.from_svr_var,width=5)
+            self.tab1_from_svr.grid(columnspan=5,column=0,row=14,stick='n',padx=[0,350],pady=[10,0])
+            self.from_svr_var.trace_add('write', self.svr_num_link2)
+            #   configurable server TO
+            self.to_svr_var = tk.StringVar(app,self.dataDict['svr_total'])
+            applet.Label(tab1, text="To:",background=maincolor,foreground='white').grid(columnspan=5,column=0,row=14,stick='n',padx=[0,450],pady=[40,0])
+            self.tab1_to_svr = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.to_svr_var,width=5)
+            self.tab1_to_svr.grid(columnspan=5,column=0,row=14,stick='n',padx=[0,350],pady=[40,0])
+            self.to_svr_var.trace_add('write', self.svr_num_link2)
+
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_allbutton, \
                     f"Configure ALL total servers.")
@@ -2259,7 +2342,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2321,9 +2404,6 @@ if is_admin():
                     scrollb.grid(row=16, column=1, sticky='nsew')
                     tex['yscrollcommand'] = scrollb.set
 
-            ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
-            LablString = ['hon_server_','test']
-            LablStringTop = ['Manager','test']
 
             # Calling this function from somewhere else via Queue
             import fnmatch
@@ -2404,6 +2484,11 @@ if is_admin():
                         print("[ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
                 viewButton.refresh()
+            def save_num_rows(mod_by):
+                num_rows_file = f"{application_path}\\config\\num_server_rows"
+                with open(num_rows_file,'w') as f:
+                    f.write(mod_by)
+                return
 
             def get_size(start_path):
                     total_size = 0
@@ -2461,6 +2546,7 @@ if is_admin():
                     global auto_refresh_var
                     global stretch
                     global auto_refresh
+                    global first_tab_switch
                     refresh_next=False
                     swap_anyway=False
                     if (tabgui.index("current")) == 0:
@@ -2475,10 +2561,11 @@ if is_admin():
                         try: 
                             auto_refresh_var = auto_refresh.get()
                             mod_by = int(stretch.get())+3
-                        except: 
+                        except Exception: 
                             swap_anyway = True
                         if auto_refresh_var or swap_anyway:
-                            Thread(target=viewButton.clear_frame).start()
+                            if not first_tab_switch:
+                                viewButton.clear_frame()
                             Thread(target=viewButton.load_server_mgr,args=[self]).start()
                         
                         # else:
@@ -2488,7 +2575,7 @@ if is_admin():
                         #     status = Entry(app,background=maincolor,foreground='white',width="200")
                         #     status.insert(0,f"Viewing hon_server_{deployed_status['svr_id']}: {latest_file}")
                         #     status.grid(row=21,column=0,sticky='w')
-                        # except:pass
+                        # except Exception:pass
                 def load_log(self,*args):
                     global bot_tab
                     try:
@@ -2497,7 +2584,7 @@ if is_admin():
                                 Thread(target=viewButton.ViewLog,args=[self]).start()
                             bot_tab=tabgui2.index("current")
                             #viewButton.ViewLog(self)
-                    except: pass
+                    except Exception: pass
 
                 def ViewLog(self):
                     global latest_file
@@ -2590,7 +2677,7 @@ if is_admin():
                         status.grid(columnspan=total_columns,row=21,column=0,sticky='w')
                         print(latest_file)                   
                         tex.see(tk.END)
-                    except: pass
+                    except Exception: pass
 
                 def Start(self):
                     global refresh_counter
@@ -2618,7 +2705,7 @@ if is_admin():
                             if initialise.check_proc(deployed_status['hon_file_name']):
                                 if initialise.playerCountX(self,id) >= 0:
                                     t_out = 15
-                        refresh_counter = refresh_delay
+                        #viewButton.refresh()
                         return
                 def StartProxy(self):
                     global refresh_counter
@@ -2668,14 +2755,14 @@ if is_admin():
                         bot_running=initialise.check_proc(f"{service_name}.exe")
                         hon_running=initialise.check_proc(f"KONGOR_ARENA_{id}.exe")
                         if bot_running or hon_running:
-                                    initialise.stop_bot(self,f"{service_name}.exe")
-                                    initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
-                                    initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
+                            initialise.stop_bot(self,f"{service_name}.exe")
+                            initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
+                            initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                                 #viewButton.refresh()
                     else:
-                        print("[ABORT] players are connected. Scheduling shutdown instead..")
+                        print(f"[adminbot{id}] [ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
-                    refresh_counter=20
+                    #viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
                     now = time.time()
@@ -2744,20 +2831,19 @@ if is_admin():
                     global c
                     global btnlist
                     global labllist
+                    global first_tab_switch
                     global btnlistrows,btnlistcols,labllistrows,labllistcols
+                    first_tab_switch = False
                     i=2
                     c=0
-                    lablwidth = []
-                    lablrow = []
-                    lablcolumn = []
-                    lablcolour = []
-                    lablname = []
                     btnlist = []
                     labllist = []
                     labllistrows = []
                     labllistcols = []
                     btnlistrows = []
                     btnlistcols = []
+                    ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
+                    LablString = ['hon_server_','status']
                     btn = []
                     def do_everything(self,x):
                         c_len = len(ButtonString)+len(LablString)
@@ -2771,7 +2857,7 @@ if is_admin():
                         dir_name = f"{deployed_status['hon_logs_dir']}\\"
                         try:
                             proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
-                        except:
+                        except Exception:
                             proc_priority = "N/A"
                         file = "Slave*.log"
                         log = False
@@ -2796,103 +2882,81 @@ if is_admin():
                             c+=c_len
                             i=3
                         if pcount > 0:
+                            ButtonString[1] = "Stop"
                             logs_dir = f"{deployed_status['hon_logs_dir']}\\"
                             log_File = f"Slave*{x}*.clog"
                             list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
                             try:
                                 latest_file = max(list_of_files, key=os.path.getctime)
                                 match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
-                            except:
+                                if 'match_id' not in match_status: match_status.update({'match_id':'TBA'})
+                            except Exception:
                                 print(traceback.format_exc())
                         elif pcount >= 0:
                             ButtonString[1] = "Stop"
                         else:
                             ButtonString[1] = "Start"
                         if service_state is not None and deployed_status['use_console'] == 'False':
-                            if service_state == False or service_state['status'] == 'stopped':
-                                colour = 'OrangeRed4'
                             svc_or_con="svc"
-                                #LablString[1]=f"svc-Stopped"
                         elif deployed_status['use_console'] == 'True':
-                            #colour = 'OrangeRed4'
                             svc_or_con="con"
-                            #LablString[1]=f"con-Stopped"
                         LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
-                        for index1, labl_name in enumerate(LablString):
-                            if cookie:
-                                if pcount < 0:
-                                    colour = 'OrangeRed4'
-                                    LablString[1]="Offline"
-                                elif pcount == 0:
-                                    colour = 'MediumPurple3'
-                                    LablString[1]="Available"
-                                elif pcount >0:
-                                    colour = 'SpringGreen4'
-                                    try:
-                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except:
-                                        LablString[1]=f"In-game ({pcount})"
-                                if pcount >=0:
-                                    if schd_restart:
-                                        colour='indian red'
-                                        LablString[1]='schd-restart'
-                                    if schd_shutdown:
-                                        LablString[1]='schd-shutdown'
+                        if pcount < 0:
+                            colour = 'OrangeRed4'
+                            LablString[1]="Offline"
+                        elif pcount == 0:
+                            if schd_shutdown:
+                                colour = 'chocolate4'
+                                LablString[1]=f"I should be off"
+                            elif schd_restart:
+                                colour = 'chocolate4'
+                                LablString[1]=f"I should have restarted"
                             else:
-                                if pcount < 0:
-                                    colour = 'OrangeRed4'
-                                    LablString[1]="Offline"
-                                elif pcount == 0:
-                                    colour = 'MediumPurple3'
-                                    LablString[1]="connect error"
-                                elif pcount >0:
-                                    colour = 'SpringGreen4'
-                                    try:
-                                        LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                                    except:
-                                        LablString[1]=f"In-game ({pcount})"
-                            # if service_state is not None and deployed_status['use_console'] == 'False':
-                            #     if service_state == False or service_state['status'] == 'stopped':
-                            #         colour = 'OrangeRed4'
-                            #     svc_or_con="svc"
-                            #         #LablString[1]=f"svc-Stopped"
-                            # elif deployed_status['use_console'] == 'True':
-                            #     #colour = 'OrangeRed4'
-                            #     svc_or_con="con"
-                            #     #LablString[1]=f"con-Stopped"
+                                colour = 'MediumPurple3'
+                                if cookie:
+                                    LablString[1]="Available"
+                                else: LablString[1]="Connect Error"
+                        elif pcount >0:
+                            if schd_restart:
+                                colour='indian red'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                            elif schd_shutdown:
+                                colour='indian red'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                            else:
+                                colour = 'SpringGreen4'
+                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+
+                        for index1, labl_name in enumerate(LablString):
                             c_pos1 = index1 + c
                             if index1==0:
-                                #labl = Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')
                                 labllist.append(Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white'))
-                                # lablwidth.append(13)
-                                # lablname.append(labl_name)
-                                # lablcolour.append(colour)
                                 try:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
-                                except: pass
+                                except Exception: pass
                             elif index1==1:
-                                #labl = Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')
                                 labllist.append(Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white'))
-                                # lablwidth.append(18)
-                                # lablname.append(labl_name)
-                                # lablcolour.append(colour)
                                 if 'available' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                         f"Server is available and connected to the master server.")
                                 elif 'cookie' in labl_name.lower():
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                                if pcount > 0:
+                                elif schd_restart:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
-                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}")
-                            #labl.grid(row=i, column=c_pos1)
+                                        f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                                elif schd_shutdown:
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                                elif pcount > 0:
+                                    labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: f{schd_shutdown}\nScheduled restart: {schd_restart}")
                             labllistrows.append(i)
                             labllistcols.append(c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
                                 index2 +=len(LablString)
                                 c_pos2 = index2 + c
-                                #btn = Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))
                                 btnlist.append(Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount)))
                                 if btn_name == "View Log":
                                     btn_ttp = honfigurator.CreateToolTip(btnlist[-1], \
@@ -2978,12 +3042,16 @@ if is_admin():
                     stretch = Entry(tab2,width=5)
                     stretch.insert(0,mod_by-3)
                     stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
+                    tab2_savesettings = applet.Button(tab2, text="Save Setting",command=lambda: save_num_rows(str(int(stretch.get())+3)))
+                    tab2_savesettings.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
+                    tab2_savesettings_ttp = honfigurator.CreateToolTip(tab2_savesettings, \
+                                    f"Save the setting so that next time the number of rows remains the same.")
                     auto_refresh_lbl = applet.Label(tab2,width=15,text="auto-refresh",background=maincolor,foreground='white')
-                    auto_refresh_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
+                    auto_refresh_lbl.grid(row=0, column=0,columnspan=total_columns,padx=[7,0],sticky='w',pady=[5,0])
                     auto_refresh = tk.BooleanVar(app)
                     auto_refresh.set(auto_refresh_var)
                     auto_refresh_btn = applet.Checkbutton(tab2,variable=auto_refresh)
-                    auto_refresh_btn.grid(row=1, column=0,columnspan=total_columns,padx=[230,0],sticky='w',pady=[2,4])
+                    auto_refresh_btn.grid(row=0, column=0,columnspan=total_columns,padx=[80,0],sticky='w',pady=[5,0])
                     
                     tabgui2 = ttk.Notebook(tab2)
                     tab11 = ttk.Frame(tabgui2)
@@ -3043,7 +3111,7 @@ if is_admin():
                     self.update_repository(NULL,NULL,NULL)
                     print("checking for hon update")
                     if not updating:
-                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_serveridd.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
@@ -3054,9 +3122,9 @@ if is_admin():
                         if (tabgui.index("current")) == 1:
                             try:
                                 viewButton.refresh(int(stretch.get())+3)
-                            except: pass
+                            except Exception: pass
                 refresh_next=True
-                app.after(1000,auto_refresher)
+                app.after(int(f"{auto_refresh_delay}000"),auto_refresher)
             # create a Scrollbar and associate it with txt
             combo = TextScrollCombo(app)
             combo.config(width=600, height=600)
