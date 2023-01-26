@@ -153,7 +153,7 @@ if is_admin():
                     #   if file doesn't exist, create it, send the owner a message and update the file
                     else: send_fresh_message = True
                 if len(dm_active_embed) > 0:
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
                     await dm_active_embed[0].edit(embed=user_embed)
             except discord.errors.NotFound:
                 print(traceback.format_exc())
@@ -185,7 +185,7 @@ if is_admin():
                     with open(processed_data_dict['dm_discord_temp'], 'w'):
                         pass
 
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
                     sent_message = await discord_admin_ctx.send(embed=user_embed)
                     dm_active_embed.append(sent_message)
                 

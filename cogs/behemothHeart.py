@@ -64,16 +64,22 @@ class heartbeat(commands.Cog):
         self.server_status.update({'hard_reset':False})
         self.server_status.update({'server_ready':False})
         
-        async def send_user_msg(ctx,log_msg,alert,data):
+        async def send_user_msg(ctx,log_msg,alert):
             send_new_message = False
             msg_sent = False
             global dm_active_embed
             
-            if ctx == False or alert:
+            if ctx == False:
                 send_new_message = True
+            if alert and ctx:
+                if "crash" in log_msg and self.processed_data_dict['disc_alert_on_crash'] == 'False':
+                    send_new_message = False
+                elif "lag spike" in log_msg and self.processed_data_dict['disc_alert_on_lag'] == 'False':
+                    send_new_message = False
+                else: send_new_message = True
             
             if not send_new_message:
-                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
+                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
                 try:
                     edit_result = await dm_active_embed[0].edit(embed=user_embed)
                     msg_sent = True
@@ -87,11 +93,11 @@ class heartbeat(commands.Cog):
                         send_new_message=True
             if send_new_message:
                 try:
-                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,data)
+                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
                     if ctx != False: await dm_active_embed[0].delete()
                     dm_active_embed[0] = await ctx.send(embed=user_embed)
                     msg_sent = True
-                    embedFile = open(data['dm_discord_temp'], 'w')
+                    embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')
                     embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
                     embedFile.close()
                 except (discord.errors.HTTPException,Exception):
@@ -101,16 +107,16 @@ class heartbeat(commands.Cog):
             if not msg_sent:
                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","Skipping this message update, will try again later.","INFO")
                 if alert:
-                    alert_list = open(data['dm_discord_hist']).readlines()
+                    alert_list = open(self.processed_data_dict['dm_discord_hist']).readlines()
                     alert_list.append(log_msg)
-                    with open(data['dm_discord_hist'], 'w') as f:
+                    with open(self.processed_data_dict['dm_discord_hist'], 'w') as f:
                         for line in alert_list:
                             line = line.replace("\n","")
                             f.write(f"{line}\n")
                 else:
-                    event_list = open(data['dm_discord_hist']).readlines()
+                    event_list = open(self.processed_data_dict['dm_discord_hist']).readlines()
                     event_list.append(log_msg)
-                    with open(data['dm_discord_hist'], 'w') as f:
+                    with open(self.processed_data_dict['dm_discord_hist'], 'w') as f:
                         for line in event_list:
                             line = line.replace("\n","")
                             f.write(f"{line}\n")
@@ -118,7 +124,7 @@ class heartbeat(commands.Cog):
 
 
 
-        svr_state.check_current_match_id(False)
+        svr_state.check_current_match_id(False,False)
 
         #
         # move replays off into the manager directory. clean up other temporary files
@@ -150,9 +156,6 @@ class heartbeat(commands.Cog):
 
         healthcheck_first_run = True
         announce_proxy_health = True
-
-        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Starting heartbeat, data dump: {self.processed_data_dict}","INFO")
-        print(self.processed_data_dict)
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
@@ -209,7 +212,7 @@ class heartbeat(commands.Cog):
                                 try:
                                     if svr_state.startSERVER("Attempting to start crashed instance"):
                                         heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. ``{self.processed_data_dict['hon_game_dir']}`` for any crash dump files.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.",True,self.processed_data_dict)
+                                        if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.",True)
                                         continue
                                     else:
                                         start_attempts+=1
@@ -234,6 +237,8 @@ class heartbeat(commands.Cog):
 
             try:
                 if playercount == 0:
+                    if self.server_status['tempcount'] > 0:
+                        svr_state.check_current_match_id(False,True)
                     #   Check the process priority, set it to IDLE if it isn't already
                     if proc_priority != "IDLE":
                         try:
@@ -273,7 +278,7 @@ class heartbeat(commands.Cog):
                         if running_cmdline != incoming_cmd:
                             log_msg = "A configuration change has been detected. The server is being restarted to load the new configuration."
                             svr_state.restartSERVER(False,log_msg)
-                            if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
+                            if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
                         #   check whether the code should "summon" the hon server instance, because it's running under a different user context
                         if self.processed_data_dict['use_console'] == 'True':
                             current_login = os.getlogin()
@@ -285,7 +290,7 @@ class heartbeat(commands.Cog):
                             if "SYSTEM" not in self.server_status['hon_pid_owner'].upper():
                                 log_msg = "Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system."
                                 svr_state.restartSERVER(False,log_msg)
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
                         #   every counter_ipcheck_threshold seconds, check if the public IP has changed for the server. Schedule a restart if it has
                         if counter_ipcheck == counter_ipcheck_threshold and 'static_ip' not in self.processed_data_dict:
                             counter_ipcheck = 0
@@ -293,7 +298,7 @@ class heartbeat(commands.Cog):
                             if check_ip != self.processed_data_dict['svr_ip']:
                                 #TODO: Check if this causes any restart loop due to svr_ip not updating?
                                 svr_state.restartSERVER(False,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.")
-                                if ctx != None: await send_user_msg(ctx,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.",False,self.processed_data_dict)
+                                if ctx != None: await send_user_msg(ctx,f"The server's public IP has changed from {self.processed_data_dict['svr_ip']} to {check_ip}. Restarting server to update.",False)
                 # every x seconds, check if the proxy port is still listening.
                 counter_health_checks +=1
                 if counter_health_checks>=threshold_health_checks or healthcheck_first_run:
@@ -310,7 +315,7 @@ class heartbeat(commands.Cog):
                                     log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening.\n{self.match_status['match_id']} was ongoing and might be affected."
                                 else:
                                     log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening."
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -354,7 +359,7 @@ class heartbeat(commands.Cog):
                                     if ctx != None: await send_user_msg(ctx,f"""[ERR] {time_lagged} second lag spike over the last {threshold_check_lag_mins} minutes.
 Match ID: {self.match_status['match_id'].replace('M','')}
 Match Time: {self.match_status['match_time']}
-Players connected: {playercount}""",True,self.processed_data_dict)
+Players connected: {playercount}""",True)
                                     #   Please check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))
                             except Exception:
                                 print(traceback.format_exc())
@@ -363,12 +368,12 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                         if playercount > 1:
                             #   player has connected, check the match ID.
                             #   This works because there was no match ID, now there is. This won't trigger if the console is restarted while a player is connected.
-                            svr_state.check_current_match_id(True)
+                            svr_state.check_current_match_id(True,False)
                             self.server_status.update({'at_least_2_players':True})
                         else:
                             #   check the match ID if 2 or more players are connected and the console has been restarted.
                             #   It has no other way to tell if it's an old match ID or a new one
-                            svr_state.check_current_match_id(False)
+                            svr_state.check_current_match_id(False,False)
                     if self.match_status['now'] != "idle":
                         if not self.match_status['match_info_obtained']:
                             #   poll the match logs until the lobby/match information is obtained
@@ -391,10 +396,10 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                             #self.server_status.update({'tempcount':-5})
                             if cookie == False:
                                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"No session cookie.","WARNING")
-                                if ctx != None: logEmbed = await send_user_msg(ctx,f"[ERR] Session cookie lost.",True,self.processed_data_dict)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,f"[ERR] Session cookie lost.",True)
                             else:
                                 heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Connection restored.","INFO")
-                                if ctx != None: await send_user_msg(ctx,f"[OK] Connection restored.",False,self.processed_data_dict)
+                                if ctx != None: await send_user_msg(ctx,f"[OK] Connection restored.",False)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -408,7 +413,7 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
                                 svr_state.append_line_to_file(f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
-                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True,self.processed_data_dict)
+                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
                         if self.server_status['at_least_2_players']:
                             match_time = self.match_status['match_time']
@@ -422,7 +427,7 @@ Players connected: {playercount}""",True,self.processed_data_dict)
                                         counter_pending_players_leaving = 0
                                         msg = f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game."
                                         svr_state.append_line_to_file(f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True,self.processed_data_dict)
+                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True)
                                         print(msg)
                                         svr_state.restartSERVER(True,msg)
             except Exception:
@@ -439,7 +444,7 @@ Players connected: {playercount}""",True,self.processed_data_dict)
         bot_message = self.bot.get_cog("embedManager")
         time.sleep(int(self.processed_data_dict['svr_id'])*2)
         try:
-            user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] Summoned.",True,self.processed_data_dict)
+            user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] Summoned.",True)
             await dm_active_embed[0].delete()
             dm_active_embed[0] = await ctx.send(embed=user_embed)
             embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')

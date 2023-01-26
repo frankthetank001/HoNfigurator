@@ -37,8 +37,6 @@ svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
 event_list = []
 alert_list = []
 
-event_list_limit = 5
-alert_list_limit = 3
 #
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
 #   game server data like svr_ip, svr_port, svr_name etc that is sent to the master server
@@ -114,13 +112,13 @@ class timeout:
 class offlineEmbedManager():
     def __init__(self):
         return
-    async def embedLog(self,log_msg,alert,data):
+    async def embedLog(self,log_msg,alert):
         global event_list
-        global alert_list_limit
-        global event_list_limit
+        alert_list_limit = int(processed_data_dict['disc_alert_list_limit'])
+        event_list_limit = int(processed_data_dict['disc_event_list_limit'])
 
         replace_me = [" ","#","\"","."]
-        hoster = data['svr_hoster']
+        hoster = processed_data_dict['svr_hoster']
         for v in replace_me:
             if v in hoster: hoster = hoster.replace(v,"")
 
@@ -152,16 +150,20 @@ class offlineEmbedManager():
         for l in alert_list:
             if alert:
                 if l == log_msg:
+                    if ('crash' in log_msg and processed_data_dict['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and processed_data_dict['disc_alert_on_lag'] == 'True'):
+                        alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"
                     if 'second lag spike' in log_msg:
-                        alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
+                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
                     else:
-                        alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"+"```fix\n"+l+"```"
+                        alert_msg = alert_msg+"```fix\n"+l+"```"
                 else:
                     alert_msg = alert_msg+"```glsl\n"+l+"```"
             else: 
                 alert_msg = alert_msg+"```glsl\n"+l+"```"
         if len(alert_list) == 0:
             alert_msg = alert_msg+"```glsl\nNo alerts.```"
+        if len(event_list) == 0:
+            event_msg = event_msg+"```glsl\nNo events.```"
         #msg = "```\ncss"+'```\ncss'.join(event_list)
         created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{event_msg}\n> **Server Alerts**\n{alert_msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates a fresh alert")
@@ -485,8 +487,8 @@ class embedManager(commands.Cog):
         return created_embed
 
     @bot.command()
-    async def embedLog(self,log_msg,alert,data):
-        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert,data)
+    async def embedLog(self,log_msg,alert):
+        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert)
         
         return created_embed
 
