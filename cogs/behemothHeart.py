@@ -126,9 +126,6 @@ class heartbeat(commands.Cog):
 
         svr_state.check_current_match_id(False,False)
 
-        #
-        # move replays off into the manager directory. clean up other temporary files
-        svr_state.move_replays_and_stats()
         heartbeat_freq = 1
         process_priority = self.processed_data_dict['process_priority']
         process_priority = process_priority.upper()
@@ -156,6 +153,7 @@ class heartbeat(commands.Cog):
 
         healthcheck_first_run = True
         announce_proxy_health = True
+        clean_replays_once = True
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
@@ -237,10 +235,16 @@ class heartbeat(commands.Cog):
 
             try:
                 if playercount == 0:
+                    if clean_replays_once:
+                        clean_replays_once = False
+                        #
+                        # move replays off into the manager directory. clean up other temporary files
+                        svr_state.move_replays_and_stats()
+                        svr_state.clean_old_logs()
                     if self.server_status['tempcount'] > 0:
                         svr_state.check_current_match_id(False,True)
                     #   Check the process priority, set it to IDLE if it isn't already
-                    if proc_priority != "IDLE":
+                    if proc_priority != "IDLE" and self.match_status['now'] == 'idle':
                         try:
                             svr_state.changePriority(False)
                         except Exception:
@@ -307,15 +311,18 @@ class heartbeat(commands.Cog):
                     if self.processed_data_dict['use_proxy'] == 'True':
                         if 'svr_proxyPort' in self.processed_data_dict:
                             proxy_online=svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyPort']))
-                            if proxy_online:
-                                print(f"Health check: server proxy port {self.processed_data_dict['svr_proxyPort']} healthy")
-                            else:
-                                heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening.","WARNING")
-                                if self.match_status['now'] == 'in game':
-                                    log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening.\n{self.match_status['match_id']} was ongoing and might be affected."
+                            if proxy_online != self.server_status['proxy_online']:
+                                self.server_status.update({'proxy_online':proxy_online})
+                                if proxy_online:
+                                    print(f"Health check: server proxy port {self.processed_data_dict['svr_proxyPort']} healthy")
                                 else:
-                                    log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening."
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
+                                    heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}","The proxy port has stopped listening.","WARNING")
+                                    if self.match_status['now'] == 'in game':
+                                        log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening.\n{self.match_status['match_id']} was ongoing and might be affected."
+                                    else:
+                                        log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening."
+                                    print(log_msg)
+                                    if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -342,7 +349,8 @@ class heartbeat(commands.Cog):
                         if counter_gamecheck==threshold_gamecheck:
                             counter_gamecheck=0
                             try:
-                                svr_state.check_game_started()
+                                if svr_state.check_game_started():
+                                    if ctx != None: await send_user_msg(ctx,f"[OK] [{self.match_status['match_id']}] match started.",False)
                             except Exception:
                                 print(traceback.format_exc())
                                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
