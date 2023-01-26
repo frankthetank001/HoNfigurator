@@ -115,43 +115,52 @@ if is_admin():
         @bot.event
         async def on_ready():
             print(f'Online')
+        async def get_msg_ctx(self):
+            global embed_log
+            global prev_dm
+            global dm_active_embed
+            # read previous message data from local file
+            if not exists(processed_data_dict['dm_discord_temp']):
+                return False
+            embedData = open(processed_data_dict['dm_discord_temp'], 'r')
+            embed_file = embedData.readlines()
+            for dataLine in embed_file:
+                if "-" in dataLine:
+                    embedData.close()
+                    os.remove(processed_data_dict['dm_discord_temp'])
+                    break
+                prev_msg = dataLine.split(",")
+                #   channel ID
+                prev_dm.append(int(prev_msg[0]))
+                #   msg ID
+                prev_dm.append(int(prev_msg[1]))
+            embedData.close()
+            #   check if there was any data in the file
+            #   TODO: test if dm_roots len will ever be more than 1
+            if len(prev_dm) == 0:
+                return False
+            #   Loads channel
+            tempChannel = bot.get_channel(prev_dm[0])
+            if tempChannel is None:
+                tempChannel = await bot.fetch_channel(prev_dm[0])
+            #
+            #   fetches message
+            prev_msg = await tempChannel.fetch_message(prev_dm[1])
+            ctx = await bot.get_context(prev_msg)
+            dm_active_embed.append(prev_msg)
+            return ctx
+            
         async def send_user_msg(self,log_msg,alert):
             global embed_log
             global prev_dm
             global dm_active_embed
-            
             send_fresh_message = False
             try:
                 if len(dm_active_embed) == 0:
-                    # read previous message data from local file
-                    if exists(processed_data_dict['dm_discord_temp']):
-                        embedData = open(processed_data_dict['dm_discord_temp'], 'r')
-                        embed_file = embedData.readlines()
-                        for dataLine in embed_file:
-                            if "-" in dataLine:
-                                embedData.close()
-                                os.remove(processed_data_dict['dm_discord_temp'])
-                                break
-                            prev_msg = dataLine.split(",")
-                            #   channel ID
-                            prev_dm.append(int(prev_msg[0]))
-                            #   msg ID
-                            prev_dm.append(int(prev_msg[1]))
-                        embedData.close()
-                        #   check if there was any data in the file
-                        #   TODO: test if dm_roots len will ever be more than 1
-                        if len(prev_dm) > 0:
-                            #   Loads channel
-                            tempChannel = bot.get_channel(prev_dm[0])
-                            if tempChannel is None:
-                                tempChannel = await bot.fetch_channel(prev_dm[0])
-                            #
-                            #   fetches message
-                            prev_msg = await tempChannel.fetch_message(prev_dm[1])
-                            dm_active_embed.append(prev_msg)
-                        else: send_fresh_message = True
-                    #   if file doesn't exist, create it, send the owner a message and update the file
-                    else: send_fresh_message = True
+                    if hsl.get_msg_ctx():
+                        print("found previous message.")
+                    else:
+                        send_fresh_message = True
                 if len(dm_active_embed) > 0:
                     user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
                     await dm_active_embed[0].edit(embed=user_embed)
@@ -334,8 +343,12 @@ if is_admin():
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
                     log_msg=f"``{hsl.time()}`` [ERR] Starting the server failed for unknown reason."
                     alert = True
+                ctx = await hsl.get_msg_ctx(self)
+                if ctx:
+                    await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log=dm_active_embed)
                 if log_msg:
-                    ctx = await hsl.send_user_msg(self,log_msg,alert)
+                    if not ctx:
+                        ctx = await hsl.send_user_msg(self,log_msg,alert)
             except Exception:
                 print(traceback.format_exc())
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -351,6 +364,7 @@ if is_admin():
 
             except Exception:
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                print(traceback.format_exc())
                 print("starting server in local mode.")
                 await heart.heartbeat.startheart(self,None)
                 

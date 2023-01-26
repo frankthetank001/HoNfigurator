@@ -453,7 +453,7 @@ class heartbeat(commands.Cog):
         bot_message = self.bot.get_cog("embedManager")
         time.sleep(int(self.processed_data_dict['svr_id'])*2)
         try:
-            user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] Summoned.",True)
+            user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] Summoned.",False)
             await dm_active_embed[0].delete()
             dm_active_embed[0] = await ctx.send(embed=user_embed)
             embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')
