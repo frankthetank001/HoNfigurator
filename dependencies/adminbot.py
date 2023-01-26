@@ -80,7 +80,7 @@ if is_admin():
     svr_id_delay = svr_id * 20
     svr_identifier = processed_data_dict['svr_identifier']
     svr_hoster = processed_data_dict['svr_hoster']
-    ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id}")
+    ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id} v{processed_data_dict['bot_version']}")
 
     for p in psutil.process_iter():
         if processed_data_dict['app_name'] in p.name():
@@ -153,7 +153,7 @@ if is_admin():
                     #   if file doesn't exist, create it, send the owner a message and update the file
                     else: send_fresh_message = True
                 if len(dm_active_embed) > 0:
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
                     await dm_active_embed[0].edit(embed=user_embed)
             except discord.errors.NotFound:
                 print(traceback.format_exc())
@@ -185,7 +185,7 @@ if is_admin():
                     with open(processed_data_dict['dm_discord_temp'], 'w'):
                         pass
 
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
                     sent_message = await discord_admin_ctx.send(embed=user_embed)
                     dm_active_embed.append(sent_message)
                 
@@ -344,7 +344,7 @@ if is_admin():
                 if len(embed_ids) > 0:
                     await ctx.invoke(bot.get_command('embedsync'), object_list=embed_obj)
                 print("starting behemoth heart.")
-                if ctx != None or ctx != False:
+                if ctx != None and ctx != False:
                     await ctx.invoke(bot.get_command('startheart'))
                 else:
                     await heart.heartbeat.startheart(self,ctx)
