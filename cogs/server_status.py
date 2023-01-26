@@ -805,8 +805,7 @@ class honCMD():
         if reset_type == "soft":
             hon_elk_update_dict = {'static_ip':processed_data_dict['static_ip'],'github_branch':processed_data_dict['github_branch'],'use_proxy':processed_data_dict['use_proxy'],'disable_bot':processed_data_dict['disable_bot'],'auto_update':processed_data_dict['auto_update'],'bot_version':processed_data_dict['bot_version']}
             print(f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}")
-            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
-            print("lobby closed.")
+            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}","INFO")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
             self.server_status.update({"game_log_location":"empty"})
@@ -820,6 +819,8 @@ class honCMD():
         # Remove log files older than 7 days
         if reset_type == "reload":
             try:
+                if match_status['first_run'] == False:
+                    print("lobby closed.")
                 honCMD().clean_old_logs()
                 honCMD().move_replays_and_stats()
             except Exception:
@@ -867,9 +868,15 @@ class honCMD():
             self.server_status.update({'pending_restart':False})
             self.server_status.update({'server_ready':False})
             self.server_status.update({'server_starting':True})
+            try:
+                honCMD().clean_old_logs()
+                honCMD().move_replays_and_stats()
+            except Exception:
+                print(traceback.format_exc())
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         self.server_status.update({'cookie':True})
         if processed_data_dict['use_proxy']=='True':
-            self.server_status.update({'proxy_online':True})
+            self.server_status.update({'proxy_online':False})
         self.server_status.update({'scheduled_shutdown':False})
         self.server_status.update({'update_embeds':True})
         self.server_status.update({"hard_reset":False})
@@ -926,7 +933,7 @@ class honCMD():
                 self.server_status.update({'hon_pid':self.honP})
                 self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honP)})
                 self.server_status.update({'hon_pid_owner':self.honEXE.username()})
-                honCMD().initialise_variables("restart")
+                honCMD().initialise_variables("")
                 self.server_status.update({'realtime_priority':True})
                 return "server already started"
             except Exception:
