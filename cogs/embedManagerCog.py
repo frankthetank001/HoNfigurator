@@ -153,7 +153,7 @@ class offlineEmbedManager():
                     if ('crash' in log_msg and processed_data_dict['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and processed_data_dict['disc_alert_on_lag'] == 'True'):
                         alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"
                     if 'second lag spike' in log_msg:
-                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
+                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{processed_data_dict['match_id'].replace('M','')}%29%29%29%29%29)"
                     else:
                         alert_msg = alert_msg+"```fix\n"+l+"```"
                 else:
