@@ -82,7 +82,7 @@ class honCMD():
     """
     Game server updates
     """
-    def check_current_match_id(self,reload):
+    def check_current_match_id(self,reload,update_id_only):
         try:
             # get list of files that matches pattern
             pattern="M*.log"
@@ -100,6 +100,8 @@ class honCMD():
             hard_data = honCMD.compare_filesizes(self,matchLoc,"match")
             soft_data = os.stat(matchLoc).st_size # initial file size
 
+            if update_id_only:
+                return True
             if 'match_id' in match_status:
                 if matchID != match_status['match_id'] or reload or (matchID == match_status['match_id'] and soft_data > hard_data and match_status['first_run'] == True):
                     #if self.server_status["bot_first_run"] == True:
@@ -800,8 +802,10 @@ class honCMD():
         return match_status
    #   Starts server
     def initialise_variables(self,reset_type):
-        
         if reset_type == "soft":
+            hon_elk_update_dict = {'static_ip':processed_data_dict['static_ip'],'github_branch':processed_data_dict['github_branch'],'use_proxy':processed_data_dict['use_proxy'],'disable_bot':processed_data_dict['disable_bot'],'auto_update':processed_data_dict['auto_update'],'bot_version':processed_data_dict['bot_version']}
+            print(f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}")
+            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
             print("lobby closed.")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
@@ -809,7 +813,9 @@ class honCMD():
             self.server_status.update({"match_log_location":"empty"})
             self.server_status.update({"slave_log_location":"empty"})
             return
+        print(f"Initialising variables. Data dump: {processed_data_dict}")
         
+        honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
         #
         # Remove log files older than 7 days
         if reset_type == "reload":
