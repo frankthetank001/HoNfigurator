@@ -154,6 +154,7 @@ class heartbeat(commands.Cog):
         healthcheck_first_run = True
         announce_proxy_health = True
         clean_replays_once = True
+        
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
@@ -210,7 +211,10 @@ class heartbeat(commands.Cog):
                                 try:
                                     if svr_state.startSERVER("Attempting to start crashed instance"):
                                         heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"SERVER Auto-Recovered due to most likely crash. ``{self.processed_data_dict['hon_game_dir']}`` for any crash dump files.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.",True)
+                                        if self.match_status['now'] == 'idle':
+                                            if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.\nNo games were in progress.",True)
+                                        else:
+                                            if ctx != None: await send_user_msg(ctx,f"[WARN] SERVER Auto-Recovered due to most likely crash. {self.processed_data_dict['hon_game_dir']} may contain a crash DUMP.\nGame state: {self.match_status['now']}\nMatch ID: {self.match_status['match_id'].replace('M','')}\nMatch Time: {self.match_status['match_time']}\nPlayers connected: {playercount}",True)
                                         continue
                                     else:
                                         start_attempts+=1
@@ -364,10 +368,7 @@ class heartbeat(commands.Cog):
                                 time_lagged = svrcmd.honCMD.count_skipped_frames(self)
                                 if time_lagged > 5:                            
                                     self.processed_data_dict.update({'match_id':self.match_status['match_id']})
-                                    if ctx != None: await send_user_msg(ctx,f"""[ERR] {time_lagged} second lag spike over the last {threshold_check_lag_mins} minutes.
-Match ID: {self.match_status['match_id'].replace('M','')}
-Match Time: {self.match_status['match_time']}
-Players connected: {playercount}""",True)
+                                    if ctx != None: await send_user_msg(ctx,f"""[ERR] {time_lagged} second lag spike over the last {threshold_check_lag_mins} minutes.\nMatch ID: {self.match_status['match_id'].replace('M','')}\nMatch Time: {self.match_status['match_time']}\nPlayers connected: {playercount}""",True)
                                     #   Please check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))
                             except Exception:
                                 print(traceback.format_exc())
