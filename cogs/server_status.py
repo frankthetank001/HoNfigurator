@@ -533,6 +533,10 @@ class honCMD():
         i = int(check.stdout.read())
         check.terminate()
         return i
+    def get_process_affinity(proc):
+        proc_affinity = proc.cpu_affinity()
+        proc_affinity = ','.join(str(x) for x in proc_affinity)
+        return proc_affinity
     def get_process_priority(proc_name):
         pid = False
         for proc in psutil.process_iter():
