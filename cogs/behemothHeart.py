@@ -68,6 +68,8 @@ class heartbeat(commands.Cog):
             send_new_message = False
             msg_sent = False
             global dm_active_embed
+
+            log_msg = log_msg.replace("\n","BRK")
             
             if ctx == False:
                 send_new_message = True
