@@ -145,9 +145,11 @@ class offlineEmbedManager():
                 f.write(f"{alerts}\n")
         event_msg = ""
         for l in event_list:
+            l = l.replace("BRK","\n")
             event_msg = event_msg+"```glsl\n"+l+"```"
         alert_msg = ""
         for l in alert_list:
+            l = l.replace("BRK","\n")
             if alert:
                 if l == log_msg:
                     if ('crash' in log_msg and processed_data_dict['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and processed_data_dict['disc_alert_on_lag'] == 'True'):
