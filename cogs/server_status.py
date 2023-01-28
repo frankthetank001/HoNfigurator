@@ -466,7 +466,7 @@ class honCMD():
             for file in files:
                 #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                 #find = re.compile(r"^([^.]*).*")
-                if match_id not in file or not exists(f"{match_id}.tmp"):
+                if match_id not in file or not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp"):
                     try:
                         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
@@ -871,18 +871,17 @@ class honCMD():
         self.server_status.update({"slave_log_location":"empty"})
         self.server_status.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
         self.server_status.update({"total_games_played":honCMD.getData(self,"TotalGamesPlayed")})
-        #self.server_status.update({'tempcount':-5})
         self.server_status.update({'elapsed_duration':0})
         if reset_type == "restart":
             self.server_status.update({'pending_restart':False})
             self.server_status.update({'server_ready':False})
             self.server_status.update({'server_starting':True})
-            try:
-                honCMD().clean_old_logs()
-                honCMD().move_replays_and_stats()
-            except Exception:
-                print(traceback.format_exc())
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            # try:
+            #     honCMD().clean_old_logs()
+            #     honCMD().move_replays_and_stats()
+            # except Exception:
+            #     print(traceback.format_exc())
+            #     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         self.server_status.update({'cookie':True})
         if processed_data_dict['use_proxy']=='True':
             self.server_status.update({'proxy_online':False})
