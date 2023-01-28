@@ -252,8 +252,7 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
 
             try:
                 if playercount == 0:
-                    if 'replays_cleaned_one' not in self.server_status:
-                        self.server_status.update({'replays_cleaned_once':True})
+                    if 'replays_cleaned_once' not in self.server_status:
                         #
                         # move replays off into the manager directory. clean up other temporary files
                         print("moving replays for first launch of adminbot.")
