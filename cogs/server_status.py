@@ -106,7 +106,8 @@ class honCMD():
                 if matchID != match_status['match_id'] or reload or (matchID == match_status['match_id'] and soft_data > hard_data and match_status['first_run'] == True):
                     #if self.server_status["bot_first_run"] == True:
                         #self.server_status.update({'bot_first_run':False})
-                    honCMD().initialise_variables("soft")
+                    print("refreshing match ID")
+                    honCMD().initialise_variables("soft","soft - called by match ID refresher")
                     print(f"Lobby created. Match ID: {matchID}")
                     match_status.update({'match_id':matchID})
                     match_status.update({'first_run':False})
@@ -488,7 +489,9 @@ class honCMD():
 
 
         
-    def move_replays_and_stats(self):
+    def move_replays_and_stats(self,whocalledme):
+        self.server_status.update({'replays_cleaned_once':True})
+        print(whocalledme)
         print("Moving replays to replay manager directory and cleaning temporary files...")
         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
         if 'match_id' not in match_status:
@@ -503,12 +506,10 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         try:
             files = os.listdir(processed_data_dict['hon_replays_dir'])
-            
-
             for file in files:
                 #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                 #find = re.compile(r"^([^.]*).*")
-                if match_id not in file or not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp"):
+                if match_id not in file or (match_id in file and not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp")):
                     try:
                         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
@@ -695,19 +696,15 @@ class honCMD():
 
     def wait_for_replay(self,wait):
         global replay_wait
-        # match_id = self.server_status['match_log_location']
-        # match_id = match_id.replace(".log","")
-        # pattern = f"{match_id}*"
-        # list_of_files = glob.glob(processed_data_dict['hon_replays_dir']+"\\"+pattern) # * means all if need specific format then *.csvwrite_mtime
-        # latest_file = max(list_of_files, key=os.path.getctime)
         replay_wait +=1
-        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
-            if os.stat(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay").st_size > 0:
+        match_id = match_status['match_id'].replace("M","")
+        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\M{match_id}.honreplay"):
+            if os.stat(f"{processed_data_dict['hon_replays_dir']}\\M{match_id}.honreplay").st_size > 0:
                 replay_wait = 0
                 print("Replay generated. Preparing server for next match..")
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
                 #match_status.update({'now':'idle'})
-                honCMD().initialise_variables("reload")
+                honCMD().initialise_variables("reload","reload - called by post game replay checker")
                 return True
         else: 
             print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
@@ -716,8 +713,9 @@ class honCMD():
                 match_status.update({'replay_notif_in_log':True})
             if replay_wait >= wait:
                 replay_wait = 0
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
-                honCMD().restartSERVER(False,"Restarting server because it has taken too long to generate the replay.")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Moving to next game..","INFO")
+                #honCMD().restartSERVER(False,"Restarting server because it has taken too long to generate the replay.")
+                return False
             return False
     def check_cookie(server_status,log,name):
         def write_mtime(log,name):
@@ -857,7 +855,7 @@ class honCMD():
     def getMatchInfo(self):
         return match_status
    #   Starts server
-    def initialise_variables(self,reset_type):
+    def initialise_variables(self,reset_type,whocalledme):
         if reset_type == "soft":
             print(f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict(processed_data_dict)}")
             honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict(processed_data_dict)}","INFO")
@@ -877,7 +875,7 @@ class honCMD():
                 if match_status['first_run'] == False:
                     print("lobby closed.")
                 honCMD().clean_old_logs()
-                honCMD().move_replays_and_stats()
+                honCMD().move_replays_and_stats(whocalledme)
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -988,7 +986,7 @@ class honCMD():
                 self.server_status.update({'hon_pid':self.honP})
                 self.server_status.update({'hon_pid_hook':psutil.Process(pid=self.honP)})
                 self.server_status.update({'hon_pid_owner':self.honEXE.username()})
-                honCMD().initialise_variables("")
+                honCMD().initialise_variables("","server start - but found pid")
                 self.server_status.update({'realtime_priority':True})
                 return "server already started"
             except Exception:
@@ -1099,7 +1097,7 @@ class honCMD():
                 self.server_status['hon_pid_hook'].nice(psutil.IDLE_PRIORITY_CLASS)
 
                 # Reload the dictionary. This is important as we want to start with a blank slate with every server restart.
-                honCMD().initialise_variables("restart")
+                honCMD().initialise_variables("restart","called by server restart (no PID)")
                 return True
             else:
                 # insufficient RAM
