@@ -345,8 +345,8 @@ class mData():
         if 'use_console' not in self.confDict_basic:
             self.confDict_basic.update({'use_console':'False'})
         return self.confDict_basic
-    def return_simple_dict(self):
-        hon_elk_update_dict = {'static_ip':self.confDict['static_ip'],'github_branch':self.confDict['github_branch'],'use_proxy':self.confDict['use_proxy'],'disable_bot':self.confDict['disable_bot'],'auto_update':self.confDict['auto_update'],'bot_version':self.confDict['bot_version'],'bots_running':self.confDict['bots_running']}
+    def return_simple_dict(self,data):
+        hon_elk_update_dict = {'static_ip':data['static_ip'],'github_branch':data['github_branch'],'use_proxy':data['use_proxy'],'disable_bot':data['disable_bot'],'auto_update':data['auto_update'],'bot_version':data['bot_version'],'bots_running':data['bots_running']}
         return hon_elk_update_dict
         
     # def setData(self,key):
