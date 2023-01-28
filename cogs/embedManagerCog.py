@@ -151,7 +151,7 @@ class offlineEmbedManager():
         for l in alert_list:
             l = l.replace("BRK","\n")
             if alert:
-                if l == log_msg:
+                if l == log_msg.replace("BRK","\n"):
                     if ('crash' in log_msg and processed_data_dict['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and processed_data_dict['disc_alert_on_lag'] == 'True'):
                         alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"
                     if 'second lag spike' in log_msg:
