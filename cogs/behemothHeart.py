@@ -154,7 +154,7 @@ class heartbeat(commands.Cog):
         threshold_check_lag = 300 / heartbeat_freq
         threshold_check_lag_mins = threshold_check_lag / 60
         threshold_health_checks = 120 / heartbeat_freq
-        threshold_pending_players_leaving = 120 / heartbeat_freq
+        threshold_pending_players_leaving = 180 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
         threshold_game_end_check = 180 / heartbeat_freq
         replay_threshold = 330 / heartbeat_freq
@@ -440,12 +440,13 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                     if self.match_status['now'] == "in game":
                         #   OPTION 1: every threshold_game_end_check seconds, check if the match is over, despite there still being 1 player connected.
                         counter_game_end +=1
-                        if counter_game_end == threshold_game_end_check:
+                        print(f"{counter_game_end}/{threshold_game_end_check} remaining until server force close")
+                        if counter_game_end >= threshold_game_end_check:
                             counter_game_end = 0
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
-                                svr_state.append_line_to_file(f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
-                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
+                                if ctx != None: await send_user_msg(ctx,f"[WARNING] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
                         if self.server_status['at_least_2_players']:
                             match_time = self.match_status['match_time']
@@ -453,13 +454,13 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                                 match_too_long = match_time.split(":")
                                 match_too_long_hrs = int(match_too_long[0])
                                 match_too_long_mins = int(match_too_long[1])
-                                if match_too_long_mins >= 45:
+                                if match_too_long_mins >= 45 or (match_too_long_hrs >= 1):
                                     counter_pending_players_leaving +=1
                                     if counter_pending_players_leaving >= threshold_pending_players_leaving:
                                         counter_pending_players_leaving = 0
                                         msg = f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game."
-                                        svr_state.append_line_to_file(f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True)
+                                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
+                                        if ctx != None: await send_user_msg(ctx,f"[WARNING] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True)
                                         print(msg)
                                         svr_state.restartSERVER(True,msg)
             except Exception:
