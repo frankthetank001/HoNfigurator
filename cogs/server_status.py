@@ -446,6 +446,55 @@ class honCMD():
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+    def move_replays_and_stats2(self):
+        print("Moving replays to replay manager directory and cleaning temporary files...")
+        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
+        if 'match_id' not in match_status:
+            return False
+
+        match_id = match_status['match_id'].replace("M","")
+        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
+
+        try:
+            if not exists(processed_data_dict['hon_replays_dir']):
+                os.makedirs(processed_data_dict['hon_replays_dir'])
+        except Exception:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        try:
+            files = os.listdir(processed_data_dict['hon_replays_dir'])
+            for file in files:
+                if match_id in file:
+                    if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp"):
+                        safe_to_move = False
+                    else: safe_to_move = True
+                else:
+                    safe_to_move = True
+                if safe_to_move:
+                    if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                        shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                    else:
+                        if file.endswith(".honreplay"):
+                            print(f"moving replay {file} to {processed_data_dict['hon_replays_dir']}")
+                            if not exists(replays_dest_dir+file):
+                                shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                            else:
+                                if os.stat(file) > os.stat(replays_dest_dir+file):
+                                    os.remove(replays_dest_dir+file)
+                                else: 
+                                    os.remove(file)
+                                    shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                        else:
+                            print("deleting temporary file "+file)
+                            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"deleting temporary file {file}","WARNING")
+                            os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+
+        except Exception:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+
+
+        
     def move_replays_and_stats(self):
         print("Moving replays to replay manager directory and cleaning temporary files...")
         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
@@ -834,7 +883,7 @@ class honCMD():
                 if match_status['first_run'] == False:
                     print("lobby closed.")
                 honCMD().clean_old_logs()
-                honCMD().move_replays_and_stats()
+                honCMD().move_replays_and_stats2()
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
