@@ -464,13 +464,7 @@ class honCMD():
         try:
             files = os.listdir(processed_data_dict['hon_replays_dir'])
             for file in files:
-                if match_id in file:
-                    if exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp"):
-                        safe_to_move = False
-                    else: safe_to_move = True
-                else:
-                    safe_to_move = True
-                if safe_to_move:
+                if match_id not in file:
                     if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                         shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
                     else:
@@ -488,7 +482,6 @@ class honCMD():
                             print("deleting temporary file "+file)
                             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"deleting temporary file {file}","WARNING")
                             os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
-
         except Exception:
             print(traceback.format_exc())
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
@@ -883,7 +876,7 @@ class honCMD():
                 if match_status['first_run'] == False:
                     print("lobby closed.")
                 honCMD().clean_old_logs()
-                honCMD().move_replays_and_stats2()
+                honCMD().move_replays_and_stats()
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")

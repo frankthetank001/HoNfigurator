@@ -257,12 +257,12 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                         clean_replays_once = False
                         #
                         # move replays off into the manager directory. clean up other temporary files
-                        svr_state.move_replays_and_stats2()
+                        svr_state.move_replays_and_stats()
                         svr_state.clean_old_logs()
                     if self.server_status['tempcount'] > 0:
                         svr_state.check_current_match_id(False,True)
-                        if self.match_status['now'] in ['in game','in lobby']:
-                            svr_state.initialise_variables("reload")
+                        # if self.match_status['now'] in ['in game','in lobby']:
+                        #     svr_state.initialise_variables("reload")
                     #   Check the process priority, set it to IDLE if it isn't already
                     if proc_priority != "IDLE" and self.match_status['now'] == 'idle':
                         try:
@@ -287,11 +287,11 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                             print("scheduled shutdown, moving to stop server")
                             svr_state.stopSELF("Scheduled shutdown initiated.")
                     #   check for or action a natural restart inbetween games
-                    # if self.match_status['now'] in ["in lobby","in game"]:
-                    #     if self.match_status['now'] == "in game":
-                    #         svr_state.wait_for_replay(replay_threshold)
-                    #     else:
-                    #         svr_state.initialise_variables("soft")
+                    if self.match_status['now'] in ["in lobby","in game"]:
+                        if self.match_status['now'] == "in game":
+                            svr_state.wait_for_replay(replay_threshold)
+                        else:
+                            svr_state.initialise_variables("soft")
                     
                     """  [Players: 0] idle game health checks """
                     counter_ipcheck +=1
