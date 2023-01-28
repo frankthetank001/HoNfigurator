@@ -482,6 +482,7 @@ class honCMD():
                                         shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
                             else:
                                 print("deleting temporary file "+file)
+                                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"deleting temporary file {file}","WARNING")
                                 os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
                     except Exception:
                         print(traceback.format_exc())
