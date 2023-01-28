@@ -55,6 +55,7 @@ class heartbeat(commands.Cog):
         waiting = False
         proxy_online = False
         
+        # determine status of discord bot
         if ctx != None:
             bot_message = self.bot.get_cog("embedManager")
             self.processed_data_dict.update({'bots_running':True})
@@ -161,6 +162,8 @@ class heartbeat(commands.Cog):
         announce_proxy_health = True
         clean_replays_once = True
         
+        heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Initialising variables. Data Dump: {self.processed_data_dict}","INFO")
+
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])

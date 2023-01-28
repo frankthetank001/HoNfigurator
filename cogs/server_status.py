@@ -736,7 +736,11 @@ class honCMD():
                             os.remove(os.path.join(path, f))
                             count+=1
                             print("removed "+f)
-                        except Exception as e: print(e)
+                        except PermissionError:
+                            pass
+                        except Exception:
+                            print(traceback.format_exc())
+                            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         print(f"DONE. Cleaned {count} files.")
         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Cleaned {count} files","INFO")
     def changePriority(self,priority_realtime):
@@ -807,16 +811,15 @@ class honCMD():
    #   Starts server
     def initialise_variables(self,reset_type):
         if reset_type == "soft":
-            hon_elk_update_dict = {'static_ip':processed_data_dict['static_ip'],'github_branch':processed_data_dict['github_branch'],'use_proxy':processed_data_dict['use_proxy'],'disable_bot':processed_data_dict['disable_bot'],'auto_update':processed_data_dict['auto_update'],'bot_version':processed_data_dict['bot_version']}
-            print(f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}")
-            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {hon_elk_update_dict}","INFO")
+            print(f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict()}")
+            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict()}","INFO")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
             self.server_status.update({"game_log_location":"empty"})
             self.server_status.update({"match_log_location":"empty"})
             self.server_status.update({"slave_log_location":"empty"})
             return
-        print(f"Initialising variables. Data dump: {processed_data_dict}")
+        #print(f"Initialising variables. Data dump: {processed_data_dict}")
         
         honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables. Data dump: {processed_data_dict}","INFO")
         #
