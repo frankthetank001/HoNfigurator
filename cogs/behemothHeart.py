@@ -229,7 +229,7 @@ Match ID: {self.match_status['match_id'].replace('M','')}
 Match Time: {self.match_status['match_time']}
 Players connected: {playercount}
 Process Priority: {svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])}
-Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_pid_hook'])}""",True)
+Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_pid_hook'])}""",True)
                                         continue
                                 except Exception:
                                     print(traceback.format_exc())
@@ -390,7 +390,7 @@ Match ID: {self.match_status['match_id'].replace('M','')}
 Match Time: {self.match_status['match_time']}
 Players connected: {playercount}
 Process Priority: {svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])}
-Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_pid_hook'])}""",True)
+Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_pid_hook'])}""",True)
                                     #   Please check https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster}))),(query:(match_phrase:(Match.ID:{self.match_status['match_id'].replace('M','')})))))
                             except Exception:
                                 print(traceback.format_exc())

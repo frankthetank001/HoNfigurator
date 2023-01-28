@@ -140,14 +140,17 @@ if is_admin():
             if len(prev_dm) == 0:
                 return False
             #   Loads channel
-            tempChannel = bot.get_channel(prev_dm[0])
-            if tempChannel is None:
-                tempChannel = await bot.fetch_channel(prev_dm[0])
-            #
-            #   fetches message
-            prev_msg = await tempChannel.fetch_message(prev_dm[1])
-            ctx = await bot.get_context(prev_msg)
-            dm_active_embed.append(prev_msg)
+            try:
+                tempChannel = bot.get_channel(prev_dm[0])
+                if tempChannel is None:
+                    tempChannel = await bot.fetch_channel(prev_dm[0])
+                #
+                #   fetches message
+                prev_msg = await tempChannel.fetch_message(prev_dm[1])
+                ctx = await bot.get_context(prev_msg)
+                dm_active_embed.append(prev_msg)
+            except discord.errors.NotFound:
+                ctx=False
             return ctx
             
         async def send_user_msg(self,log_msg,alert):
@@ -157,7 +160,7 @@ if is_admin():
             send_fresh_message = False
             try:
                 if len(dm_active_embed) == 0:
-                    if hsl.get_msg_ctx():
+                    if await hsl.get_msg_ctx(self):
                         print("found previous message.")
                     else:
                         send_fresh_message = True
@@ -194,7 +197,7 @@ if is_admin():
                     with open(processed_data_dict['dm_discord_temp'], 'w'):
                         pass
 
-                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert)
+                    user_embed = await embedMgr.offlineEmbedManager().embedLog(log_msg=f"[{hsl.time()}] {log_msg}",alert=alert,data=processed_data_dict)
                     sent_message = await discord_admin_ctx.send(embed=user_embed)
                     dm_active_embed.append(sent_message)
                 

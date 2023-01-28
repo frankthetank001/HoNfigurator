@@ -7,6 +7,8 @@ import cogs.server_status as svrcmd
 import asyncio
 from datetime import datetime
 import traceback
+import time
+import re
 
 
 discver = (discord.__version__).split(".")
@@ -143,31 +145,40 @@ class offlineEmbedManager():
             for alerts in alert_list:
                 alerts = alerts.replace("\n","")
                 f.write(f"{alerts}\n")
-        event_msg = ""
-        for l in event_list:
-            l = l.replace("BRK","\n")
-            event_msg = event_msg+"```glsl\n"+l+"```"
-        alert_msg = ""
-        for l in alert_list:
-            l = l.replace("BRK","\n")
-            if alert:
-                if l == log_msg.replace("BRK","\n"):
-                    if ('crash' in log_msg and data['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and data['disc_alert_on_lag'] == 'True'):
-                        alert_msg = alert_msg+f"<@{data['discord_admin']}>"
-                    if 'second lag spike' in log_msg:
-                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
-                    else:
-                        alert_msg = alert_msg+"```fix\n"+l+"```"
-                else:
-                    alert_msg = alert_msg+"```glsl\n"+l+"```"
-            else: 
-                alert_msg = alert_msg+"```glsl\n"+l+"```"
+        #   build the msg format for events
+        for i in range(len(event_list)):
+            event_list[i] = event_list[i].replace("BRK","\n")
+            event_list[i] = "```glsl\n"+event_list[i]+"```"
+        #   build the msg format for alerts
+        for i in range(len(alert_list)):
+            alert_list[i] = alert_list[i].replace("BRK","\n")
+            #   if it's the most recent alert, include the @mention and dyn url
+            if i+1 == len(alert_list):
+                if ('crash' in alert_list[i] and data['disc_alert_on_crash'] == 'True') or ('lag spike' in alert_list[i] and data['disc_alert_on_lag'] == 'True'):
+                    alert_list[i] = f"<@{data['discord_admin']}>\n"+f"```fix\n{alert_list[i]}```"
+                    if 'second lag spike' in alert_list[i]:
+                        alert_list[i] = alert_list[i]+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
+                else: alert_list[i] = f"```glsl\n{alert_list[i]}```"
+            else:
+                alert_list[i] = f"```glsl\n{alert_list[i]}```"
+        for alert in alert_list:
+            time_line = re.search('(?<=\[).+?(?=\])',alert)
+            try:
+                time_line = time_line.group(0)
+                #imestamp = time.strptime(time_line,"%Y-%m-%d %H:%M:%S")
+                timestamp = datetime.strptime(time_line, "%Y-%m-%d %H:%M:%S")
+                time_diff = datetime.now() - timestamp
+                if time_diff.days > 0:
+                    alert_list.remove(alert)
+            except AttributeError:
+                pass
+
         if len(alert_list) == 0:
-            alert_msg = alert_msg+"```glsl\nNo alerts.```"
+            alert_msg = alert_msg+"```glsl\nNo alerts today.```"
         if len(event_list) == 0:
-            event_msg = event_msg+"```glsl\nNo events.```"
+            event_msg = event_msg+"```glsl\nNo events today.```"
         #msg = "```\ncss"+'```\ncss'.join(event_list)
-        created_embed = discord.Embed(title=data['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{event_msg}\n> **Server Alerts**\n{alert_msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
+        created_embed = discord.Embed(title=data['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{''.join(event_list)}\n> **Server Alerts**\n{''.join(alert_list)}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates a fresh alert")
         return created_embed
     
