@@ -703,6 +703,7 @@ class honCMD():
         replay_wait +=1
         if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
             if os.stat(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay").st_size > 0:
+                replay_wait = 0
                 print("Replay generated. Preparing server for next match..")
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
                 #match_status.update({'now':'idle'})
@@ -710,7 +711,7 @@ class honCMD():
                 return True
         else: 
             print(f"[{match_status['match_id']}] Generating replay for match. Delaying restart for up to 5 minutes ({replay_wait}/{wait}sec until server is restarted).")
-            if 'replay_notif_in_log' not in match_status:
+            if 'replay_notif_in_log' not in match_status or match_status['replay_notif_in_log'] == False:
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] Match finished. Waiting for generation of replay (can take up to {wait} seconds","INFO")
                 match_status.update({'replay_notif_in_log':True})
             if replay_wait >= wait:
@@ -909,6 +910,7 @@ class honCMD():
         self.server_status.update({"referees":0})
         self.server_status.update({"client_ip":"empty"})
         self.server_status.update({"match_info_obtained":False})
+        self.server_status.update({'replay_notif_in_log':False})
         self.server_status.update({"priority_realtime":False})
         self.server_status.update({"restart_required":False})
         self.server_status.update({"game_log_location":"empty"})
