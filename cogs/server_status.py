@@ -448,6 +448,7 @@ class honCMD():
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     def move_replays_and_stats(self):
         print("Moving replays to replay manager directory and cleaning temporary files...")
+        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
         if 'match_id' not in match_status:
             return False
         match_id = match_status['match_id'].replace("M","")
