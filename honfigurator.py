@@ -2951,7 +2951,7 @@ if is_admin():
                                         f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
                                 elif pcount > 0:
                                     labl_ttp = honfigurator.CreateToolTip(labllist[-1], \
-                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: f{schd_shutdown}\nScheduled restart: {schd_restart}")
+                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: {schd_shutdown}\nScheduled restart: {schd_restart}")
                             labllistrows.append(i)
                             labllistcols.append(c_pos1)
                             for index2, btn_name in enumerate(ButtonString):
