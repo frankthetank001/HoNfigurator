@@ -294,7 +294,7 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                             svr_state.wait_for_replay(replay_threshold)
                         else:
                             print("In lobby phase, re-initialising variables")
-                            svr_state.initialise_variables("soft")
+                            svr_state.initialise_variables("soft","soft - called by players returning to 0, and being 'in lobby'")
                     
                     """  [Players: 0] idle game health checks """
                     counter_ipcheck +=1
