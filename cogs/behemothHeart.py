@@ -161,7 +161,6 @@ class heartbeat(commands.Cog):
 
         healthcheck_first_run = True
         announce_proxy_health = True
-        clean_replays_once = True
         
         heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Initialising variables. Data Dump: {self.processed_data_dict}","INFO")
 
@@ -253,12 +252,12 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
 
             try:
                 if playercount == 0:
-                    if clean_replays_once:
-                        clean_replays_once = False
+                    if 'replays_cleaned_one' not in self.server_status:
+                        self.server_status.update({'replays_cleaned_once':True})
                         #
                         # move replays off into the manager directory. clean up other temporary files
                         print("moving replays for first launch of adminbot.")
-                        svr_state.move_replays_and_stats()
+                        svr_state.move_replays_and_stats("Called for first launch of adminbot, with 0 players connected")
                         svr_state.clean_old_logs()
                     if self.server_status['tempcount'] > 0:
                         svr_state.check_current_match_id(False,True)

@@ -490,6 +490,7 @@ class honCMD():
 
         
     def move_replays_and_stats(self,whocalledme):
+        self.server_status.update({'replays_cleaned_once':True})
         print(whocalledme)
         print("Moving replays to replay manager directory and cleaning temporary files...")
         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
