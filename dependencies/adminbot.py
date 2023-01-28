@@ -343,6 +343,7 @@ if is_admin():
                     svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
                     log_msg=f"``{hsl.time()}`` [ERR] Starting the server failed for unknown reason."
                     alert = True
+                print(log_msg)
                 ctx = await hsl.get_msg_ctx(self)
                 if ctx:
                     await ctx.invoke(bot.get_command('sendEmbedLog'),embed_log=dm_active_embed)
@@ -907,25 +908,15 @@ if is_admin():
                 svr_cmd.updateStatus(tempData)
                 result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
                 if result == True:
-                    log_msg = "server started successfully"
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"INFO")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+                elif result == "server already started":
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Adminbot has hooked onto the already running server.","INFO")
                 elif result == "ram":
-                    log_msg = "not enough free RAM to start the server."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
                 elif result == "proxy":
-                    log_msg = "Proxy port is not online."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
-                elif result == "process not found":
-                    log_msg = f"existing hon process is running, however it is not returning a valid return code. Please investigate {processed_data_dict['hon_file_name']}. Possibly terminate the process manually."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
                 else:
-                    log_msg = "starting the server completely failed for an unaccounted for reason."
-                    print(log_msg)
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",log_msg,"FATAL")
+                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
             except Exception:
                 print(traceback.format_exc())
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
