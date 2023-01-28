@@ -112,18 +112,18 @@ class timeout:
 class offlineEmbedManager():
     def __init__(self):
         return
-    async def embedLog(self,log_msg,alert):
+    async def embedLog(self,log_msg,alert,data):
         global event_list
-        alert_list_limit = int(processed_data_dict['disc_alert_list_limit'])
-        event_list_limit = int(processed_data_dict['disc_event_list_limit'])
+        alert_list_limit = int(data['disc_alert_list_limit'])
+        event_list_limit = int(data['disc_event_list_limit'])
 
         replace_me = [" ","#","\"","."]
-        hoster = processed_data_dict['svr_hoster']
+        hoster = data['svr_hoster']
         for v in replace_me:
             if v in hoster: hoster = hoster.replace(v,"")
 
-        event_list = open(processed_data_dict['dm_discord_hist']).readlines()
-        alert_list = open(processed_data_dict['dm_discord_alert_hist']).readlines()
+        event_list = open(data['dm_discord_hist']).readlines()
+        alert_list = open(data['dm_discord_alert_hist']).readlines()
         if alert:
             alert_list.append(log_msg)
         else:
@@ -135,11 +135,11 @@ class offlineEmbedManager():
         while len(alert_list)>alert_list_limit:
             alert_list.remove(alert_list[0])
         
-        with open(processed_data_dict['dm_discord_hist'], 'w') as f:
+        with open(data['dm_discord_hist'], 'w') as f:
             for event in event_list:
                 event = event.replace("\n","")
                 f.write(f"{event}\n")
-        with open(processed_data_dict['dm_discord_alert_hist'], 'w') as f:
+        with open(data['dm_discord_alert_hist'], 'w') as f:
             for alerts in alert_list:
                 alerts = alerts.replace("\n","")
                 f.write(f"{alerts}\n")
@@ -152,10 +152,10 @@ class offlineEmbedManager():
             l = l.replace("BRK","\n")
             if alert:
                 if l == log_msg.replace("BRK","\n"):
-                    if ('crash' in log_msg and processed_data_dict['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and processed_data_dict['disc_alert_on_lag'] == 'True'):
-                        alert_msg = alert_msg+f"<@{processed_data_dict['discord_admin']}>"
+                    if ('crash' in log_msg and data['disc_alert_on_crash'] == 'True') or ('lag spike' in log_msg and data['disc_alert_on_lag'] == 'True'):
+                        alert_msg = alert_msg+f"<@{data['discord_admin']}>"
                     if 'second lag spike' in log_msg:
-                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{processed_data_dict['match_id'].replace('M','')}%29%29%29%29%29)"
+                        alert_msg = alert_msg+"```fix\n"+l+"```"+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
                     else:
                         alert_msg = alert_msg+"```fix\n"+l+"```"
                 else:
@@ -167,7 +167,7 @@ class offlineEmbedManager():
         if len(event_list) == 0:
             event_msg = event_msg+"```glsl\nNo events.```"
         #msg = "```\ncss"+'```\ncss'.join(event_list)
-        created_embed = discord.Embed(title=processed_data_dict['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{event_msg}\n> **Server Alerts**\n{alert_msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
+        created_embed = discord.Embed(title=data['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{event_msg}\n> **Server Alerts**\n{alert_msg}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates a fresh alert")
         return created_embed
     

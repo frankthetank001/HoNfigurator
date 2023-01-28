@@ -87,7 +87,7 @@ class heartbeat(commands.Cog):
                 else: send_new_message = True
             
             if not send_new_message:
-                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                 try:
                     edit_result = await dm_active_embed[0].edit(embed=user_embed)
                     msg_sent = True
@@ -101,7 +101,7 @@ class heartbeat(commands.Cog):
                         send_new_message=True
             if send_new_message:
                 try:
-                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                     if ctx != False: await dm_active_embed[0].delete()
                     dm_active_embed[0] = await ctx.send(embed=user_embed)
                     msg_sent = True
