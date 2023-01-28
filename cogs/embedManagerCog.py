@@ -489,8 +489,8 @@ class embedManager(commands.Cog):
         return created_embed
 
     @bot.command()
-    async def embedLog(self,log_msg,alert):
-        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert)
+    async def embedLog(self,log_msg,alert,data):
+        created_embed = await offlineEmbedManager.embedLog(self,log_msg,alert,data)
         
         return created_embed
 
