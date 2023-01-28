@@ -595,7 +595,7 @@ class honCMD():
         simple_match_data = {}
         simple_match_data.update({'match_time':'In-Lobby phase...'})
         skipped_frames = 0
-        skipped_count=True
+        in_game=False
         match_status.update({'skipped_frames_from_line':0})
         frame_size = 0
         frame_sizes = []
@@ -605,19 +605,22 @@ class honCMD():
             simple_match_data.update({'match_id':match_id})
         except Exception:
             simple_match_data.update({'match_id':'N/A'})
-        with open (log, "r", encoding='utf-16-le') as f:
-            if type == "match":
-                #for num,line in reversed(list(f)):
-                for num, line in reversed(list(enumerate(f, 1))):
-                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                        if simple_match_data['match_time'] in ('In-Lobby phase...'):
-                            simple_match_data.update({'match_time':'Hero select phase...'})
-                        skipped_count=False
-                    if "Phase(5)" in line:
-                        if match_status['skipped_frames_from_line'] == 0:
-                            match_status.update({'skipped_frames_from_line':num})    
-                for num, line in reversed(list(enumerate(f, 1))):
-                    if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
+        if type == "match":
+            with open (log, "r", encoding='utf-16-le') as f:
+                    #for num,line in reversed(list(f)):
+                    for num, line in list(enumerate(f, 1)):
+                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                            if simple_match_data['match_time'] in ('In-Lobby phase...'):
+                                simple_match_data.update({'match_time':'Hero select phase...'})
+                        if "Phase(5)" in line:
+                            in_game = True
+                            if match_status['skipped_frames_from_line'] == 0:
+                                match_status.update({'skipped_frames_from_line':num})
+                            break
+            if in_game:
+                with open (log, "r", encoding='utf-16-le') as f:
+                    for num, line in reversed(list(enumerate(f, 1))):
+                        if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
                             #Match Time(00:07:00)
                             if "Match Time" in line:
                                 pattern="(Match Time\()(.*)(\))"
@@ -630,8 +633,6 @@ class honCMD():
                                     continue
                                 except AttributeError as e:
                                     pass
-                if skipped_count:
-                    for num, line in reversed(list(enumerate(f, 1))):
                         if num > match_status['skipped_frames_from_line']:
                             if "Skipped" in line or "skipped" in line:
                                 pattern = "\(([^\)]+)\)"
