@@ -811,8 +811,8 @@ class honCMD():
    #   Starts server
     def initialise_variables(self,reset_type):
         if reset_type == "soft":
-            print(f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict()}")
-            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict()}","INFO")
+            print(f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict(processed_data_dict)}")
+            honCMD.append_line_to_file(self,f"{processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict(processed_data_dict)}","INFO")
             match_status.update({'now':'idle'})
             match_status.update({'match_info_obtained':False})
             self.server_status.update({"game_log_location":"empty"})
