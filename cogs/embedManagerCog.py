@@ -161,11 +161,20 @@ class offlineEmbedManager():
                 else: alert_list[i] = f"```glsl\n{alert_list[i]}```"
             else:
                 alert_list[i] = f"```glsl\n{alert_list[i]}```"
+        for event in event_list:
+            time_line = re.search('(?<=\[).+?(?=\])',event)
+            try:
+                time_line = time_line.group(0)
+                timestamp = datetime.strptime(time_line, "%Y-%m-%d %H:%M:%S")
+                time_diff = datetime.now() - timestamp
+                if time_diff.days > 0:
+                    event_list.remove(event)
+            except AttributeError:
+                pass
         for alert in alert_list:
             time_line = re.search('(?<=\[).+?(?=\])',alert)
             try:
                 time_line = time_line.group(0)
-                #imestamp = time.strptime(time_line,"%Y-%m-%d %H:%M:%S")
                 timestamp = datetime.strptime(time_line, "%Y-%m-%d %H:%M:%S")
                 time_diff = datetime.now() - timestamp
                 if time_diff.days > 0:
