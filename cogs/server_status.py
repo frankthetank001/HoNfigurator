@@ -503,12 +503,10 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         try:
             files = os.listdir(processed_data_dict['hon_replays_dir'])
-            
-
             for file in files:
                 #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                 #find = re.compile(r"^([^.]*).*")
-                if match_id not in file or not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp"):
+                if match_id not in file or (match_id in file and not exists(f"{processed_data_dict['hon_replays_dir']}\\M{match_id}.tmp")):
                     try:
                         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
@@ -716,8 +714,9 @@ class honCMD():
                 match_status.update({'replay_notif_in_log':True})
             if replay_wait >= wait:
                 replay_wait = 0
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Closing server..","INFO")
-                honCMD().restartSERVER(False,"Restarting server because it has taken too long to generate the replay.")
+                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] timed out ({replay_wait}/{wait} seconds) waiting for replay. Moving to next game..","INFO")
+                #honCMD().restartSERVER(False,"Restarting server because it has taken too long to generate the replay.")
+                return False
             return False
     def check_cookie(server_status,log,name):
         def write_mtime(log,name):

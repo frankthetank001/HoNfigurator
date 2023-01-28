@@ -290,7 +290,7 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                     if self.match_status['now'] in ["in lobby","in game"]:
                         if self.match_status['now'] == "in game":
                             svr_state.wait_for_replay(replay_threshold)
-                        else:
+                        else: 
                             svr_state.initialise_variables("soft")
                     
                     """  [Players: 0] idle game health checks """
