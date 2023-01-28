@@ -615,21 +615,23 @@ class honCMD():
                         skipped_count=False
                     if "Phase(5)" in line:
                         if match_status['skipped_frames_from_line'] == 0:
-                            match_status.update({'skipped_frames_from_line':num})
+                            match_status.update({'skipped_frames_from_line':num})    
+                for num, line in reversed(list(enumerate(f, 1))):
                     if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
-                        #Match Time(00:07:00)
-                        if "Match Time" in line:
-                            pattern="(Match Time\()(.*)(\))"
-                            try:
-                                match_time=re.search(pattern,line)
-                                match_time = match_time.group(2)
-                                simple_match_data.update({'match_time':match_time})
-                                #tempData.update({'match_log_last_line':num})
-                                #print("match_time: "+ match_time)
-                                continue
-                            except AttributeError as e:
-                                pass
-                    if skipped_count:
+                            #Match Time(00:07:00)
+                            if "Match Time" in line:
+                                pattern="(Match Time\()(.*)(\))"
+                                try:
+                                    match_time=re.search(pattern,line)
+                                    match_time = match_time.group(2)
+                                    simple_match_data.update({'match_time':match_time})
+                                    #tempData.update({'match_log_last_line':num})
+                                    #print("match_time: "+ match_time)
+                                    continue
+                                except AttributeError as e:
+                                    pass
+                if skipped_count:
+                    for num, line in reversed(list(enumerate(f, 1))):
                         if num > match_status['skipped_frames_from_line']:
                             if "Skipped" in line or "skipped" in line:
                                 pattern = "\(([^\)]+)\)"
