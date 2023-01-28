@@ -446,6 +446,48 @@ class honCMD():
             except Exception:
                 print(traceback.format_exc())
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+    def move_replays_and_stats2(self):
+        print("Moving replays to replay manager directory and cleaning temporary files...")
+        honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
+        if 'match_id' not in match_status:
+            return False
+
+        match_id = match_status['match_id'].replace("M","")
+        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
+
+        try:
+            if not exists(processed_data_dict['hon_replays_dir']):
+                os.makedirs(processed_data_dict['hon_replays_dir'])
+        except Exception:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+        try:
+            files = os.listdir(processed_data_dict['hon_replays_dir'])
+            for file in files:
+                if match_id not in file:
+                    if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
+                        shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
+                    else:
+                        if file.endswith(".honreplay"):
+                            print(f"moving replay {file} to {processed_data_dict['hon_replays_dir']}")
+                            if not exists(replays_dest_dir+file):
+                                shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                            else:
+                                if os.stat(file) > os.stat(replays_dest_dir+file):
+                                    os.remove(replays_dest_dir+file)
+                                else: 
+                                    os.remove(file)
+                                    shutil.move(processed_data_dict['hon_replays_dir']+"\\"+file,replays_dest_dir)
+                        else:
+                            print("deleting temporary file "+file)
+                            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"deleting temporary file {file}","WARNING")
+                            os.remove(processed_data_dict['hon_replays_dir']+"\\"+file)
+        except Exception:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+
+
+        
     def move_replays_and_stats(self):
         print("Moving replays to replay manager directory and cleaning temporary files...")
         honCMD().append_line_to_file(f"{processed_data_dict['app_log']}","Moving replays to replay manager directory and cleaning temporary files...","INFO")
@@ -466,7 +508,7 @@ class honCMD():
             for file in files:
                 #if os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                 #find = re.compile(r"^([^.]*).*")
-                if match_id not in file or not exists(f"{match_id}.tmp"):
+                if match_id not in file or not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp"):
                     try:
                         if not os.path.isfile(processed_data_dict['hon_replays_dir']+"\\"+file):
                             shutil.rmtree(processed_data_dict['hon_replays_dir']+"\\"+file,onerror=honCMD.onerror)
@@ -595,7 +637,7 @@ class honCMD():
         simple_match_data = {}
         simple_match_data.update({'match_time':'In-Lobby phase...'})
         skipped_frames = 0
-        skipped_count=True
+        in_game=False
         match_status.update({'skipped_frames_from_line':0})
         frame_size = 0
         frame_sizes = []
@@ -605,31 +647,34 @@ class honCMD():
             simple_match_data.update({'match_id':match_id})
         except Exception:
             simple_match_data.update({'match_id':'N/A'})
-        with open (log, "r", encoding='utf-16-le') as f:
-            if type == "match":
+        if type == "match":
+            with open (log, "r", encoding='utf-16-le') as f:
                 #for num,line in reversed(list(f)):
-                for num, line in reversed(list(enumerate(f, 1))):
+                for num, line in list(enumerate(f, 1)):
                     if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
                         if simple_match_data['match_time'] in ('In-Lobby phase...'):
                             simple_match_data.update({'match_time':'Hero select phase...'})
-                        skipped_count=False
                     if "Phase(5)" in line:
+                        in_game = True
                         if match_status['skipped_frames_from_line'] == 0:
                             match_status.update({'skipped_frames_from_line':num})
-                    if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
-                        #Match Time(00:07:00)
-                        if "Match Time" in line:
-                            pattern="(Match Time\()(.*)(\))"
-                            try:
-                                match_time=re.search(pattern,line)
-                                match_time = match_time.group(2)
-                                simple_match_data.update({'match_time':match_time})
-                                #tempData.update({'match_log_last_line':num})
-                                #print("match_time: "+ match_time)
-                                continue
-                            except AttributeError as e:
-                                pass
-                    if skipped_count:
+                        break
+            if in_game:
+                with open (log, "r", encoding='utf-16-le') as f:
+                    for num, line in reversed(list(enumerate(f, 1))):
+                        if "Server Status" in line and simple_match_data['match_time'] in ('In-Lobby phase...','Hero select phase...'):
+                            #Match Time(00:07:00)
+                            if "Match Time" in line:
+                                pattern="(Match Time\()(.*)(\))"
+                                try:
+                                    match_time=re.search(pattern,line)
+                                    match_time = match_time.group(2)
+                                    simple_match_data.update({'match_time':match_time})
+                                    #tempData.update({'match_log_last_line':num})
+                                    #print("match_time: "+ match_time)
+                                    continue
+                                except AttributeError as e:
+                                    pass
                         if num > match_status['skipped_frames_from_line']:
                             if "Skipped" in line or "skipped" in line:
                                 pattern = "\(([^\)]+)\)"
@@ -871,18 +916,17 @@ class honCMD():
         self.server_status.update({"slave_log_location":"empty"})
         self.server_status.update({"total_games_played_prev":honCMD.getData(self,"TotalGamesPlayed")})
         self.server_status.update({"total_games_played":honCMD.getData(self,"TotalGamesPlayed")})
-        #self.server_status.update({'tempcount':-5})
         self.server_status.update({'elapsed_duration':0})
         if reset_type == "restart":
             self.server_status.update({'pending_restart':False})
             self.server_status.update({'server_ready':False})
             self.server_status.update({'server_starting':True})
-            try:
-                honCMD().clean_old_logs()
-                honCMD().move_replays_and_stats()
-            except Exception:
-                print(traceback.format_exc())
-                honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            # try:
+            #     honCMD().clean_old_logs()
+            #     honCMD().move_replays_and_stats()
+            # except Exception:
+            #     print(traceback.format_exc())
+            #     honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         self.server_status.update({'cookie':True})
         if processed_data_dict['use_proxy']=='True':
             self.server_status.update({'proxy_online':False})

@@ -261,6 +261,8 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                         svr_state.clean_old_logs()
                     if self.server_status['tempcount'] > 0:
                         svr_state.check_current_match_id(False,True)
+                        # if self.match_status['now'] in ['in game','in lobby']:
+                        #     svr_state.initialise_variables("reload")
                     #   Check the process priority, set it to IDLE if it isn't already
                     if proc_priority != "IDLE" and self.match_status['now'] == 'idle':
                         try:
