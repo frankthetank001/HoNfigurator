@@ -71,8 +71,6 @@ class mData():
         self.svr_id = self.confDict['svr_id']
         #
         #   Update the dictionary with some processed data
-        #if 'hon_root_dir' not in self.confDict:
-            #self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances\\hon"})
         self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances"})
         self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Hon_Server_{self.confDict['svr_id']}"})
         self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
@@ -345,7 +343,9 @@ class mData():
         if 'use_console' not in self.confDict_basic:
             self.confDict_basic.update({'use_console':'False'})
         return self.confDict_basic
-
+    def return_simple_dict(self):
+        hon_elk_update_dict = {'static_ip':self.confDict['static_ip'],'github_branch':self.confDict['github_branch'],'use_proxy':self.confDict['use_proxy'],'disable_bot':self.confDict['disable_bot'],'auto_update':self.confDict['auto_update'],'bot_version':self.confDict['bot_version'],'bots_running':self.confDict['bots_running']}
+        return hon_elk_update_dict
         
     # def setData(self,key):
     #     temp={}
