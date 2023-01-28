@@ -607,16 +607,16 @@ class honCMD():
             simple_match_data.update({'match_id':'N/A'})
         if type == "match":
             with open (log, "r", encoding='utf-16-le') as f:
-                    #for num,line in reversed(list(f)):
-                    for num, line in list(enumerate(f, 1)):
-                        if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
-                            if simple_match_data['match_time'] in ('In-Lobby phase...'):
-                                simple_match_data.update({'match_time':'Hero select phase...'})
-                        if "Phase(5)" in line:
-                            in_game = True
-                            if match_status['skipped_frames_from_line'] == 0:
-                                match_status.update({'skipped_frames_from_line':num})
-                            break
+                #for num,line in reversed(list(f)):
+                for num, line in list(enumerate(f, 1)):
+                    if "PLAYER_SELECT" in line or "PLAYER_RANDOM" in line or "GAME_START" in line or "] StartMatch" in line:
+                        if simple_match_data['match_time'] in ('In-Lobby phase...'):
+                            simple_match_data.update({'match_time':'Hero select phase...'})
+                    if "Phase(5)" in line:
+                        in_game = True
+                        if match_status['skipped_frames_from_line'] == 0:
+                            match_status.update({'skipped_frames_from_line':num})
+                        break
             if in_game:
                 with open (log, "r", encoding='utf-16-le') as f:
                     for num, line in reversed(list(enumerate(f, 1))):
