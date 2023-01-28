@@ -697,8 +697,9 @@ class honCMD():
     def wait_for_replay(self,wait):
         global replay_wait
         replay_wait +=1
-        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay"):
-            if os.stat(f"{processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay").st_size > 0:
+        match_id = match_status['match_id'].replace("M","")
+        if not exists(f"{processed_data_dict['hon_replays_dir']}\\{match_id}.tmp") and exists(f"{processed_data_dict['hon_replays_dir']}\\M{match_id}.honreplay"):
+            if os.stat(f"{processed_data_dict['hon_replays_dir']}\\M{match_id}.honreplay").st_size > 0:
                 replay_wait = 0
                 print("Replay generated. Preparing server for next match..")
                 honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"[{match_status['match_id']}] {processed_data_dict['hon_replays_dir']}\\{match_status['match_id']}.honreplay generated. Closing server now.","INFO")
