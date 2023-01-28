@@ -87,7 +87,7 @@ class heartbeat(commands.Cog):
                 else: send_new_message = True
             
             if not send_new_message:
-                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                 try:
                     edit_result = await dm_active_embed[0].edit(embed=user_embed)
                     msg_sent = True
@@ -101,7 +101,7 @@ class heartbeat(commands.Cog):
                         send_new_message=True
             if send_new_message:
                 try:
-                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert)
+                    user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                     if ctx != False: await dm_active_embed[0].delete()
                     dm_active_embed[0] = await ctx.send(embed=user_embed)
                     msg_sent = True
@@ -154,14 +154,13 @@ class heartbeat(commands.Cog):
         threshold_check_lag = 300 / heartbeat_freq
         threshold_check_lag_mins = threshold_check_lag / 60
         threshold_health_checks = 120 / heartbeat_freq
-        threshold_pending_players_leaving = 120 / heartbeat_freq
+        threshold_pending_players_leaving = 180 / heartbeat_freq
         counter_ipcheck_threshold = 1800 / heartbeat_freq
         threshold_game_end_check = 180 / heartbeat_freq
         replay_threshold = 330 / heartbeat_freq
 
         healthcheck_first_run = True
         announce_proxy_health = True
-        clean_replays_once = True
         
         heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Initialising variables. Data Dump: {self.processed_data_dict}","INFO")
 
@@ -253,11 +252,11 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
 
             try:
                 if playercount == 0:
-                    if clean_replays_once:
-                        clean_replays_once = False
+                    if 'replays_cleaned_once' not in self.server_status and self.match_status['now'] == 'idle':
                         #
                         # move replays off into the manager directory. clean up other temporary files
-                        svr_state.move_replays_and_stats()
+                        print("moving replays for first launch of adminbot.")
+                        svr_state.move_replays_and_stats("Called for first launch of adminbot, with 0 players connected")
                         svr_state.clean_old_logs()
                     if self.server_status['tempcount'] > 0:
                         svr_state.check_current_match_id(False,True)
@@ -289,9 +288,11 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                     #   check for or action a natural restart inbetween games
                     if self.match_status['now'] in ["in lobby","in game"]:
                         if self.match_status['now'] == "in game":
+                            print("Server in game, waiting for replay..")
                             svr_state.wait_for_replay(replay_threshold)
                         else:
-                            svr_state.initialise_variables("soft")
+                            print("In lobby phase, re-initialising variables")
+                            svr_state.initialise_variables("soft","soft - called by players returning to 0, and being 'in lobby'")
                     
                     """  [Players: 0] idle game health checks """
                     counter_ipcheck +=1
@@ -438,12 +439,13 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                     if self.match_status['now'] == "in game":
                         #   OPTION 1: every threshold_game_end_check seconds, check if the match is over, despite there still being 1 player connected.
                         counter_game_end +=1
-                        if counter_game_end == threshold_game_end_check:
+                        print(f"{counter_game_end}/{threshold_game_end_check} remaining until server force close")
+                        if counter_game_end >= threshold_game_end_check:
                             counter_game_end = 0
                             if svr_state.check_game_ended():
                                 svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
-                                svr_state.append_line_to_file(f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
-                                if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
+                                if ctx != None: await send_user_msg(ctx,f"[WARNING] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
                         if self.server_status['at_least_2_players']:
                             match_time = self.match_status['match_time']
@@ -451,13 +453,13 @@ Assigned CPU Cores: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_
                                 match_too_long = match_time.split(":")
                                 match_too_long_hrs = int(match_too_long[0])
                                 match_too_long_mins = int(match_too_long[1])
-                                if match_too_long_mins >= 45:
+                                if match_too_long_mins >= 45 or (match_too_long_hrs >= 1):
                                     counter_pending_players_leaving +=1
                                     if counter_pending_players_leaving >= threshold_pending_players_leaving:
                                         counter_pending_players_leaving = 0
                                         msg = f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game."
-                                        svr_state.append_line_to_file(f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
-                                        if ctx != None: await send_user_msg(ctx,f"[INFO] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True)
+                                        svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.","WARNING")
+                                        if ctx != None: await send_user_msg(ctx,f"[WARNING] Server restarting due to match ongoing for 45+ mins with only 1 players connected. All other players have left the game.",True)
                                         print(msg)
                                         svr_state.restartSERVER(True,msg)
             except Exception:
