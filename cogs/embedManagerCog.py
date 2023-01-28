@@ -157,7 +157,13 @@ class offlineEmbedManager():
                 if ('crash' in alert_list[i] and data['disc_alert_on_crash'] == 'True') or ('lag spike' in alert_list[i] and data['disc_alert_on_lag'] == 'True'):
                     alert_list[i] = f"<@{data['discord_admin']}>\n"+f"```fix\n{alert_list[i]}```"
                     if 'second lag spike' in alert_list[i]:
-                        alert_list[i] = alert_list[i]+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{data['match_id'].replace('M','')}%29%29%29%29%29)"
+                        match_id = re.search(r'Match ID: (\d*)',alert_list[i])
+                        try:
+                            match_id = match_id.group(1)
+                            alert_list[i] = alert_list[i]+f"[Click for details](https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=%28filters:!%28%28query:%28match_phrase:%28Server.Name:{hoster}%29%29%29,%28query:%28match_phrase:%28Match.ID:{match_id}%29%29%29%29%29)"
+                        except:
+                            print(traceback.format_exc())
+                            svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 else: alert_list[i] = f"```glsl\n{alert_list[i]}```"
             else:
                 alert_list[i] = f"```glsl\n{alert_list[i]}```"
@@ -170,7 +176,11 @@ class offlineEmbedManager():
                 if time_diff.days > 0:
                     event_list.remove(event)
             except AttributeError:
-                pass
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            except Exception:
+                print(traceback.format_exc())
+                svr_state.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         for alert in alert_list:
             time_line = re.search('(?<=\[).+?(?=\])',alert)
             try:
