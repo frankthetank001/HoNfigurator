@@ -163,15 +163,6 @@ class heartbeat(commands.Cog):
         announce_proxy_health = True
         
         heartbeat.print_and_log(f"{self.processed_data_dict['app_log']}",f"Initialising variables. Data Dump: {self.processed_data_dict}","INFO")
-        playercount = 0
-        time_lagged = 0
-        #self.processed_data_dict.update({'match_id':self.match_status['match_id']})
-        if ctx != None: await send_user_msg(ctx,f"""[ERR] {time_lagged} second lag spike over the last {threshold_check_lag_mins} minutes.
-Match ID: {self.match_status['match_id'].replace('M','')}
-Match Time: {self.match_status['match_time']}
-Players connected: {playercount}
-Process Priority: {svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])}
-Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_pid_hook'])}""",True)
         while alive:
             try:
                 proc_priority = svrcmd.honCMD.get_process_priority(self.processed_data_dict['hon_file_name'])
