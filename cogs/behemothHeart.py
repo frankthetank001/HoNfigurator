@@ -54,13 +54,6 @@ class heartbeat(commands.Cog):
         alive = True
         waiting = False
         proxy_online = False
-        
-        # determine status of discord bot
-        if ctx != None:
-            bot_message = self.bot.get_cog("embedManager")
-            self.processed_data_dict.update({'bots_running':True})
-        elif ctx == None:
-            self.processed_data_dict.update({'bots_running':False})
 
         self.processed_data_dict = svr_state.getDataDict()
         self.server_status = svr_state.getStatus()
@@ -68,6 +61,14 @@ class heartbeat(commands.Cog):
         available_maps_bkp = svr_state.getData("availMaps")
         self.server_status.update({'hard_reset':False})
         self.server_status.update({'server_ready':False})
+
+        
+        # determine status of discord bot
+        if ctx != None:
+            bot_message = self.bot.get_cog("embedManager")
+            self.processed_data_dict.update({'bots_running':True})
+        elif ctx == None:
+            self.processed_data_dict.update({'bots_running':False})
         
         async def send_user_msg(ctx,log_msg,alert):
             send_new_message = False
