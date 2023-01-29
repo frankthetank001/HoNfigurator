@@ -181,7 +181,7 @@ class heartbeat(commands.Cog):
                 counter_keeper+=1
                 # check the live DDOS blacklist for any changes requiring action in firewall
                 if (counter_keeper >= threshold_keeper or self.server_status['bot_first_run'] == True) and self.processed_data_dict['svr_id'] == "1":
-                    counter_keeper+=0
+                    counter_keeper=0
                     self.server_status.update({'bot_first_run':False})
                     svrcmd.honCMD.launch_keeper()
                 # check for a scheduled restart, and queue it
