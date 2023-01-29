@@ -311,7 +311,7 @@ Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_p
                             # if current_login not in self.server_status['hon_pid_owner']:
                                 log_msg = f"The user account which started the server is not the same one which just configured the server. Restarting to load server on {current_login} login"
                                 svr_state.restartSERVER(False,log_msg)
-                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False,self.processed_data_dict)
+                                if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
                         else:
                             if "SYSTEM" not in self.server_status['hon_pid_owner'].upper():
                                 log_msg = "Restarting the server as it has been configured to run in windows service mode. Console will be offloaded to back end system."
