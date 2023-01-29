@@ -82,12 +82,16 @@ if is_admin():
     svr_hoster = processed_data_dict['svr_hoster']
     ctypes.windll.kernel32.SetConsoleTitleW(f"adminbot{svr_id} v{processed_data_dict['bot_version']}")
 
-    for p in psutil.process_iter():
-        if processed_data_dict['app_name'] in p.name():
-            current_pid = os.getpid()
-            other_pid = p.pid
-            if other_pid != current_pid:
-                p.kill()
+    try:
+        for p in psutil.process_iter():
+            if processed_data_dict['app_name'] in p.name():
+                current_pid = os.getpid()
+                other_pid = p.pid
+                if other_pid != current_pid:
+                    p.kill()
+    except Exception:
+            print(traceback.format_exc())
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     if not exists(processed_data_dict['dm_discord_hist']):
         with open(processed_data_dict['dm_discord_hist'],'w'):
             pass

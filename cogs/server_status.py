@@ -486,9 +486,14 @@ class honCMD():
         except Exception:
             print(traceback.format_exc())
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
-
-
-        
+    def start_autoping_responder():
+        try:
+            # create a thread
+            thread = Thread(target=udp_lsnr.Listener.start_listener)
+            thread.start()
+        except Exception:
+            print(traceback.format_exc())
+            honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Couldn't start the UDP listener required for auto server selection\n{traceback.format_exc()}","WARNING")
     def move_replays_and_stats(self,whocalledme):
         self.server_status.update({'replays_cleaned_once':True})
         print(whocalledme)
@@ -1003,14 +1008,7 @@ class honCMD():
                 udp_listener_port = int(processed_data_dict['game_starting_port']) + 10000 - 1
 
             if not honCMD.check_port(udp_listener_port):
-                try:
-                    # create a thread
-                    thread = Thread(target=udp_lsnr.Listener.start_listener)
-                    thread.start()
-                except Exception:
-                    print(traceback.format_exc())
-                    honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"Couldn't start the UDP listener required for auto server selection\n{traceback.format_exc()}","WARNING")
-
+                honCMD.start_autoping_responder()
 
             free_mem = psutil.virtual_memory().free
             #   HoN server instances use up to 1GM RAM per instance. Check if this is free before starting.

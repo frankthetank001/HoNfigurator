@@ -9,6 +9,7 @@ from datetime import datetime
 import traceback
 import os
 import time
+from threading import Thread
 
 svr_state = svrcmd.honCMD()
 #hard_reset = False
@@ -343,6 +344,13 @@ Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_p
                                         log_msg = f"[ERR] The proxy port ({self.processed_data_dict['svr_proxyPort']}) has stopped listening."
                                     print(log_msg)
                                     if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
+                            auto_pinger_online = svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyPort']-int(self.processed_data_dict['svr_id'])))
+                    else:
+                        auto_pinger_online = svrcmd.check_port(int(self.processed_data_dict['svr_port']-int(self.processed_data_dict['svr_id'])))
+                    if 'auto_pinger_online' not in self.server_status or (auto_pinger_online != self.server_status['auto_pinger_online']):
+                        self.server_status.update({'auto_pinger_online':auto_pinger_online})
+                        if not auto_pinger_online:
+                            svrcmd.honCMD.start_autoping_responder()
             except Exception:
                 print(traceback.format_exc())
                 svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
