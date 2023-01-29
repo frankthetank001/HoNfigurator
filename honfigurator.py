@@ -917,7 +917,12 @@ if is_admin():
                     if exists(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe'):
                         try:
                             os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe')
-                        except Exception as e: print(e)
+                        except Exception as e: 
+                            print(e)
+                            shutil.move(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old2.exe')
+                            try:
+                                os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old2.exe')
+                            except Exception as e: print(e)
                     os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}-launch_old.exe')
                     shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot-launch.exe", f'{self.sdc_home_dir}\\{self.service_name_bot}-launch.exe')
                 try:
