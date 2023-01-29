@@ -314,14 +314,14 @@ if is_admin():
                 print("hashes checked OK")
                 return result
             elif rc == 1:
-                print(bcolors.FAIL +"ERROR CHECKING HASHES, please obtain correct server binaries" + bcolors.ENDC)
+                print(b"ERROR CHECKING HASHES, please obtain correct server binaries")
                 tex.insert(END,"ERROR CHECKING HASHES, please obtain correct server binaries\n",'warning')
                 tex.insert(END,"continuing anyway")
                 tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
                 return True
             elif rc == 3:
-                print(bcolors.FAIL +"ERROR GETTING MAC ADDR" + bcolors.ENDC)
+                print("ERROR GETTING MAC ADDR")
                 tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
                 tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
