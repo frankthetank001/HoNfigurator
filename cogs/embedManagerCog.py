@@ -36,8 +36,6 @@ svr_id_total = processed_data_dict['svrid_total']
 svr_ip = processed_data_dict['svr_ip']
 svr_dns = processed_data_dict['svr_dns']
 svr_identifier = processed_data_dict['svr_identifier']    # eg. AUS-1
-event_list = []
-alert_list = []
 
 #
 #   dictionary of data from the hon startup.cfg file. Real info for svr_name, ip, port etc
@@ -115,7 +113,9 @@ class offlineEmbedManager():
     def __init__(self):
         return
     async def embedLog(self,log_msg,alert,data):
-        global event_list
+        event_list = []
+        alert_list = []
+        
         alert_list_limit = int(data['disc_alert_list_limit'])
         event_list_limit = int(data['disc_event_list_limit'])
 
@@ -193,9 +193,9 @@ class offlineEmbedManager():
                 pass
 
         if len(alert_list) == 0:
-            alert_msg = alert_msg+"```glsl\nNo alerts today.```"
+            alert_list.append("```glsl\nNo alerts today.```")
         if len(event_list) == 0:
-            event_msg = event_msg+"```glsl\nNo events today.```"
+            event_list.append("```glsl\nNo events today.```")
         #msg = "```\ncss"+'```\ncss'.join(event_list)
         created_embed = discord.Embed(title=data['svr_identifier'] + " Adminbot Event Log",description=f"> **Server Events**\n{''.join(event_list)}\n> **Server Alerts**\n{''.join(alert_list)}",url=f"https://hon-elk.honfigurator.app:5601/app/dashboards#/view/c9a8c110-4ca8-11ed-b6c1-a9b732baa262/?_a=(filters:!((query:(match_phrase:(Server.Name:{hoster})))))", color=stripColor_log)
         created_embed.set_footer(text="Different coloured text indicates a fresh alert")
