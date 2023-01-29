@@ -314,14 +314,14 @@ if is_admin():
                 print("hashes checked OK")
                 return result
             elif rc == 1:
-                print(bcolors.FAIL +"ERROR CHECKING HASHES, please obtain correct server binaries" + bcolors.ENDC)
+                print(b"ERROR CHECKING HASHES, please obtain correct server binaries")
                 tex.insert(END,"ERROR CHECKING HASHES, please obtain correct server binaries\n",'warning')
                 tex.insert(END,"continuing anyway")
                 tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
                 return True
             elif rc == 3:
-                print(bcolors.FAIL +"ERROR GETTING MAC ADDR" + bcolors.ENDC)
+                print("ERROR GETTING MAC ADDR")
                 tex.insert(END,"ERROR GETTING MAC ADDR\n",'warning')
                 tex.see(tk.END)
                 # returning true as I have no idea what the right hashes should be anymore
@@ -766,7 +766,7 @@ if is_admin():
         def print_and_tex(self,message,*args):
             print(message)
             if len(args) > 0:
-                level = args[0]
+                level = args[0].lower()
                 tex.insert(END,message+"\n",level)
                 tex.see(tk.END)
             else:
@@ -790,8 +790,6 @@ if is_admin():
             os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
 
-
-            #self.ver_existing = float(self.ver_existing)
             if self.bot_version > self.ver_existing: # or checkbox force is on:
                 bot_needs_update = True
             
@@ -801,12 +799,10 @@ if is_admin():
             print("==========================================")
 
             if exists(f"{self.hon_home_dir}\\Documents"):
-                #os.environ["USERPROFILE"] = self.hon_home_dir
                 print(f"[{self.dataDict['app_name']}] Environment EXISTS for {self.service_name_bot}: " + (os.environ["USERPROFILE"] + "!"))
 
             else:
                 os.makedirs(f"{self.hon_home_dir}\\Documents")
-                #os.environ["USERPROFILE"] = self.hon_home_dir
                 print(f"[{self.dataDict['app_name']}] Environment requires creating for new server {self.service_name_bot}...")
                 print(f"[{self.dataDict['app_name']}] Created & Configured HoN environment: " + (os.environ["USERPROFILE"] + "!"))
                 bot_first_launch = True
@@ -816,8 +812,6 @@ if is_admin():
             if exists(f"{self.dataDict['sdc_home_dir']}\\config\\local_config.ini"):
                 try:
                     if self.deployed_status['hon_directory'] != self.dataDict['hon_directory']:
-                        # think about migrating here, like
-                        #distutils.dir_util.copy_tree(os.path.abspath(application_path)+"\\oldSDC\\", f'{self.sdc_home_dir}\\newSDC\\')
                         try:
                             shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}",f"{self.dataDict['sdc_home_dir']}\\messages\message{self.dataDict['svr_identifier']}.txt")
                             shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\cogs\\total_games_played",f"{self.dataDict['sdc_home_dir']}\\cogs\\total_games_played")
@@ -835,7 +829,6 @@ if is_admin():
                 print(f"[{self.dataDict['app_name']}] creating: " + self.hon_logs_dir)
                 os.makedirs(self.hon_logs_dir)
                 print(f"[{self.dataDict['app_name']}] creating: {self.hon_logs_dir} ...")
-                #   os.chdir(self.hon_logs_dir)     # not required as we're honfigurator not a bot.
 
             if not exists(self.sdc_home_dir):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir} ...")
@@ -844,15 +837,6 @@ if is_admin():
             if not exists(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays"):
                 print(f"[{self.dataDict['app_name']}] creating {self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
                 os.makedirs(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
-            # fix this - need a way to know wwhether to copy the old bot directory files
-            # if (self.deployed_status['sdc_home_dir'] != self.dataDict['sdc_home_dir']):
-            #     # copy older metadata files
-            #     try:
-            #         shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}",f"{self.sdc_home_dir}\\messages\message{self.dataDict['svr_identifier']}.txt")
-            #         shutil.copy(f"{self.deployed_status['sdc_home_dir']}\\..\\sdc\\cogs\\total_games_played",f"{self.sdc_home_dir}\\cogs\\total_games_played")
-            #     except Exception as e:
-            #         print(e)
-
 
             if not exists(f"{self.sdc_home_dir}\\messages"):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\messages ...")
@@ -872,8 +856,6 @@ if is_admin():
             if not exists(f"{self.sdc_home_dir}\\dependencies"):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\dependencies ...")
                 os.makedirs(f"{self.sdc_home_dir}\\dependencies")
-            # if not exists(f"{self.hon_directory}game_shared_x64.dll"):
-            #     shutil.copy(f"{self.hon_directory}game\\game_shared_x64.dll",f"{self.hon_directory}game_shared_x64.dll")
             if exists(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                 if not exists(f"{self.dataDict['sdc_home_dir']}\\messages\\message{self.dataDict['svr_identifier']}.txt"):
                     shutil.copy(f"{self.dataDict['sdc_home_dir']}\\..\\sdc\\messages\\message{self.dataDict['svr_identifier']}.txt",f"{self.dataDict['sdc_home_dir']}\\messages\\")
@@ -893,23 +875,6 @@ if is_admin():
             self.voice_port = int(self.dataDict['voice_starting_port']) + iter
             self.game_port_proxy = self.game_port + 10000
             self.voice_port_proxy = self.voice_port + 10000
-            self.secrets = initialise.KOTF(self)
-            if not self.secrets:
-                print(f"[{self.dataDict['app_name']}] error with hashes. Do you have all of the correct server binaries?")
-                return False
-            # if self.secrets:
-            #     self.svr_desc = self.secrets.split(',')[0]
-            #     self.svr_desc = self.svr_desc.replace('\n','')
-            #     self.master_user = self.secrets.split(',')[1]
-            #     self.master_user = self.master_user.replace('\n','')
-            #     self.master_pass = self.secrets.split(',')[2]
-            #     self.master_pass = self.master_pass.replace('\n','')
-            # else:
-            #     bot_needs_update = False
-            #     force_update = False
-            #     bot_first_launch = False
-            #
-            #   Check if startup.cfg exists.
             if exists(f"{self.hon_game_dir}\\startup.cfg") and bot_first_launch != True and bot_needs_update != True and force_update != True:
                 print(f"[{self.dataDict['app_name']}] Server is already configured, checking values for {self.service_name_bot}...")
                 dmgr.mData.parse_config(self,f"{self.hon_game_dir}\\startup.cfg")
@@ -1446,6 +1411,22 @@ if is_admin():
             patch_succesful = False
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
+
+            current_hon_version=current_version.split('.')
+
+            wrong_bins = False
+            if len(current_hon_version) == 0:
+                wrong_bins = True
+                return False
+            else:
+                try:
+                    for i in current_hon_version:
+                        ver = int(i)
+                except:
+                    wrong_bins = True
+            if wrong_bins:
+                initialise.print_and_tex(self,"An incorrect HoN exe was detected. The version from the file is unable to be read. Indicating this is not the correct hon exe file.\nPlease copy in correct server binaries and try again.",'WARNING')
+                return False
             
             if latest_version != False:
                 latest_version_list = latest_version.split('.')
@@ -1572,6 +1553,23 @@ if is_admin():
             global ports_to_forward_voice
 
             self.dataDict = self.initdict.returnDict()
+
+            current_hon_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
+            current_hon_version=current_hon_version.split('.')
+
+            wrong_bins = False
+            if len(current_hon_version) == 0:
+                wrong_bins = True
+                return False
+            else:
+                try:
+                    for i in current_hon_version:
+                        ver = int(i)
+                except:
+                    wrong_bins = True
+            if wrong_bins:
+                initialise.print_and_tex(self,"An incorrect HoN exe was detected. The version from the file is unable to be read. Indicating this is not the correct hon exe file.\nPlease copy in correct server binaries and try again.",'WARNING')
+                return False
 
             checks=True
             initialise.print_and_tex(self,"\n************* Preparing environment *************",'header')
