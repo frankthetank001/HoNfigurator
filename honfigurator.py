@@ -938,7 +938,9 @@ if is_admin():
                         if exists(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe'):
                             try:
                                 os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
-                            except Exception as e: print(e)
+                            except Exception as e:
+                                print(e)
+                                shutil.move(f"{self.sdc_home_dir}\\{self.service_name_bot}_old.exe",f"{self.sdc_home_dir}\\{self.service_name_bot}_old2.exe'")
                         os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
                         shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
 
@@ -1869,13 +1871,13 @@ if is_admin():
                         use_console=False
                     #initialise.print_and_tex(self,f"\nServer requires update (adminbot{i})")
                     #initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
-                    #honfigurator.update_local_config(self,self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
+                    #honfigurator.update_local_config(self,self.tab3_hosterd.get(),self.tab3_regionsd.get(),i,self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
                     honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['disc_alert_on_crash'],deployed_server['disc_alert_on_lag'],deployed_server['disc_alert_list_limit'],deployed_server['disc_event_list_limit'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     #if initialise.playerCountX(self,i) >= 0:
                     initialise.print_and_tex(self,f"\n************* Configuring adminbot{i} *************","header")
                     initialise.print_and_tex(self,f"HoNfigurator version change from {deployed_ver} ---> {current_ver}.",'warning')
                     initialise(deployed_server).configureEnvironment(True,use_console)
-                    #honfigurator.sendData(self,False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),i,self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
+                    #honfigurator.sendData(self,False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),i,self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             players=False
             print("attempting to stop servers")
@@ -2046,23 +2048,90 @@ if is_admin():
             tabgui.grid(column=0,row=0)
             tab1 = ttk.Frame(tabgui)
             tab2 = ttk.Frame(tabgui)
+            tab3 = ttk.Frame(tabgui)
             #tab3 = ttk.Frame(tabgui)
+            tabgui.add(tab3,text="Base Settings")
             tabgui.add(tab1,text="Server Setup")
             tabgui.add(tab2,text="Server Administration")
-            #tabgui.add(tab3,text="Discord Integration")
-            
-            """
-            creating tooltips
-            """
             tab1.rowconfigure(25, minsize=50)
             tab1.columnconfigure(25, minsize=50)
-            
+            tab3.rowconfigure(25, minsize=50)
+            tab3.columnconfigure(25, minsize=50)
             """
-            simple server setup tab
+            Base Settings Tab
             """
             #   title
-            logolabel_tab1 = applet.Label(tab1,text=f"HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+            logolabel_tab3 = applet.Label(tab3,text=f"HoNfigurator (v{self.dataDict['bot_version']})",background=maincolor,foreground='white',image=honlogo)
+            logolabel_tab3.grid(columnspan=10,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
+            applet.Label(tab3, text="Hon Server Data",background=maincolor,foreground='white').grid(columnspan=1,column=1, row=1,sticky="w")
+            #   Server Name
+            applet.Label(tab3, text="Server Name:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
+            self.tab3_hosterd = applet.Entry(tab3,foreground=textcolor,width=16)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_hosterd, \
+                    f"The server name which will appear in HoN. Also the name which the Discord bots will be called by.\nCannot contain spaces.")
+            self.tab3_hosterd.insert(0,self.dataDict['svr_hoster'])
+            self.tab3_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4,padx=[0,130])
+            #   User name
+            applet.Label(tab3, text="HoN Username:",background=maincolor,foreground='white').grid(column=0,row=3,sticky="e")
+            self.tab3_user = applet.Entry(tab3,foreground=textcolor,width=16)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_user, \
+                    f"This must be a unique username per VM / Dedicated Host.\nUsing the same user on multiple server hosting infrastructures will cause the inability for players to download replays.")
+            self.tab3_user.insert(0,self.dataDict['svr_login'])
+            self.tab3_user.grid(column= 1 , row = 3,sticky="w",pady=4,padx=[0,130])
+            #   password
+            applet.Label(tab3, text="HoN Password:",background=maincolor,foreground='white').grid(column=1,row=3,sticky="e")
+            self.tab3_pass = applet.Entry(tab3,foreground=textcolor,width=16,show="*")
+            self.tab3_pass.insert(0,self.dataDict['svr_password'])
+            self.tab3_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
+            #   Region
+            self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
+            applet.Label(tab3, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
+            self.tab3_regionsd = applet.Combobox(tab3,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_regionsd, \
+                    f"These are the only valid region codes. Any others will not show up in-game.")
+            self.tab3_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
+            #   Ports
+            applet.Label(tab3, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
+            self.tab3_game_port = applet.Entry(tab3,foreground=textcolor,width=5)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_game_port, \
+                    f"The starting voice port defaults to 10000.\nEach server is started on the starting voice port + the nth server\nif using the proxy, the public ports will be an additional 10000 ontop of this.\nHoNfigurator will output the required ports to forward after configuring a server.")
+            self.tab3_game_port.insert(0,self.dataDict['game_starting_port'])
+            self.tab3_game_port.grid(column=2,row = 7,sticky="w",pady=4)
+
+            applet.Label(tab3, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=8,sticky="e")
+            self.tab3_voice_port = applet.Entry(tab3,foreground=textcolor,width=5)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_voice_port, \
+                    f"The starting game port defaults to 10000.\nEach server is started on the starting game port + the nth server\nif using the proxy, the public ports will be an additional 10000 ontop of this.\nHoNfigurator will output the required ports to forward after configuring a server.")
+            self.tab3_voice_port.insert(0,self.dataDict['voice_starting_port'])
+            self.tab3_voice_port.grid(column=2,row = 8,sticky="w",pady=4)
+
+            #  increment by
+            self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
+            applet.Label(tab3, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=6,sticky="e",padx=[20,0])
+            tab3_increment_port = applet.Combobox(tab3,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port,width=5)
+            tab3_increment_port.grid(column= 2, row = 6,sticky="w",pady=4)
+            #   Use Proxy
+            #   Install Directory
+            applet.Label(tab3, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
+            self.tab3_hondird = applet.Entry(tab3,foreground=textcolor,width=70)
+            self.tab3_hondird.insert(0,self.dataDict['hon_directory'])
+            self.tab3_hondird.grid(columnspan=3,column= 1, row = 11,sticky="w",pady=4)
+            #   Replays directory
+            applet.Label(tab3, text="HoN Storage Folder\n(replays, long term storage):",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
+            self.tab3_honreplay = applet.Entry(tab3,foreground=textcolor,width=70)
+            labl_ttp = honfigurator.CreateToolTip(self.tab3_honreplay, \
+                    f"Use to store HoN replays.")
+            self.tab3_honreplay.insert(0,self.dataDict['hon_manager_dir'])
+            self.tab3_honreplay.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
+            """
+            Server Setup Tab
+            """
+            #   title
+            logolabel_tab1 = applet.Label(tab1,text=f"HoNfigurator (v{self.dataDict['bot_version']})",background=maincolor,foreground='white',image=honlogo)
             logolabel_tab1.grid(columnspan=5,column=0, row=0,sticky="n",pady=[10,0],padx=[40,0])
+            #   version
+            applet.Label(tab3, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=9,sticky="e",padx=[20,0])
+            applet.Label(tab3,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 9,sticky="w",pady=4)
             #   server total    
             self.svr_total_var = tk.StringVar(app,self.dataDict['svr_total'])
             applet.Label(tab1, text="Total Servers:",background=maincolor,foreground='white').grid(column=1, row=5,sticky="e")
@@ -2079,28 +2148,7 @@ if is_admin():
                     f"Multiple servers can be started on a single CPU core.\nThe recommended value is 1 core per server.\nIf you have reports of lag, try 2 cores per server\nIf you have a very strong CPU, try 2 servers per core.")
             tab1_core_assign.grid(column= 1, row = 8,sticky="w",pady=4,padx=[0,130])
             self.core_assign.trace_add('write', self.coreadjust)
-            #   
-            #   Simple Server data
-            applet.Label(tab1, text="Hon Server Data",background=maincolor,foreground='white').grid(columnspan=1,column=1, row=1,sticky="w")
-            #   hoster
-            applet.Label(tab1, text="Server Name:",background=maincolor,foreground='white').grid(column=0,row=2,sticky="e")
-            self.tab1_hosterd = applet.Entry(tab1,foreground=textcolor,width=16)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_hosterd, \
-                    f"The server name which will appear in HoN. Also the name which the Discord bots will be called by.\nCannot contain spaces.")
-            self.tab1_hosterd.insert(0,self.dataDict['svr_hoster'])
-            self.tab1_hosterd.grid(column= 1 , row = 2,sticky="w",pady=4,padx=[0,130])
-            #   server name
-            applet.Label(tab1, text="HoN Username:",background=maincolor,foreground='white').grid(column=0,row=3,sticky="e")
-            self.tab1_user = applet.Entry(tab1,foreground=textcolor,width=16)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_user, \
-                    f"This must be a unique username per VM / Dedicated Host.\nUsing the same user on multiple server hosting infrastructures will cause the inability for players to download replays.")
-            self.tab1_user.insert(0,self.dataDict['svr_login'])
-            self.tab1_user.grid(column= 1 , row = 3,sticky="w",pady=4,padx=[0,130])
-            #   server password
-            applet.Label(tab1, text="HoN Password:",background=maincolor,foreground='white').grid(column=1,row=3,sticky="e")
-            self.tab1_pass = applet.Entry(tab1,foreground=textcolor,width=16,show="*")
-            self.tab1_pass.insert(0,self.dataDict['svr_password'])
-            self.tab1_pass.grid(column= 2 , row = 3,sticky="w",pady=4)
+            
             #   optional static IP
             applet.Label(tab1, text="Static IP (optional):",background=maincolor,foreground='white').grid(column=1,row=4,sticky="e")
             self.tab1_ip = applet.Entry(tab1,foreground=textcolor,width=16)
@@ -2109,32 +2157,6 @@ if is_admin():
             if 'static_ip' in self.dataDict:
                 self.tab1_ip.insert(0,self.dataDict['svr_ip'])
             self.tab1_ip.grid(column= 2 , row = 4,sticky="w",pady=4)
-            self.svr_reg_code = tk.StringVar(app,self.dataDict["svr_region_short"])
-            applet.Label(tab1, text="Region:",background=maincolor,foreground='white').grid(column=0, row=4,sticky="e")
-            self.tab1_regionsd = applet.Combobox(tab1,foreground=textcolor,value=self.regions(),textvariable=self.svr_reg_code,width=6)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_regionsd, \
-                    f"These are the only valid region codes. Any others will not show up in-game.")
-            self.tab1_regionsd.grid(column= 1 , row = 4,sticky="w",pady=4)
-            #self.svr_reg_code.trace_add('write', self.reg_def_link)
-            #   server id
-            # self.from_svr_var = tk.StringVar(app,self.dataDict['svr_id'])
-            # applet.Label(tab1, text="Server ID:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e")
-            # self.tab1_from_svr = applet.Combobox(tab1,foreground=textcolor,value=self.corecount(),textvariable=self.from_svr_var,width=5)
-            # self.tab1_from_svr.grid(column= 1 , row = 5,sticky="w",pady=4,padx=[0,130])
-            # self.from_svr_var.trace_add('write', self.svr_num_link)
-            
-            #   HoN Directory
-            applet.Label(tab1, text="HoN Directory:",background=maincolor,foreground='white').grid(column=0, row=11,sticky="e",padx=[20,0])
-            self.tab1_hondird = applet.Entry(tab1,foreground=textcolor,width=70)
-            self.tab1_hondird.insert(0,self.dataDict['hon_directory'])
-            self.tab1_hondird.grid(columnspan=3,column= 1, row = 11,sticky="w",pady=4)
-            #   HoN Home
-            applet.Label(tab1, text="HoN Storage Folder\n(replays, long term storage):",background=maincolor,foreground='white').grid(column=0, row=12,sticky="e",padx=[20,0])
-            self.tab1_honreplay = applet.Entry(tab1,foreground=textcolor,width=70)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_honreplay, \
-                    f"Use to store HoN replays.")
-            self.tab1_honreplay.insert(0,self.dataDict['hon_manager_dir'])
-            self.tab1_honreplay.grid(columnspan=3,column= 1, row = 12,sticky="w",pady=4)
             # HoN master server
             self.master_server = tk.StringVar(app,self.dataDict['master_server'])
             applet.Label(tab1, text="HoN Master Server:",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
@@ -2148,11 +2170,6 @@ if is_admin():
             labl_ttp = honfigurator.CreateToolTip(tab1_priority, \
                     f"Default option: Realtime. There is no need to change this unless you are being experimental.")
             tab1_priority.grid(column= 1, row = 7,sticky="w",pady=4,padx=[0,130])
-            #  increment ports
-            self.increment_port = tk.StringVar(app,self.dataDict['incr_port_by'])
-            applet.Label(tab1, text="Increment ports by:",background=maincolor,foreground='white').grid(column=1, row=6,sticky="e",padx=[20,0])
-            tab1_increment_port = applet.Combobox(tab1,foreground=textcolor,value=self.incrementport(),textvariable=self.increment_port,width=5)
-            tab1_increment_port.grid(column= 2, row = 6,sticky="w",pady=4)
             #
             #   use proxy
             applet.Label(tab1, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=1, row=9,sticky="e",padx=[20,0])
@@ -2171,22 +2188,6 @@ if is_admin():
             labl_ttp = honfigurator.CreateToolTip(tab1_restart_proxy, \
                     f"Enable this option to ensure the proxy is restarted on the next configure. This may disrupt games in progress.")
             tab1_restart_proxy.grid(column= 2, row = 10,sticky="w",pady=4)
-            # self.useproxy.trace_add('write',self.change_to_proxy2)
-            #  starting gameport
-            applet.Label(tab1, text="Starting game port:",background=maincolor,foreground='white').grid(column=1,row=7,sticky="e")
-            self.tab1_game_port = applet.Entry(tab1,foreground=textcolor,width=5)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_game_port, \
-                    f"The starting voice port defaults to 10000.\nEach server is started on the starting voice port + the nth server\nif using the proxy, the public ports will be an additional 10000 ontop of this.\nHoNfigurator will output the required ports to forward after configuring a server.")
-            self.tab1_game_port.insert(0,self.dataDict['game_starting_port'])
-            # self.self.tab1_game_port.insert(0,self.change_to_proxy())
-            self.tab1_game_port.grid(column=2,row = 7,sticky="w",pady=4)
-            #  starting gameport
-            applet.Label(tab1, text="Starting voice port:",background=maincolor,foreground='white').grid(column=1,row=8,sticky="e")
-            self.tab1_voice_port = applet.Entry(tab1,foreground=textcolor,width=5)
-            labl_ttp = honfigurator.CreateToolTip(self.tab1_voice_port, \
-                    f"The starting game port defaults to 10000.\nEach server is started on the starting game port + the nth server\nif using the proxy, the public ports will be an additional 10000 ontop of this.\nHoNfigurator will output the required ports to forward after configuring a server.")
-            self.tab1_voice_port.insert(0,self.dataDict['voice_starting_port'])
-            self.tab1_voice_port.grid(column=2,row = 8,sticky="w",pady=4)
             #   console windows, for launching servers locally (not as windows services)
             applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=9,sticky="e",padx=[20,0])
             self.console = tk.BooleanVar(app)
@@ -2198,16 +2199,8 @@ if is_admin():
             labl_ttp = honfigurator.CreateToolTip(tab1_console_btn, \
                     f"Use this option to run servers in console app mode. This is more CPU intensive, and you must remain logged in.\nDefault mode runs servers as a windows service, and you don't need to remain logged in.")
             tab1_console_btn.grid(column= 1, row = 9,sticky="w",pady=2)
-            # self.useproxy.trace_add('write', self.change_to_proxy(NULL,NULL,NULL))
-            #
-            #    Setup Info
+            #   Discord
             applet.Label(tab1, text="Discord Data",background=maincolor,foreground='white').grid(columnspan=1,column=4, row=1,sticky="w")
-            #    Decide if bots are enabled
-            # if self.dataDict['disable_bot'] == 'True':
-            #     bots_enabled = "disabled"
-            # else:
-            #     bots_enabled = "enabled"
-            #   discord admin
             applet.Label(tab1, text="Bot Owner (discord ID):",background=maincolor,foreground='white').grid(column=3, row=2,sticky="e",padx=[20,0])
             self.tab1_discordadmin = applet.Entry(tab1,foreground=textcolor,width=45)
             labl_ttp = honfigurator.CreateToolTip(self.tab1_discordadmin, \
@@ -2308,19 +2301,16 @@ if is_admin():
             tab1_git_branch.grid(column= 4, row = 8,sticky="w",pady=4)
             self.git_branch.trace_add('write', self.update_repository)
 
-            #   bot version
-            applet.Label(tab1, text="Bot Version:",background=maincolor,foreground='white').grid(column=3, row=9,sticky="e",padx=[20,0])
-            applet.Label(tab1,text=f"{self.dataDict['bot_version']}-{self.dataDict['environment']}",background=maincolor,foreground='white').grid(column= 4, row = 9,sticky="w",pady=4)
 
             # tex = tk.Text(tab1,foreground=textcolor,width=70,height=10,background=textbox)
             # tex.grid(columnspan=6,column=0,row=15,sticky="n")
             #   button
-            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("selected",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
-            tab1_savesettings = applet.Button(tab1, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            #tab1_singlebutton = applet.Button(tab1, text="Configure Single Server",command=lambda: self.sendData("selected",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get()))
+            tab1_savesettings = applet.Button(tab1, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_savesettings.grid(columnspan=5,column=0, row=12,stick='n',padx=[350,0],pady=[0,0])
             labl_ttp = honfigurator.CreateToolTip(tab1_savesettings, \
                     f"Save the current configuration settings.")
-            tab1_singlebutton = applet.Button(tab1, text="Configure Servers:",command=lambda: Thread(target=self.sendData,args=("selected",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_singlebutton = applet.Button(tab1, text="Configure Servers:",command=lambda: Thread(target=self.sendData,args=("selected",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_singlebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,600],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_singlebutton, \
                     f"Configure the currently selected server ID only.")
@@ -2337,7 +2327,7 @@ if is_admin():
             self.tab1_to_svr.grid(columnspan=5,column=0,row=14,stick='n',padx=[0,350],pady=[40,0])
             self.to_svr_var.trace_add('write', self.svr_num_link2)
 
-            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_allbutton = applet.Button(tab1, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[0,110],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_allbutton, \
                     f"Configure ALL total servers.")
@@ -2345,7 +2335,7 @@ if is_admin():
             tab1_updatebutton.grid(columnspan=5,column=0, row=14,stick='n',padx=[180,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatebutton, \
                     f"Update this application. Pulls latest commits from GitHub.")
-            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_updatehon = applet.Button(tab1, text="Force Update HoN",command=lambda: Thread(target=self.forceupdate_hon,args=(True,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_updatehon.grid(columnspan=5,column=0, row=14,stick='n',padx=[450,0],pady=[20,10])
             labl_ttp = honfigurator.CreateToolTip(tab1_updatehon, \
                     f"Used when there is a HoN server udpate available. All servers must first be stopped for this to work.")
@@ -2358,24 +2348,12 @@ if is_admin():
             tex.tag_config('interest', background="green")
             tex.tag_config('header', background="white",foreground="black")
             tex.tag_configure("stderr", foreground="#b22222")
-            # sys.stdout = TextRedirector(tex, "stdout")
-            # sys.stderr = TextRedirector(tex, "stderr")
-            """
-            
-            This is the advanced server setup tab
-            ui
-            """
+            #   Below is to redirect console to honfigurator window
+            #       sys.stdout = TextRedirector(tex, "stdout")
+            #       sys.stderr = TextRedirector(tex, "stderr")
+
             # logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
             # logolabel_tab2.grid(columnspan=2,column=, row=0,sticky="n",pady=[10,0])
-            
-            """
-            
-            This is the bot command center tab
-            
-            """
-            # status = Entry(app,background=maincolor,foreground='white',width="200")
-            # status.insert(0,ver)
-            # status.grid(row=21,column=0,sticky='w')
             def quit_window(icon, item):
                 icon.stop()
                 app.destroy()
@@ -2388,6 +2366,13 @@ if is_admin():
                 menu=(item('Quit', quit_window), item('Show', show_window))
                 icon=pystray.Icon("name", image, "HoNfigurator", menu)
                 icon.run()
+            
+            
+            """
+            
+            This is the bot command center tab
+            
+            """
             class TextScrollCombo(ttk.Frame):
 
                 def __init__(self, *args, **kwargs):
@@ -2395,10 +2380,10 @@ if is_admin():
                     super().__init__(*args, **kwargs)
 
                 # # ensure a consistent GUI size
-                #     self.grid_propagate(False)
+                    self.grid_propagate(False)
                 # # implement stretchability
-                #     self.grid_rowconfigure(0, weight=1)
-                #     self.grid_columnconfigure(0, weight=1)
+                    self.grid_rowconfigure(0, weight=1)
+                    self.grid_columnconfigure(0, weight=1)
 
                 # create a Text widget
                     
@@ -3070,16 +3055,13 @@ if is_admin():
                     Thread(target=tabgui2.bind,args=('<<NotebookTabChanged>>',viewButton.load_log)).start()
 
                     #tab2.grid_rowconfigure(1,weight=1)
-                    logolabel_tab2 = applet.Label(tab2,text="HoNfigurator",background=maincolor,foreground='white',image=honlogo)
+                    logolabel_tab2 = applet.Label(tab2,text=f"HoNfigurator (v{self.dataDict['bot_version']})",background=maincolor,foreground='white',image=honlogo)
                     logolabel_tab2.grid(columnspan=total_columns,column=0, row=0,pady=[10,0],sticky='n')
+                    #   Buttons
                     tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                     tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
                     tab2_cleanall_ttp = honfigurator.CreateToolTip(tab2_cleanall, \
                                     f"Remove ALL unnecessary files (7 days or older), such as old log files.")
-                    # tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh(int(stretch.get())+3))
-                    # tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
-                    # tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_refresh, \
-                    #                 f"Refresh this page, reloads server status and shows the most recent data.")
                     tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
                     tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
                     tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_stopall, \
@@ -3114,7 +3096,7 @@ if is_admin():
                     self.update_repository(NULL,NULL,NULL)
                     print("checking for hon update")
                     if not updating:
-                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab1_hosterd.get(),self.tab1_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab1_hondird.get(),self.tab1_honreplay.get(),self.tab1_user.get(),self.tab1_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab1_game_port.get(),self.tab1_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab1_ip.get(),self.tab1_bottokd.get(),self.tab1_discordadmin.get(),self.tab1_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
