@@ -938,7 +938,9 @@ if is_admin():
                         if exists(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe'):
                             try:
                                 os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
-                            except Exception as e: print(e)
+                            except Exception as e:
+                                print(e)
+                                shutil.move(f"{self.sdc_home_dir}\\{self.service_name_bot}_old.exe",f"{self.sdc_home_dir}\\{self.service_name_bot}_old2.exe'")
                         os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
                         shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
 
