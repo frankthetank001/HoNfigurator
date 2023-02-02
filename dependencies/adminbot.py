@@ -104,13 +104,14 @@ if is_admin():
     signal.signal(signal.SIGINT, handler)
 
     # clean up previous instance, import pending configurations
-    old_adminbot_exe = f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe"
-    if exists(old_adminbot_exe):
-        try:
-            os.remove(old_adminbot_exe)
-        except Exception:
-            print(traceback.format_exc())
-            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+    old_adminbot_exes = [f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old.exe",f"{processed_data_dict['sdc_home_dir']}\\adminbot{svr_id}_old2.exe"]
+    for old_adminbot_exe in old_adminbot_exes:
+        if exists(old_adminbot_exe):
+            try:
+                os.remove(old_adminbot_exe)
+            except Exception:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
     # class logging:
     class hsl():
         def __init__(self):
