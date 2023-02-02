@@ -151,6 +151,9 @@ if is_admin():
                 #
                 #   fetches message
                 prev_msg = await tempChannel.fetch_message(prev_dm[1])
+                prev_admin = prev_msg.channel.recipient.id
+                if prev_admin != int(processed_data_dict['discord_admin']):
+                    return False
                 ctx = await bot.get_context(prev_msg)
                 dm_active_embed.append(prev_msg)
             except discord.errors.NotFound:
@@ -168,6 +171,10 @@ if is_admin():
                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
                 print(f"Most likely we are being rate limited\nResponse from last discord API request: {dm_active_embed[0]}")
                 ctx=False
+            except Exception:
+                print(traceback.format_exc())
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+                return None
             return ctx
             
         async def send_user_msg(self,log_msg,alert):
