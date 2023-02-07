@@ -147,7 +147,7 @@ if is_admin():
     update_delay = 180 / auto_refresh_delay
     update_counter = 0
     refresh_counter = 0
-    refresh_delay = 20 / auto_refresh_delay
+    refresh_delay = 40 / auto_refresh_delay
     updating = False
     first_tab_switch = True
     server_admin_loading = False
