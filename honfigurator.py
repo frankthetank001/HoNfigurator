@@ -2730,6 +2730,8 @@ if is_admin():
             tabgui.add(tab1,text="Server Setup")
             tabgui.add(tab2,text="Server Administration")
 
+            tabgui.select(tab1)
+
             #   title fonts
             Font_Title = ("Bahnschrift Condensed", 16, "bold")
             Font_SubHeading = ("Bahnschrift Condensed", 12, "bold")
