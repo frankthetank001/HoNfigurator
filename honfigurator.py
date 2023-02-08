@@ -2135,7 +2135,7 @@ if is_admin():
                     except Exception: pass
                     # if auto_refresh_var or swap_anyway:
                     if not server_admin_loading:
-                        print("REFRESHING")
+                        #print("REFRESHING")
                         if first_tab_switch and tabgui.index("current") == 2:
                             viewButton.load_server_mgr(self)
                         else:
@@ -2414,7 +2414,7 @@ if is_admin():
                     # place the progressbar
                     pb.grid(column=0,sticky='n',row=1, columnspan=8, padx=10, pady=[0,0])
                     pb.start()
-                    print("Preparing Server Administration tab...")
+                    #print("Preparing Server Administration tab...")
                     def do_everything(self,x,deployed_status,update):
                         c_len = len(ButtonString)+len(LablString)
                         global i
@@ -2569,6 +2569,10 @@ if is_admin():
                     global tab2_startall
                     global tabgui2
                     global stretch
+                    global labl_proxy
+                    global btn_proxy
+                    global labl_manager
+                    global btn_manager
                     
                     self.app.lift()
                     for o in range(100):
@@ -2577,32 +2581,54 @@ if is_admin():
                     #     tab2.rowconfigure(o, weight=1,pad=0)
                     try:
                         if len(labllist) == 0:
+                            update=False
                             for x in range(int(self.dataDict['svr_total'])):
                                 deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                do_everything(self,x,deployed_status,update=False)
+                                do_everything(self,x,deployed_status,update)
+                            ########
                             for k in (labllist):
                                 labllist[k].grid(row=labllistrows[k], column=labllistcols[k])
                             for k in (btnlist):
                                 btnlist[k].grid(row=btnlistrows[k], column=btnlistcols[k])
+                            
                             column_rows=(tab2.grid_size())
                             total_columns=column_rows[0]
                             total_rows=column_rows[1]
                             #Proxy and Manager
                             if svrcmd.honCMD.check_proc("proxymanager.exe"):
-                                labl = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                                if update:
+                                    labl_proxy['text'] = "Proxy Manager - UP"
+                                    labl_proxy['background'] = "green"
+                                else:
+                                    labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                             else:
-                                labl = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
-                                btn = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
-                                btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
-                            labl.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
+                                if update:
+                                    labl_proxy['text'] = "Proxy Manager - Down"
+                                    labl_proxy['background'] = "red"
+                                    btn_proxy['text'] = "Proxy Manager - Down"
+                                    btn_proxy['background'] = "red"
+                                else:
+                                    labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
+                                    btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
+                                btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
+                            labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
-                                labl = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
+                                if update:
+                                    labl_manager['text'] = "Server Manager - UP"
+                                    labl_manager['background'] = "green"
+                                else:
+                                    labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                             else:
-                                labl = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
-                                btn = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
-                                btn.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
-                            labl.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
-
+                                if update:
+                                    labl_manager['text'] = "Server Manager - Down"
+                                    labl_manager['background'] = "red"
+                                    btn_manager['text'] = "Start"
+                                    btn_manager['command'] = lambda: viewButton.StartManager(self)
+                                else:
+                                    labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
+                                    btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
+                                btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
+                            labl_manager.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
                             stretch_lbl = Label(tab2,width=15,text="servers per column",background=maincolor,foreground='white')
                             stretch_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[5,0],sticky='w',pady=[2,4])
                             stretch = Entry(tab2,width=5)
@@ -2612,12 +2638,6 @@ if is_admin():
                             tab2_savesettings.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
                             tab2_savesettings_ttp = honfigurator.CreateToolTip(tab2_savesettings, \
                                             f"Save the setting so that next time the number of rows remains the same.")
-                            # auto_refresh_lbl = applet.Label(tab2,width=15,text="auto-refresh",background=maincolor,foreground='white')
-                            # auto_refresh_lbl.grid(row=0, column=0,columnspan=total_columns,padx=[7,0],sticky='w',pady=[5,0])
-                            # auto_refresh = tk.BooleanVar(self.app)
-                            # auto_refresh.set(auto_refresh_var)
-                            # auto_refresh_btn = applet.Checkbutton(tab2,variable=auto_refresh)
-                            # auto_refresh_btn.grid(row=0, column=0,columnspan=total_columns,padx=[80,0],sticky='w',pady=[5,0])
                             
                             tabgui2 = ttk.Notebook(tab2)
                             tab11 = ttk.Frame(tabgui2)
@@ -2655,6 +2675,7 @@ if is_admin():
                                             f"Start all stopped servers with their current configuration.")
                             if (tabgui.index("current")) == 2: tabgui.configure(height=tab2.winfo_reqheight())
                         else:
+                            update=True
                             num_total_svr = int(self.dataDict['svr_total'])
                             num_current_svr = int(len(labllist)/2)
                             if num_current_svr != num_total_svr:
@@ -2679,13 +2700,55 @@ if is_admin():
                                     #     do_everything(self,x+1,deployed_status,update=False)
                                     #     list(labllist.values())[x*2].grid(row=list(labllistrows.values())[x*2], column=list(labllistcols.values())[x*2])
                                     #     list(btnlist.values())[x*2].grid(row=list(btnlistrows.values())[x*2], column=list(btnlistcols.values())[x*2])
+
+                                    # TODO: rather than iterating over all servers, try to just iterate over the newly added ones. It was placing them in the wrong location.
                                     for x in range(int(self.dataDict['svr_total'])):
                                         deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
                                         do_everything(self,x,deployed_status,update=False)
                             else:
                                 for x in range(int(self.dataDict['svr_total'])):
                                     deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                    do_everything(self,x,deployed_status,update=True)
+                                    do_everything(self,x,deployed_status,update)
+                    
+                            column_rows=(tab2.grid_size())
+                            total_columns=column_rows[0]
+                            total_rows=column_rows[1]
+                            #Proxy and Manager
+                            if svrcmd.honCMD.check_proc("proxymanager.exe"):
+                                if update:
+                                    labl_proxy['text'] = "Proxy Manager - UP"
+                                    labl_proxy['background'] = "green"
+                                else:
+                                    labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                            else:
+                                if update:
+                                    labl_proxy['text'] = "Proxy Manager - Down"
+                                    labl_proxy['background'] = "red"
+                                    btn_proxy['text'] = "Proxy Manager - Down"
+                                    btn_proxy['background'] = "red"
+                                else:
+                                    labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
+                                    btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
+                                btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
+                            labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
+                            if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
+                                if update:
+                                    labl_manager['text'] = "Server Manager - UP"
+                                    labl_manager['background'] = "green"
+                                else:
+                                    labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
+                            else:
+                                if update:
+                                    labl_manager['text'] = "Server Manager - Down"
+                                    labl_manager['background'] = "red"
+                                    btn_manager['text'] = "Start"
+                                    btn_manager['command'] = lambda: viewButton.StartManager(self)
+                                else:
+                                    labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
+                                    btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
+                                btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
+                            labl_manager.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
+
                             for k in (labllist):
                                 labllist[k].grid(row=labllistrows[k], column=labllistcols[k])
                             for k in (btnlist):
@@ -2695,7 +2758,7 @@ if is_admin():
                     server_admin_loading = False                
                     pb.stop()
                     pb.destroy()
-                    print("Finished preparing Server Administration Tab")
+                    #print("Finished preparing Server Administration Tab")
                 def Tools():
                     pass
             global tex
