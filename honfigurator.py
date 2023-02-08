@@ -2277,19 +2277,28 @@ if is_admin():
                     global refresh_delay
                     if svrcmd.honCMD.check_proc("HoN Proxy Manager") == False:
                         if self.dataDict['use_proxy']=='True':
-                            # if self.dataDict['use_console']=='False':
-                                if initialise.start_service(self,"HoN Proxy Manager",True):
-                                    tex.insert(END,"Proxy started.")
-                                    tex.see(tk.END)
-                                    refresh_counter = refresh_delay
-                                else:
-                                    tex.insert(END,"Failed to start the proxy service.")
-                                    tex.see(tk.END)
-                            # else:
-                            #     os.chdir(self.dataDict['hon_directory'])
-                            #     os.startfile(f"proxymanager.exe")
-                            #     os.chdir(application_path)
-                            #     self.app.after(5000,viewButton.load_server_mgr(self))
+                            if initialise.start_service(self,"HoN Proxy Manager",True):
+                                tex.insert(END,"Proxy started.")
+                                tex.see(tk.END)
+                                refresh_counter = refresh_delay
+                            else:
+                                tex.insert(END,"Failed to start the proxy service.")
+                                tex.see(tk.END)
+                        else:
+                            tex.insert(END,"Proxy not enabled. Please configure some servers using the proxy.")
+                            tex.see(tk.END)
+                def StopProxy(self):
+                    global refresh_counter
+                    global refresh_delay
+                    if svrcmd.honCMD.check_proc("HoN Proxy Manager") == True:
+                        if self.dataDict['use_proxy']=='True':
+                            if initialise.stop_service(self,"HoN Proxy Manager",True):
+                                tex.insert(END,"Proxy stopped.")
+                                tex.see(tk.END)
+                                refresh_counter = refresh_delay
+                            else:
+                                tex.insert(END,"Failed to stop the proxy service.")
+                                tex.see(tk.END)
                         else:
                             tex.insert(END,"Proxy not enabled. Please configure some servers using the proxy.")
                             tex.see(tk.END)
@@ -2303,6 +2312,17 @@ if is_admin():
                             refresh_counter = refresh_delay
                         else:
                             tex.insert(END,"Failed to start the server manager service. This is required for replays.")
+                            tex.see(tk.END)
+                def StopManager(self):
+                    global refresh_counter
+                    global refresh_delay
+                    if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe") == True:
+                        if initialise.stop_service(self,"HoN Server Manager",True):
+                            tex.insert(END,"HoN Server Manager stopped.")
+                            tex.see(tk.END)
+                            refresh_counter = refresh_delay
+                        else:
+                            tex.insert(END,"Failed to stop the server manager service.")
                             tex.see(tk.END)
                 def Stop(self):
                     global refresh_counter
@@ -2599,35 +2619,41 @@ if is_admin():
                                 if update:
                                     labl_proxy['text'] = "Proxy Manager - UP"
                                     labl_proxy['background'] = "green"
+                                    btn_proxy['text'] = "Stop"
+                                    btn_proxy['command'] = lambda: viewButton.StopProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                                    btn_proxy = Button(tab2, text="Stop",command=lambda: viewButton.StopProxy(self))
                             else:
                                 if update:
                                     labl_proxy['text'] = "Proxy Manager - Down"
                                     labl_proxy['background'] = "red"
-                                    btn_proxy['text'] = "Proxy Manager - Down"
-                                    btn_proxy['background'] = "red"
+                                    btn_proxy['text'] = "Start"
+                                    btn_proxy['comand'] = lambda: viewButton.StartProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
-                                btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
+                            btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
                                 if update:
                                     labl_manager['text'] = "Server Manager - UP"
                                     labl_manager['background'] = "green"
+                                    btn_manager['text'] = "Stop"
+                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
+                                    btn_manager = Button(tab2, text="Stop",command=lambda: viewButton.StopManager(self))
                             else:
                                 if update:
                                     labl_manager['text'] = "Server Manager - Down"
                                     labl_manager['background'] = "red"
                                     btn_manager['text'] = "Start"
-                                    btn_manager['command'] = lambda: viewButton.StartManager(self)
+                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                                     btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
-                                btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
+                            btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
                             labl_manager.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
                             stretch_lbl = Label(tab2,width=15,text="servers per column",background=maincolor,foreground='white')
                             stretch_lbl.grid(row=1, column=0,columnspan=total_columns,padx=[5,0],sticky='w',pady=[2,4])
@@ -2718,25 +2744,31 @@ if is_admin():
                                 if update:
                                     labl_proxy['text'] = "Proxy Manager - UP"
                                     labl_proxy['background'] = "green"
+                                    btn_proxy['text'] = "Stop"
+                                    btn_proxy['command'] = lambda: viewButton.StopProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
+                                    btn_proxy = Button(tab2, text="Stop",command=lambda: viewButton.StopProxy(self))
                             else:
                                 if update:
                                     labl_proxy['text'] = "Proxy Manager - Down"
                                     labl_proxy['background'] = "red"
-                                    btn_proxy['text'] = "Proxy Manager - Down"
-                                    btn_proxy['background'] = "red"
+                                    btn_proxy['text'] = "Start"
+                                    btn_proxy['comand'] = lambda: viewButton.StartProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
-                                btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
+                            btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
                                 if update:
                                     labl_manager['text'] = "Server Manager - UP"
                                     labl_manager['background'] = "green"
+                                    btn_manager['text'] = "Stop"
+                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
+                                    btn_manager = Button(tab2, text="Stop",command=lambda: viewButton.StopManager(self))
                             else:
                                 if update:
                                     labl_manager['text'] = "Server Manager - Down"
@@ -2746,7 +2778,7 @@ if is_admin():
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                                     btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
-                                btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
+                            btn_manager.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[0,430])
                             labl_manager.grid(row=1, column=0,columnspan=total_columns,padx=[0,200],sticky='n',pady=[2,4])
 
                             for k in (labllist):
