@@ -1,105 +1,87 @@
-## HoNfigurator - Server Deployment 
 
-The HoNFigurator is an application which allows for easy deployment of HON Servers.
+# HoNfigurator
+## Overview
 
-It deploys servers in the most efficient way possible for maximum game server performance.
+HoNFigurator is a GUI based HoN Server configuration and management tool.
 
-It is dynamic in the sense that based on the total amount of servers you require, it will create all the necessary directories and configurations without any manual intervention from the user besides providing basic server information you wish to announce to the master server.
+It provides an easy way to visually deploy, manage and monitor servers with performance in mind.
 
-The total number of servers supported is limited by the total number of logical processors, as the server runs best as 1 server per CPU core.
+Servers can be deployed as either a managed (**windows application**) or unmanaged (**windows service**).
 
-HoNfigurator runs HoN servers as windows services, which means you do not need to be logged in for the servers to run.
+Servers are monitored closely for changes in state, and intelligent actions are taken to increase or reduce the priority that the operating system should give to each server.
 
-### Servers get deployed in the following mannner:
-``INSTALLATION STEPS FURTHER DOWN``
-1. Open **HoNfigurator.exe**
-2. Fill in the basic information requirements (defaults will be remembered):
-3. Make sure your Discord ID is provided, this is the 12 digit number found by right clicking your name in the members list in discord and selecting ``Copy ID``
-4. Select to deploy single or all servers.
-5. Servers will automatically start and you will receive a message from your bot with the next steps.
-6. Servers will be each assigned to their own CPU core, and given a ``low`` process priority unless a game is running, in which case it is set to ``realtime``
+Additionally, alerts are configured to notify you when something is wrong and requires your attention.
 
-#### Example: If 2 total servers selected
-This will configure and deploy 2x hon servers in the following SERVER_HOME locations: 
-```
-<hon_directory>\..\hon_server_instances\hon_server_1\		= SERVER_1_HOME
-<hon_directory>\..\hon_server_instances\hon_server_2\		= SERVER_2_HOME
-```
-``startup.cfg`` is automatically created for each server and deployed to the appropriate "HOME" location for that HoN server.
+The idea is to completely maximise the performance potential, for hosting on a variety of different hardware. And provide confidence in monitoring & management for unattended operation.
 
-Networking details such as the server ports will be automatically assigned based on the server number.
+## How Does it Work?
+HoNfigurator allocates an isolated directory for each server. Here, the server configuration and logs are stored.
 
-- server 1: ``server port 10000``
-- server 2: ``server port 10001``
-- etc
+A watchdog, called **adminbot** is created by HoNfigurator for each desired HoN Server Instance, and resides in the associated directory.
 
-A list of ports will be provided at the end of deployment so you can port forward if required.
+**adminbot** will run at all times, as either:
+- a Windows Application, or
+- a Windows Service
 
-## Adminbot - Discord Integration
-Upon success of creating the required directories and configurations, HoNfigurator will deploy a python discord bot ``sdc.py`` and relevant config files, to the home directory of each server.
+When deployed, **adminbot** can either start the HoN Server, or attach itself to the existing HoN Server process (if one is already running).
 
-```Example: <hon_directory>\..\hon_server_1\Documents\Heroes of Newerth x64\game\logs\sdc```
+From here, the server is monitored closely:
+- Process priority and CPU affinity is assigned
+- Server logs are parsed and analysed, and if required, alerts are sent (via Discord) when server side lag reaches a certain threshold, or if the server instance were to crash.
+- Restrictive modes are applied, such as dissalowing bot games.
+- Crashed instances are automatically recovered
+- Stuck matches / idle lobbies are terminated.
+- and more, see "Detailed Performance Enhancements"
 
-Windows Services will be automatically created, configured & started for each adminbot. There is no manual starting of servers required.
+## How Do I Use it?
+Complete the [Installation Steps](#installation) first.
+1.  Open **HoNfigurator.exe**
+1. Complete the **Base Settings** tab
+	1. Fill in the basic server info requirements.
+1. Complete the **Server Setup** tab
+ 	1. Decide on the total server count
+ 	1. Select to configure either a group of servers or all servers
+1. **Server Administartion** tab
+ 	1. Monitor the configured servers.
 
-Adminbot resides in each ``SERVER_HOME`` directory, and it will act as a layer of security and monitoring for each server.
-
-Adminbot parses game log files, looks out for sinister events, and gives real-time game status updates to discord guilds via embedded messages. The purpose of this is to provide game server security and a "window" into any running games on your servers so that it is easily visible from just looking at the discord chat where it is deployed.
-
-If you require access to the console logs, while there is no visible game console, the output of this console is found here:
-```<hon_directory>\..\hon_server_1\Documents\Heroes of Newerth x64\game\logs\Slave-1_<year>_<month>_<day>.log```
-
-### Security/Uptime/Availability Features
-- [x] After a game has finished, or a lobby has been closed, server is automatically restarted.
-- [x] If someone tries to start games on your server with invalid parameters (such as an invalid map/mode) this can crash your server.
-	- Server restarts in this instance, and saves a log with the clients IP address for analysis so they may be blocked if required.
-- [ ] Other DDOS events in the logs can be captured and also trigger an automatic server restart + automatically ban the IP in windows firewall (not on by default)
-- [ ] Please let me know any other events you wish to know about.
-
-### Embedded Message Features
-- [x] Links are embedded into these messages for handy things such as the honmasterserver.com website, a hon client fix that will fix client side HoN configuration and a link to a HoN Server Portal discord where all of the deployed bots will be assigned to their allocated region. This will make HoN feel alive.
-- [x] "Reacts" can be used by users on discord to perform backend administration on individual game servers.
-	- (🔁) Restart 		``Anyone as long as no one is connected to the server.``
-	- (🔼) Start		``Anyone as long as no one is connected to the server.``
-	- (🔽) Stop 		``Anyone as long as no one is connected to the server.``
-	- (🛑) Force Stop	``Only allocated Discord admin roles.``
-- [x] Total games played
-- [x] Last restart time
-- [x] In Lobby information such as (map, host, mode, spots left)
-- [x] In game information such as (match in progress, elapsed time)
-
-### How to Use (discord)
-- In discord, create a channel for server status updates. This should be dedicated to use by the bot.
-- Use the ``!portalhelp`` command to be sent an overview of the available commands. The commands will be customised to your set up.
-- ![bothelp](https://user-images.githubusercontent.com/82205454/183851795-3bad4f0b-dca9-496f-96c3-8719dabb873e.png)
-- Use the ``!createlinks <identifier>`` command  in the discord channel which you wish to receive updates in.
-- Repeat the above to any other discord guilds or channels where you also want the server status displayed.
-- All subscribed channels will be kept up to date with the same server status messages. And personalised event logs sent to your inbox
-- ![server-status](https://user-images.githubusercontent.com/82205454/184099721-7ae4bf14-1769-46cd-8258-5f60bf93dce3.png)
-- ![events](https://user-images.githubusercontent.com/82205454/184092512-5f141db7-627e-4851-a0cf-35a5ee7b4056.png)
-
-## Installation
-These are to be performed on game servers only.
-
-### Prerequisites
-For ease of installation, this script can be used to clone the repository, and setup everything including all dependencies.
-HoNfigurator should just open at the end.
-
-Installation script: [HoNfigurator-Installer](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat) (``Right click > save link as``)
->If you are concerned about the above script, simply open it in any editor, copy the base64 from the script and decode it somewhere like https://www.base64encode.org/.
-1. Download the script above
-1. Copy the file into the location where you wish to access HoNfigurator (example: ``C:\Program Files\``)
-1. Double click ``HoNfigurator-Installer.bat``
-
-This should launcher an installer like below:
-![image](https://user-images.githubusercontent.com/82205454/187016190-3192a4be-b35f-48ee-992e-819db303a778.png)
-
-It will take some time to install Chocolatey, and you may opt to install a clean HoN client.
-Simply answer (y/n) to the prompts.
-
-#### Once HoNfigurator is open, Obtain the following information:
+## Discord Integration
 - Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
 - Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
+
+## Installation
+### Prerequisites
+###### Server Requirements
+1. Dedicated server, or a Virtual Machine with dedicated cores.
+1. Minimum 1GB RAM per HoN Server
+1. Windows OS.
+	1. Either standard Windows Server / Windows 10-11, or
+	1. Optimised Windows OS for gaming - https://atlasos.net/ (a suggestion only)
+1. [Further requirements](https://github.com/Unofficial-kongor/Server-hosting/blob/main/basics/system-and-infra.md) - CPU and Network
+
+###### Downloads
+1. [Server Binaries](https://wasserver/wasserver)
+	1. These files are not affiliated with HoNfigurator, however they are required to host servers.
+2. [HoNfigurator Installation Script](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat) - ``Right click > save link as``
+
+#### Install HoNfigurator
+1. Copy ``HoNfigurator-Installer.bat`` to a location where HoNfigurator should be installed to. Such as ``C:\Program Files``
+1. Run ``HoNfigurator-Installer.bat``
+	1. This should launch an installer like below:
+	![image](https://user-images.githubusercontent.com/82205454/187016190-3192a4be-b35f-48ee-992e-819db303a778.png)
+	1. It may take some time to install Chocolatey.
+	1. When prompted, you may opt to install a clean HoN client.	Answer (**y/n**) to the prompt.
+	1. When the install is complete, HoNfigurator will open.
+
+#### Prepare Server Files
+Merge the [Server Binaries](https://wasserver/wasserver) with the **HoN Install Directory**
+1. **HoN Install Directory** is either:
+	1. an existing installation, or
+	1. the downloaded HoN Client from the previous step.
+1. Copy the following files
+	1. ``wasserver\hon_x64.exe`` ``wasserver\k2_x64.dll`` ``wasserver\proxy.exe`` ``wasserver\proxymanager.exe`` >> **HoN Install Directory**
+	1. ``wasserver\cgame_x64.dll`` ``wasserver\game_shared_x64.dll`` ``wasserver\game_x64.dll`` >> **HoN Install Directory\game**
+
+#### Once HoNfigurator is open, Obtain the following information:
 
 #### Fill in the server requirements (defaults will be remembered):
 - Server host - ``(example: T4NK)``
