@@ -27,8 +27,8 @@ When deployed, **adminbot** can either start the HoN Server, or attach itself to
 
 From here, the server is monitored closely:
 - Process priority and CPU affinity is assigned
-- Server logs are parsed and analysed, and if required, alerts are sent (via Discord) when server side lag reaches a certain threshold, or if the server instance were to crash.
-- Restrictive modes are applied, such as dissalowing bot games.
+- Server logs are parsed and analysed, and if required, alerts are sent (**via Discord**) when server side lag reaches a certain threshold, or if the server instance were to crash.
+- Restrictive modes are applied, such as dissallowing bot games.
 - Crashed instances are automatically recovered
 - Stuck matches / idle lobbies are terminated.
 - and more, see "Detailed Performance Enhancements"
@@ -45,6 +45,18 @@ Complete the [Installation Steps](#installation) first.
  	1. Monitor the configured servers.
 
 ## Discord Integration
+HoNfigurator integrates with discord by registering a **Bot Token**.
+
+A **Bot Token** is a secret key which allows the **adminbot** watchdogs deployed by **HoNfigurator** to connect to Discord.
+
+By connecting to Discord, each **adminbot** instance is able to send you (the owner) a rolling event log.
+
+The event log is split into two halves, **events** and **alerts**.
+|  Events | Alerts  |
+| Server Starting | Lag Spike of more than 5s / last 5 min |
+| Match Started  | Server crashed unexpectedly  |
+
+
 - Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
 - Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
 
