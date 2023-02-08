@@ -1340,6 +1340,23 @@ if is_admin():
         #         if svrloc == reg.lower():
         #             self.svr_loc.set(reglist[0][reglist[0].index(reg)])
         #             self.svr_reg_code.set(reglist[1][reglist[0].index(reg)])
+        def port_mode(self,var,index,mode):
+            game_port = int(self.tab3_game_port.get())
+            voice_port = int(self.tab3_voice_port.get())
+            if self.useproxy.get() == True:
+                self.tab1_restart_proxy.configure(state='enabled')
+                self.tab3_game_port.delete(0,END)
+                self.tab3_voice_port.delete(0,END)
+                self.tab3_game_port.insert(0,str(game_port+10000))
+                self.tab3_voice_port.insert(0,str(voice_port+10000))
+            else:
+                self.restart_proxy.set(False)
+                self.tab1_restart_proxy.configure(state='disabled')
+                self.tab3_game_port.delete(0,END)
+                self.tab3_voice_port.delete(0,END)
+                self.tab3_game_port.insert(0,self.dataDict['game_starting_port'])
+                self.tab3_voice_port.insert(0,self.dataDict['voice_starting_port'])
+
         def switch_widget_state(self,var,index,mode):
             if self.enablebot.get() == True:
                 current_text = self.tab3_discordadmin.get()
@@ -1599,6 +1616,10 @@ if is_admin():
 
             current_hon_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             current_hon_version=current_hon_version.split('.')
+
+            if use_proxy:
+                game_port = str(int(game_port) - 10000)
+                voice_port = str(int(voice_port) - 10000)
 
             wrong_bins = False
             if len(current_hon_version) == 0:
@@ -2823,6 +2844,7 @@ if is_admin():
             honfigurator.CreateToolTip(tab3_useproxy_btn, \
                     f"Enable this option to use the HoN Proxy service.\nThis creates a layer of protection by ensuring all game server data is dealt with by the proxy first, eliminating malicious DoS attempts.\nIf using the proxy. Observe carefully the HoNfigurator output, and only port forward the Proxy ports on your router.")
             tab3_useproxy_btn.grid(column= 1, row = 13,sticky="w",pady=4)
+            self.useproxy.trace_add('write', self.port_mode)
             #
             #    Discord Section
             self.tab3_discord_title = applet.Label(tab3, text="",background=maincolor,foreground='white',font=Font_Title)
@@ -2929,10 +2951,12 @@ if is_admin():
             #   force proxy restart
             applet.Label(tab1, text="Restart Proxy (in next configure)",background=maincolor,foreground='white').grid(column=0, row=6,sticky="e",padx=[20,0])
             self.restart_proxy = tk.BooleanVar(self.app)
-            tab1_restart_proxy = applet.Checkbutton(tab1,variable=self.restart_proxy)
-            honfigurator.CreateToolTip(tab1_restart_proxy, \
+            self.tab1_restart_proxy = applet.Checkbutton(tab1,variable=self.restart_proxy)
+            honfigurator.CreateToolTip(self.tab1_restart_proxy, \
                     f"Enable this option to ensure the proxy is restarted on the next configure. This may disrupt games in progress.")
-            tab1_restart_proxy.grid(column= 1, row = 6,sticky="w",pady=4)
+            self.tab1_restart_proxy.grid(column= 1, row = 6,sticky="w",pady=4)
+            
+            honfigurator.port_mode(self,NULL,NULL,NULL)
             #   console windows, for launching servers locally (not as windows services)
             applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e",padx=[20,0])
             self.console = tk.BooleanVar(self.app)
