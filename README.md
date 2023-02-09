@@ -117,9 +117,22 @@ Complete the [Installation Steps](#installation) first.
 		</details>
 1. Complete the **Server Setup** tab
  	1. Decide on the total server count
- 	1. Select to configure either a group of servers or all servers
-1. **Server Administartion** tab
- 	1. Monitor the configured servers.
+		> This value is limited by your number of logical processors.
+	1. CPU Cores per Server
+		> Unless you have a powerful CPU, leave this as ``one core/server``  
+		``two cores/server`` or reducing the total server count can help with reducing lag.
+	1. Console Mode
+		> The ``Launch Servers in Console Mode`` option is used to be able to see and interact with the HoN Server Consoles.
+		
+		> With the value unchecked, the servers will be configured as **headless** windows service. This takes moderately less CPU as there aren't as many graphical interfaces on your screen.
+ 	1. Select to configure either a group of servers or all servers.
+	1. Servers should now be deployed.
+1. **Server Administration** tab
+ 	1. Use this tab to monitor the configured servers.
+		> **Note** The content on this tab is automatically refreshed every ``~30`` seconds.  
+		Each server has an associated row, the information shown represents the status of the server. It will change as the state of the server changes.
+1. **You're done!**
+	> Remember to mouse-hover over buttons and text fields to see tooltips and learn more about what they do.
 
 ## Installation
 ### Prerequisites
