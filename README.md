@@ -37,22 +37,22 @@ From here, HoN Server Logs are parsed and analysed, and the following actions ar
 #### Alerting & Events
 Discord is used as a messaging platform, so that HoNfigurator can send messages to you when something is wrong.
 
-> One message block is sent per server, acting as a **server companion**.
-> There is only ever one message block per server, to prevent clutter.
-> Message content is "edited" to prevent excess notifications.
-
 |  Events (no @mention) |  Alerts (@mention) |
 | ------------ | ------------ |
-| Server Starting  | Lag Spike of more than ``x`` seconds / last 5 min |
+| Server First Start  | Lag Spike of more than ``x`` seconds / last 5 min |
 | Match Started | Server crashed unexpectedly |
+
 ![image](https://user-images.githubusercontent.com/82205454/217794598-8b084a09-bea4-4cee-9694-eb6ea0b22bc3.png)
 
+> One message block is sent per server, acting as a **server companion**.  
+There is only ever one message block per server, to prevent clutter.  
+Message content is "edited" to prevent excess notifications.
 
 > A dynamically built link to [ElasticSearch Monitoring](#monitoring) is included in the message
 
 #### Monitoring
 Additionally, as an optional add-on, servers can be monitored via agents deployed to collect and upload logs to ElasticSearch.
-> Any Server can be monitored. It doesn't have to be hosted by HoNfigurator.
+> Any HoN server can be monitored. It doesn't have to be hosted by HoNfigurator.
  
 ElasticSearch is an enterprise open source data indexing tool, which includes data transformations and data analytics. With my experience in ElasticSearch and parsing data, I have been able to create beautiful dashboards to monitor your server performance and other's experience on your server.
 
