@@ -59,7 +59,7 @@ From here, HoN Server Logs are parsed and analysed, and the following actions ar
 Discord is used as a messaging platform, so that HoNfigurator can send messages to you when something is wrong.
 
 |  Events (no @mention) |  Alerts (@mention) |
-| ------------ | ------------ |
+| ------------ | :------------ |
 | Server First Start  | Lag Spike of more than ``x`` seconds / last 5 min |
 | Match Started | Server crashed unexpectedly |
 
@@ -81,8 +81,40 @@ Existing messages will be edited, to reduce clutter.
 ## How Do I Use it?
 Complete the [Installation Steps](#installation) first.
 1.  Open **HoNfigurator.exe**
+	> Shortcut on Desktop
 1. Complete the **Base Settings** tab
 	1. Fill in the basic server info requirements.
+		> **Region:** Only select a region close to the location of your server.
+		
+		> **Note** The below two steps require the creation of a discord bot. If you do not wish to use the Discord monitoring & Alerting features then use the checkbox to disable the discord bot.
+		
+		>**Bot Owner:** 12 digit Discord ID - [how to find](https://www.remote.tools/remote-work/how-to-find-discord-id)  
+		**Bot Token:** Secret Token
+		<details>
+		<summary>Click to create a Discord bot</summary>
+		
+		1. Browse to https://discord.com/developers/applications
+		1. Select ``New Application``
+		1. Provide a name and agree to the terms
+		1. Select ``Create``
+		1. Copy the ``Application ID`` to a file  
+			![image](https://user-images.githubusercontent.com/82205454/217840826-84967e6e-5f24-4518-888f-bb11c403d29e.png)
+		1. On the left, select ``Bot``
+		1. Select ``Add Bot``
+		1. Upload an image if you wish
+		1. Enable the following options:
+			- Public Bot
+			- Message Content Itent
+		1. Select ``Reset Token``
+		1. **SAVE** the Bot Token to the ``Bot Token`` field in HoNfigurator and select ``Save Settings``.
+			> The token can be reset any time, however you will need to update the token in the GUI and reconfigure the servers.
+		1. Modify the following URL and enter it into your browser: ``https://discord.com/api/oauth2/authorize?client_id=<application_id>&permissions=0&scope=bot``
+			> Modify ``<application_id>`` to the **aplication id** you saved ealier.
+		1. Follow the prompts to add the bot to a discord server.
+			> **Note** The bot only needs to share a discord server with you, **it requires no permissions.**
+		1. Bot creation completed.
+		
+		</details>
 1. Complete the **Server Setup** tab
  	1. Decide on the total server count
  	1. Select to configure either a group of servers or all servers
