@@ -347,7 +347,7 @@ Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_p
                                     if ctx != None: logEmbed = await send_user_msg(ctx,log_msg,False)
                             auto_pinger_online = svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_proxyPort']-int(self.processed_data_dict['svr_id'])))
                     else:
-                        auto_pinger_online = svrcmd.check_port(int(self.processed_data_dict['svr_port']-int(self.processed_data_dict['svr_id'])))
+                        auto_pinger_online = svrcmd.honCMD.check_port(int(self.processed_data_dict['svr_port']-int(self.processed_data_dict['svr_id'])))
                     if 'auto_pinger_online' not in self.server_status or (auto_pinger_online != self.server_status['auto_pinger_online']):
                         self.server_status.update({'auto_pinger_online':auto_pinger_online})
                         if not auto_pinger_online:
