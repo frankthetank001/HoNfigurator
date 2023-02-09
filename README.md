@@ -77,6 +77,26 @@ Existing messages will be edited, to reduce clutter.
 > A dynamically built link to [ElasticSearch Monitoring](#monitoring) is included in the message
 </details>
 
+### Updates
+#### Pipeline
+HoNfigurator's update pipeline is connected to GitHub.
+
+Whenever a new commit is made on GitHub, shorty afterwards, HoNfigurator will update and relaunch itself. Deployed servers are unaffected.
+
+> This allows for continued incremental improvements similar to DevOps.
+
+> It is important to install HoNfigurator by using the [installation script](#install-honfigurator), and not downloading the .ZIP package, otherwise the app will be unable to update.
+
+#### Version Numbers
+HoNfigurator is tagged with a version number, if the version number changes (because I have made a significant change), then HoNfigurator will automatically configure and redeploy all currently configured **adminbot** instances.
+
+Unless the nature of the update warrants a server restart, then only the **adminbot** console will be updated and restarted.
+
+> This allows for bug fixing, and improvements with little to no involvement from yourself.
+
+> **Note** HoNfigurator will **never** terminate matches in progress. If restarts are required, they will be scheduled gracefully.
+
+
 ---
 ## How Do I Use it?
 Complete the [Installation Steps](#installation) first.
