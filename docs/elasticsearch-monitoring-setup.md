@@ -1,4 +1,24 @@
 # Server Monitoring
+<details>
+<summary>Table of Contents</summary>
+
+  * [Overview](#overview)
+  * [How Does it Work?](#how-does-it-work)
+    * [Hosted by Me](#hosted-by-me)
+    * [Hosted by You](#hosted-by-you)
+  * [Setup](#setup)
+  * [Start Monitoring!](#start-monitoring)
+  * [Screenshots](#screenshots)
+    * [Players Online](#players-online)
+    * [Player & Server Map](#player--server-map)
+    * [Lag & Uptime](#lag--uptime)
+    * [Server Home Pages](#server-home-pages)
+      * [Navigator & Filter](#navigator--filter)
+      * [Lag Correlation to Players in-game](#lag-correlation-to-players-in-game)
+      * [Server Analytics](#server-analytics)
+
+</details>
+
 ## Overview
 The following covers setting up the required agents in order to have your server monitored by ElasticSearch.
 
@@ -62,4 +82,32 @@ Password: ``Provided by me``
 
 Start observing the fascination dashboards.
 
+<details>
+<summary>Click to see screenshots</summary>
+
 ## Screenshots
+### Players Online
+![image](https://user-images.githubusercontent.com/82205454/217830825-2856d990-79c4-4d5c-83df-bc68889296ad.png)
+
+### Player & Server Map
+|  Connections  |  Regions  |
+| ------------ | ------------ |
+|  ![image](https://user-images.githubusercontent.com/82205454/217829640-47bba280-55cb-44fc-9762-107f87a34f4e.png)  |  ![image](https://user-images.githubusercontent.com/82205454/217829442-b95f149f-be14-4419-9200-5d5911bda096.png)  |
+
+### Lag & Uptime
+|  Avg Lag per Game  |  Server Uptime  |
+| ------------ | ------------ |
+|  ![image](https://user-images.githubusercontent.com/82205454/217829992-7dc66aca-ed75-4ee3-8715-8eb594bdbd4f.png)  |  ![image](https://user-images.githubusercontent.com/82205454/217830278-b3b48922-5fd3-444b-bceb-081bbd1c4c73.png)  |
+
+### Server Home Pages
+#### Navigator & Filter
+![image](https://user-images.githubusercontent.com/82205454/217831480-16228019-02e4-46a8-86c0-3d004461b821.png)
+![image](https://user-images.githubusercontent.com/82205454/217830968-d45f3d83-b7bd-460f-850a-cfe64b91cdfd.png)
+
+#### Lag Correlation to Players in-game
+![image](https://user-images.githubusercontent.com/82205454/217831247-a45ba327-9bd9-455f-8a35-492ec9b8ff35.png)
+
+#### Server Analytics
+![image](https://user-images.githubusercontent.com/82205454/217831736-010e9b5a-91cb-486a-9411-c56b1e51565b.png)
+
+</details>
