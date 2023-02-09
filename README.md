@@ -133,6 +133,8 @@ Complete the [Installation Steps](#installation) first.
 		Each server has an associated row, the information shown represents the status of the server. It will change as the state of the server changes.
 1. **You're done!**
 	> Remember to mouse-hover over buttons and text fields to see tooltips and learn more about what they do.
+	
+	> Also look into [Server Monitoring](#monitoring)
 
 ## Installation
 ### Prerequisites
