@@ -344,7 +344,7 @@ class mData():
             self.confDict_basic.update({'use_console':'False'})
         return self.confDict_basic
     def return_simple_dict(self,data):
-        hon_elk_update_dict = {'static_ip':data['static_ip'],'github_branch':data['github_branch'],'use_proxy':data['use_proxy'],'disable_bot':data['disable_bot'],'auto_update':data['auto_update'],'bot_version':data['bot_version'],'bots_running':data['bots_running']}
+        hon_elk_update_dict = {'static_ip':data['static_ip'] if 'static_ip' in data else "None",'github_branch':data['github_branch'],'use_proxy':data['use_proxy'],'disable_bot':data['disable_bot'],'auto_update':data['auto_update'],'bot_version':data['bot_version'],'bots_running':data['bots_running']}
         return hon_elk_update_dict
         
     # def setData(self,key):

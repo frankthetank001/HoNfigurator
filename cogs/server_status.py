@@ -760,14 +760,15 @@ class honCMD():
         soft_data = os.stat(log).st_size # initial file size
         status={}
         # if (soft_data > hard_data) or 'first_check' not in status:
-        session_cookie_errors = ["session cookie request failed!","invalid session cookie"]
+        session_cookie_errors = ["session cookie request failed!","invalid session cookie","no session cookie returned"]
         with open (log, "r", encoding='utf-16-le') as f:
             for line in reversed(list(f)):
                 for item in session_cookie_errors:
                     if item in line.lower():
-                        return False
-                    elif "new session cookie " in line.lower():
-                        return True
+                        return "no cookie"
+                    elif "new session cookie [" in line.lower():
+                        return "connected"
+            return "pending"
         return True
         # status.update({'first_check':'Done'})
         #return True

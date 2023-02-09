@@ -1531,7 +1531,7 @@ if is_admin():
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                             svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                         tex.insert(END,"Patch successful!\n Relaunching servers")
-                        honfigurator.sendData(self,identifier,hoster, regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        honfigurator.sendData(self,identifier,hoster,regionshort,serverid,0,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         update_counter = update_delay
                         updating = False
                         return True
@@ -1822,7 +1822,8 @@ if is_admin():
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
-                        initialise.print_and_tex(self,"waiting 30 seconds for proxy to finish setting up ports...","warning")
+                        while not initialise.check_port(self.dataDict['svr_proxyPort']):
+                            initialise.print_and_tex(self,"waiting for proxy to finish setting up ports...","warning")
                         time.sleep(30)
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
@@ -2121,17 +2122,8 @@ if is_admin():
                             mod_by = int(stretch.get())+3
                             labllist.clear()
                             viewButton.clear_frame()
-                            #progressbar
-                            #progressbar
-                            # pb = ttk.Progressbar(
-                            #     tabgui,
-                            #     orient='horizontal',
-                            #     mode='indeterminate',
-                            #     length=280
-                            # )
-                            # # place the progressbar
-                            # pb.grid(column=0,sticky='n',row=2, columnspan=8, padx=10, pady=[30,10])
-                            # pb.start()
+                        else:
+                            honfigurator.CreateToolTip.leave()
                     except Exception: pass
                     # if auto_refresh_var or swap_anyway:
                     if not server_admin_loading:
@@ -2270,6 +2262,7 @@ if is_admin():
                             if initialise.check_proc(deployed_status['hon_file_name']):
                                 if initialise.playerCountX(self,id) >= 0:
                                     t_out = 15
+                        refresh_counter = refresh_delay
                         #viewButton.refresh()
                         return
                 def StartProxy(self):
@@ -2459,7 +2452,7 @@ if is_admin():
                         if log != False:
                             cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
                         else:
-                            cookie = True
+                            cookie = "pending"
                         schd_restart = False
                         schd_shutdown = False
                         schd_restart=initialise.check_schd_restart(deployed_status)
@@ -2503,9 +2496,13 @@ if is_admin():
                                 LablString[1]=f"I should have restarted"
                             else:
                                 colour = 'MediumPurple3'
-                                if cookie:
+                                if cookie == 'connected':
                                     LablString[1]="Available"
-                                else: LablString[1]="Connect Error"
+                                elif cookie == 'no cookie':
+                                    LablString[1]="No cookie"
+                                    colour = 'chocolate4'
+                                else:
+                                    LablString[1]="Pending Info"
                         elif pcount >0:
                             if schd_restart:
                                 colour='indian red'
@@ -2541,9 +2538,12 @@ if is_admin():
                                 if 'available' in labl_name.lower():
                                     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
                                         f"Server is available and connected to the master server.")
-                                elif 'cookie' in labl_name.lower():
+                                elif 'error' in labl_name.lower():
                                     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
                                         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
+                                elif 'pending' in labl_name.lower():
+                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                        f"Waiting for server log to show whether we have a successful connection.")
                                 elif schd_restart:
                                     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
                                         f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
@@ -2754,7 +2754,7 @@ if is_admin():
                                     labl_proxy['text'] = "Proxy Manager - Down"
                                     labl_proxy['background'] = "red"
                                     btn_proxy['text'] = "Start"
-                                    btn_proxy['comand'] = lambda: viewButton.StartProxy(self)
+                                    btn_proxy['command'] = lambda: viewButton.StartProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
