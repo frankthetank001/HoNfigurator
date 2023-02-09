@@ -8,6 +8,7 @@
 - [How Does it Work?](#how-does-it-work)
   * [Performance Tweaks](#performance-tweaks)
   * [Alerting & Events](#alerting--events)
+  * [Updates](#updates)
 - [Monitoring](#monitoring)
 - [How Do I Use it?](#how-do-i-use-it)
 - [Installation](#installation)
