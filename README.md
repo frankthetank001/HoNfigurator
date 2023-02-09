@@ -134,7 +134,7 @@ Please see [How Do I Use it?](#how-do-i-use-it) for steps on configuring and sta
 ---
 ## Monitoring
 As an optional add-on, servers can be monitored via agents deployed to collect and upload logs to ElasticSearch.
-> How-To Guide - [Monitoring Setup Guide](docs\elasticsearch-monitoring-setup.md)
+> How-To Guide - [Monitoring Setup Guide](docs/elasticsearch-monitoring-setup.md)
 
 > **Note** any HoN server can be monitored. It doesn't have to be hosted by HoNfigurator.  
 
