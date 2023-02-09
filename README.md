@@ -1,3 +1,5 @@
+<img align="right" width="120" height="120" style="margin-top: -15px;margin-right:20px" src="https://i.ibb.co/hZHLy2K/honico.png">
+
 
 # HoNfigurator
 ## Overview
@@ -25,13 +27,61 @@ A watchdog, called **adminbot** is created by HoNfigurator for each desired HoN 
 
 When deployed, **adminbot** can either start the HoN Server, or attach itself to the existing HoN Server process (if one is already running).
 
-From here, the server is monitored closely:
-- Process priority and CPU affinity is assigned
-- Server logs are parsed and analysed, and if required, alerts are sent (**via Discord**) when server side lag reaches a certain threshold, or if the server instance were to crash.
+From here, HoN Server Logs are parsed and analysed, and the following actions are taken.
+#### Performance Tweaks
+- Process priority and CPU affinity is assigned appropriately to in-game or idle instances
 - Restrictive modes are applied, such as dissallowing bot games.
 - Crashed instances are automatically recovered
 - Stuck matches / idle lobbies are terminated.
-- and more, see "Detailed Performance Enhancements"
+
+#### Alerting & Events
+Discord is used as a messaging platform, so that HoNfigurator can send messages to you when something is wrong.
+
+> One message block is sent per server, acting as a **server companion**.
+> There is only ever one message block per server, to prevent clutter.
+> Message content is "edited" to prevent excess notifications.
+
+|  Events (no @mention) |  Alerts (@mention) |
+| ------------ | ------------ |
+| Server Starting  | Lag Spike of more than ``x`` seconds / last 5 min |
+| Match Started | Server crashed unexpectedly |
+![image](https://user-images.githubusercontent.com/82205454/217794598-8b084a09-bea4-4cee-9694-eb6ea0b22bc3.png)
+
+
+> A dynamically built link to [ElasticSearch Monitoring](#monitoring) is included in the message
+
+#### Monitoring
+Additionally, as an optional add-on, servers can be monitored via agents deployed to collect and upload logs to ElasticSearch.
+> Any Server can be monitored. It doesn't have to be hosted by HoNfigurator.
+ 
+ElasticSearch is an enterprise open source data indexing tool, which includes data transformations and data analytics. With my experience in ElasticSearch and parsing data, I have been able to create beautiful dashboards to monitor your server performance and other's experience on your server.
+
+Lag per Match             |  Player Map
+:-------------------------:|:-------------------------:
+![](https://user-images.githubusercontent.com/82205454/217789201-03ab77d3-3708-4c9f-afbd-690562aad501.png)  |  ![](https://user-images.githubusercontent.com/82205454/217789506-8eda9cea-b7e7-40c4-99fa-607056a8208f.png)
+
+> Link to above: [ElasticSearch Monitoring Dashboard](https://hon-elk.honfigurator.app:5601)
+> 
+How-To Guide - [Monitoring Setup Guide]()
+
+> Username and Password provided - [Contact me](https://discordapp.com/users/197967989964800000)
+
+## Discord Integration
+HoNfigurator integrates with discord by registering a **Bot Token**.
+
+A **Bot Token** is a secret key which allows the **adminbot** watchdogs deployed by **HoNfigurator** to connect to Discord.
+
+By connecting to Discord, each **adminbot** instance is able to send you (the owner) a rolling event log.
+
+The event log is split into two halves, **events** and **alerts**.
+
+|  Events |  Alerts |
+| ------------ | ------------ |
+| Server Starting  | Lag Spike of more than 5s / last 5 min  |
+| Match Started | Server crashed unexpectedly |
+
+- Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
+- Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
 
 ## How Do I Use it?
 Complete the [Installation Steps](#installation) first.
@@ -44,21 +94,6 @@ Complete the [Installation Steps](#installation) first.
 1. **Server Administartion** tab
  	1. Monitor the configured servers.
 
-## Discord Integration
-HoNfigurator integrates with discord by registering a **Bot Token**.
-
-A **Bot Token** is a secret key which allows the **adminbot** watchdogs deployed by **HoNfigurator** to connect to Discord.
-
-By connecting to Discord, each **adminbot** instance is able to send you (the owner) a rolling event log.
-
-The event log is split into two halves, **events** and **alerts**.
-|  Events | Alerts  |
-| Server Starting | Lag Spike of more than 5s / last 5 min |
-| Match Started  | Server crashed unexpectedly  |
-
-
-- Bot owner ID (Your discord ID, 12 digit number) - [find discord ID](https://techswift.org/2020/04/22/how-to-find-your-user-id-on-discord/#:~:text=In%20any%20Discord%20server%2C%20click,to%20see%20your%20User%20ID.)
-- Bot Token (Secret): Retrieve this from @FrankTheGodDamnMotherFuckenTank#8426
 
 ## Installation
 ### Prerequisites
