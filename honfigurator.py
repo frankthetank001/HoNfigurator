@@ -1822,8 +1822,7 @@ if is_admin():
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
-                        while not initialise.check_port(self.dataDict['svr_proxyPort']):
-                            initialise.print_and_tex(self,"waiting for proxy to finish setting up ports...","warning")
+                        print("waiting for proxy to finish setting up ports...","warning")
                         time.sleep(30)
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
