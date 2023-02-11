@@ -1470,6 +1470,9 @@ if is_admin():
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
 
+            #   add trailing slash to directory name if missing
+            hondirectory = os.path.join(hondirectory, '')
+
             current_hon_version=current_version.split('.')
 
             wrong_bins = False
@@ -1822,8 +1825,14 @@ if is_admin():
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
-                        print("waiting 30 seconds for proxy to finish setting up ports...")
-                        time.sleep(30)
+                        tem_counter = 0
+                        while not initialise.check_port(int(self.dataDict['svr_proxyPort'])):
+                            time.sleep(1)
+                            print("waiting 1/30 seconds for proxy to finish setting up ports...")
+                            tem_counter +=1
+                            if tem_counter == 30:
+                                print(f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}")
+                                break
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
                         initialise.print_and_tex(self,"Done.",'interest')
