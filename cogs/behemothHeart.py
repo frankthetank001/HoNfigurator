@@ -91,6 +91,7 @@ class heartbeat(commands.Cog):
                 user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                 try:
                     edit_result = await dm_active_embed[0].edit(embed=user_embed)
+                    print("Updated server companion message with owner.")
                     msg_sent = True
                 except (discord.errors.NotFound,discord.errors.Forbidden,discord.errors.HTTPException,UnboundLocalError):
                     print(traceback.format_exc())
@@ -105,6 +106,7 @@ class heartbeat(commands.Cog):
                     user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                     if ctx != False: await dm_active_embed[0].delete()
                     dm_active_embed[0] = await ctx.send(embed=user_embed)
+                    print("Sent new server companion message to owner.")
                     msg_sent = True
                     embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')
                     embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")

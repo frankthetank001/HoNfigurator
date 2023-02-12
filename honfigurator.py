@@ -1472,7 +1472,6 @@ if is_admin():
 
             #   add trailing slash to directory name if missing
             hondirectory = os.path.join(hondirectory, '')
-
             current_hon_version=current_version.split('.')
 
             wrong_bins = False
@@ -1554,6 +1553,9 @@ if is_admin():
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
+            hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+            honreplay = os.path.join(honreplay,'')
+
             discordadmin = discordadmin.replace(" (DISABLED)","")
             bottoken = bottoken.replace(" (DISABLED)","")
             #
@@ -1619,6 +1621,9 @@ if is_admin():
 
             current_hon_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             current_hon_version=current_hon_version.split('.')
+
+            hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+            honreplay = os.path.join(honreplay,'')
 
             if use_proxy:
                 game_port = str(int(game_port) - 10000)
@@ -1730,9 +1735,6 @@ if is_admin():
                 
                 # write config to file
                 honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
-                
-                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                honreplay = os.path.join(honreplay,'')
 
                 self.dataDict = self.initdict.returnDict()
 
