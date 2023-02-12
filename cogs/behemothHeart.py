@@ -91,6 +91,7 @@ class heartbeat(commands.Cog):
                 user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                 try:
                     edit_result = await dm_active_embed[0].edit(embed=user_embed)
+                    print("Updated server companion message with owner.")
                     msg_sent = True
                 except (discord.errors.NotFound,discord.errors.Forbidden,discord.errors.HTTPException,UnboundLocalError):
                     print(traceback.format_exc())
@@ -105,6 +106,7 @@ class heartbeat(commands.Cog):
                     user_embed = await bot_message.embedLog(f"[{heartbeat.time()}] {log_msg}",alert,self.processed_data_dict)
                     if ctx != False: await dm_active_embed[0].delete()
                     dm_active_embed[0] = await ctx.send(embed=user_embed)
+                    print("Sent new server companion message to owner.")
                     msg_sent = True
                     embedFile = open(self.processed_data_dict['dm_discord_temp'], 'w')
                     embedFile.write(str(dm_active_embed[0].channel.id)+","+str(dm_active_embed[0].id)+"\n")
@@ -451,8 +453,8 @@ Assigned CPU Core: {svrcmd.honCMD.get_process_affinity(self.server_status['hon_p
                         if counter_game_end >= threshold_game_end_check:
                             counter_game_end = 0
                             if svr_state.check_game_ended():
-                                svr_state.restartSERVER(True,f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
-                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
+                                svr_state.restartSERVER(True,f"[{self.match_status['static_ip'] if 'static_ip' in self.match_status else 'No Match ID'}] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.")
+                                svr_state.append_line_to_file(f"{self.processed_data_dict['app_log']}",f"[{self.match_status['static_ip'] if 'static_ip' in self.match_status else 'No Match ID'}] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.","WARNING")
                                 if ctx != None: await send_user_msg(ctx,f"[WARNING] Server restarting due to game end but 1 player has remained connected for {threshold_game_end_check} seconds.",True)
                         #   OPTION 2: if the match time is over 1 hour, and 1 player is connected, start a timer for 2 minutes, after that, restart server
                         if self.server_status['at_least_2_players']:
