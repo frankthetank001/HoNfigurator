@@ -1470,6 +1470,8 @@ if is_admin():
             current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             latest_version=svrcmd.honCMD().check_upstream_patch()
 
+            #   add trailing slash to directory name if missing
+            hondirectory = os.path.join(hondirectory, '')
             current_hon_version=current_version.split('.')
 
             wrong_bins = False
@@ -1551,6 +1553,9 @@ if is_admin():
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
 
+            hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+            honreplay = os.path.join(honreplay,'')
+
             discordadmin = discordadmin.replace(" (DISABLED)","")
             bottoken = bottoken.replace(" (DISABLED)","")
             #
@@ -1616,6 +1621,9 @@ if is_admin():
 
             current_hon_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
             current_hon_version=current_hon_version.split('.')
+
+            hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
+            honreplay = os.path.join(honreplay,'')
 
             if use_proxy:
                 game_port = str(int(game_port) - 10000)
@@ -1727,9 +1735,6 @@ if is_admin():
                 
                 # write config to file
                 honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
-                
-                hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
-                honreplay = os.path.join(honreplay,'')
 
                 self.dataDict = self.initdict.returnDict()
 
@@ -1822,8 +1827,14 @@ if is_admin():
                             initialise.create_service_generic(self,service_proxy_name,application)
                             initialise.configure_service_generic(self,service_proxy_name,application,None)
                             initialise.start_service(self,service_proxy_name,False)
-                        print("waiting 30 seconds for proxy to finish setting up ports...")
-                        time.sleep(30)
+                        tem_counter = 0
+                        while not initialise.check_port(int(self.dataDict['svr_proxyPort'])):
+                            time.sleep(1)
+                            print("waiting 1/30 seconds for proxy to finish setting up ports...")
+                            tem_counter +=1
+                            if tem_counter == 30:
+                                print(f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}")
+                                break
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
                         initialise.print_and_tex(self,"Done.",'interest')
@@ -3317,6 +3328,11 @@ if is_admin():
                         Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
                     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                     latest_version=svrcmd.honCMD().check_upstream_patch()
+                    if latest_version != False:
+                        latest_version_list = latest_version.split('.')
+                        if len(latest_version_list) == 3:
+                            latest_version = f"{'.'.join(latest_version_list)}.0"
+
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
                 if refresh_next==True:
