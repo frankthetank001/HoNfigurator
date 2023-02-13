@@ -1680,9 +1680,9 @@ if is_admin():
                 initialise.add_hosts_entry(self)
                 if self.dataDict['use_proxy'] == 'False':
                     #initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))))
-                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) - 1)
+                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) - 1)
                 else:
-                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.dataDict['game_starting_port']) + 10000 - 1)
+                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) + 10000 - 1)
                 if honreplay != self.dataDict['hon_manager_dir']:
                     force_update = True
                     if not exists(honreplay):
@@ -1937,7 +1937,6 @@ if is_admin():
                         players=True
                         initialise.schedule_shutdown(deployed_status)
                 except Exception:
-                    "ERROR OCCURED"
                     print(traceback.format_exc())
                     return False
             if players==True:
