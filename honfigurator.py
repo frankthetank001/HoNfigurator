@@ -125,6 +125,7 @@ if is_admin():
     
     global hon_api_updated
     first_check_complete = False
+    first_time_installed = False
     #
     #   This changes the taskbar icon by telling windows that python is not an app but an app hoster
     #   Otherwise taskbar icon will be python shell icon
@@ -1532,8 +1533,12 @@ if is_admin():
                             svrcmd.honCMD.stop_proc_by_name("hon_x64_tmp.exe")
                         if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                             svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
-                        tex.insert(END,"Patch successful!\n Relaunching servers")
-                        honfigurator.sendData(self,identifier,hoster,regionshort,serverid,0,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        tex.insert(END,"Patch successful!")
+                        if not first_time_installed:
+                            print("Relaunching servers")
+                            honfigurator.sendData(self,identifier,hoster,regionshort,serverid,0,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
+                        else:
+                            initialise.print_and_tex(self,"Servers updated successfully, now ready to be configured.","interest")
                         update_counter = update_delay
                         updating = False
                         return True
@@ -1909,12 +1914,20 @@ if is_admin():
                     initialise(deployed_server).configureEnvironment(True,use_console)
                     #honfigurator.sendData(self,False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),i,self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
+            global first_time_installed
+
             players=False
             print("attempting to stop servers")
             for i in range (1,(int(self.dataDict['svr_total']) +1)):
                 try:
                     pcount=initialise.playerCountX(self,i)
-                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    try:
+                        deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    except KeyError as e:
+                        if 'master_server' in str(e):
+                            first_time_installed = True
+                            print("first time launch")
+                            return True
                     service_name=f"adminbot{i}"
                     service_check = initialise.get_service(service_name)
                     if pcount <= 0:
