@@ -63,8 +63,8 @@ Monitoring servers provides many benefits. Some of them are listed below:
 The setup is simple. Estimated setup time is 5 minutes.
 
 1. Download the [install beats](https://honfigurator.app/install-beats.bat) script
-    - This will download and install ``FileBeat`` & ``MetricBeat``
 1. Run the file ``install-beats.bat`` from anywhere
+    - This will download and install ``FileBeat`` & ``MetricBeat``
 1. Observe the output:
     - You will be asked to provide the generated  [Certificate Signing Request](https://www.globalsign.com/en/blog/what-is-a-certificate-signing-request-csr) - ``client.csr`` to me.  
       You can [contact me on Discord](https://discordapp.com/users/197967989964800000) to send me the file.
