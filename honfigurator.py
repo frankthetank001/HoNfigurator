@@ -1917,7 +1917,7 @@ if is_admin():
                     try:
                         deployed_status = dmgr.mData.returnDict_deployed(self,i)
                     except KeyError as e:
-                        if 'master_server' in e:
+                        if 'master_server' in str(e):
                             print("first time launch")
                             return True
                     service_name=f"adminbot{i}"
