@@ -91,6 +91,8 @@ class mData():
             self.confDict.update({'incr_port_by':1})
         if 'auto_update' not in self.confDict:
             self.confDict.update({'auto_update':'True'})
+        if 'use_proxy' not in self.confDict:
+            self.confDict.update({'use_proxy':'True'})
         if 'game_starting_port' not in self.confDict:
             if self.confDict['use_proxy'] == 'True':
                 self.confDict.update({'game_starting_port':20000})
@@ -103,8 +105,6 @@ class mData():
                 self.confDict.update({'voice_starting_port':10060})
         if 'debug_mode' not in self.confDict:
             self.confDict.update({'debug_mode':'False'})
-        if 'use_proxy' not in self.confDict:
-            self.confDict.update({'use_proxy':'True'})
         if 'use_console' not in self.confDict:
             self.confDict.update({'use_console':'False'})
         if 'svr_login' not in self.confDict:
