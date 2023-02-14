@@ -170,7 +170,8 @@ Complete the [Installation Steps](#installation) first.
 
 #### Downloads
 1. [Server Binaries](https://github.com/wasserver/wasserver)
-	> **Warning** these files are not affiliated with HoNfigurator, however they are required to host servers.
+	> **Warning** these files are not affiliated with HoNfigurator, however they are required to host servers.  
+	If using HoNfigurator Installation Script, these files will be automatically downloaded and merged into HoN Directory (RECOMMENDED)
 2. [HoNfigurator Installation Script](https://raw.githubusercontent.com/frankthetank001/HoNfigurator/main/utilities/honfigurator-installer.bat) - ``Right click > save link as``
 
 ### Install HoNfigurator
@@ -183,16 +184,17 @@ Complete the [Installation Steps](#installation) first.
 	- Answer ``y/n`` to the prompt.
 
 > When the install is complete, HoNfigurator will open.  
+> **Note** HoN should automatically patch after opening for the first time.
 if there are any issues, please [Contact me](https://discordapp.com/users/197967989964800000)
 
-### Prepare Server Files
+<!-- ### Prepare Server Files
 Merge the [Server Binaries](https://wasserver/wasserver) with the ``HoN Install Directory``
 1. ``HoN Install Directory`` is either:
 	- an existing installation, or
 	- the downloaded HoN Client from the previous step.
 1. Copy the following files
 	- ``wasserver\hon_x64.exe`` ``wasserver\k2_x64.dll`` ``wasserver\proxy.exe`` ``wasserver\proxymanager.exe`` >> ``HoN Install Directory``
-	- ``wasserver\cgame_x64.dll`` ``wasserver\game_shared_x64.dll`` ``wasserver\game_x64.dll`` >> ``HoN Install Directory\game``
+	- ``wasserver\cgame_x64.dll`` ``wasserver\game_shared_x64.dll`` ``wasserver\game_x64.dll`` >> ``HoN Install Directory\game`` -->
 
 ### Configure and Start Servers
 You are ready to go!
