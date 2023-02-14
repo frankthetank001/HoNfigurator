@@ -1914,7 +1914,12 @@ if is_admin():
             for i in range (1,(int(self.dataDict['svr_total']) +1)):
                 try:
                     pcount=initialise.playerCountX(self,i)
-                    deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    try:
+                        deployed_status = dmgr.mData.returnDict_deployed(self,i)
+                    except KeyError as e:
+                        if 'master_server' in e:
+                            print("first time launch")
+                            return True
                     service_name=f"adminbot{i}"
                     service_check = initialise.get_service(service_name)
                     if pcount <= 0:
