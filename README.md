@@ -125,7 +125,7 @@ Complete the [Installation Steps](#installation) first.
 		1. Upload an image if you wish
 		1. Enable the following options:
 			- Public Bot
-			- Message Content Itent
+			- Message Content Intent
 		1. Select ``Reset Token``
 		1. **SAVE** the Bot Token to the ``Bot Token`` field in HoNfigurator and select ``Save Settings``.
 			> The token can be reset any time, however you will need to update the token in the GUI and reconfigure the servers.
