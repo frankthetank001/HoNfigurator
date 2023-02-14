@@ -1354,8 +1354,8 @@ if is_admin():
                 self.tab1_restart_proxy.configure(state='disabled')
                 self.tab3_game_port.delete(0,END)
                 self.tab3_voice_port.delete(0,END)
-                self.tab3_game_port.insert(0,self.dataDict['game_starting_port'])
-                self.tab3_voice_port.insert(0,self.dataDict['voice_starting_port'])
+                self.tab3_game_port.insert(0,game_port-10000)
+                self.tab3_voice_port.insert(0,voice_port-10000)
 
         def switch_widget_state(self,var,index,mode):
             if self.enablebot.get() == True:
