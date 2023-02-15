@@ -106,7 +106,8 @@ if confDict['use_console'] == 'True':
     sys.exit(0)
 elif confDict['use_console'] == 'False':
     print("starting service")
-    os.system(f"net start {app_name}")
+    #os.system(f"net start {app_name}")
+    subprocess.Popen(['net','start',f'{app_name}'])
     sys.exit(0)
 else:
     sys.exit(1)

@@ -50,7 +50,7 @@ class mData():
     #def returnDict(self,configFile):      
     def returnDict(self):
         
-        print(os.getcwd())
+        #print(os.getcwd())
         if exists(resource_path("config\\local_config.ini.incoming")):
             try:
                 shutil.move(resource_path("config\\local_config.ini.incoming"),resource_path("config\\local_config.ini"))
@@ -475,7 +475,7 @@ class mData():
                         t +=1
                 affinity[0] = total_cores - t
                 affinity[1] = total_cores - t
-            print("CPU Affinity: "+str(affinity))
+            #print("CPU Affinity: "+str(affinity))
             return affinity
         if dtype == "pythonLoc":
             py_loc = sp.getoutput('where python')
@@ -490,7 +490,7 @@ class mData():
             for i in range(0,self.svr_id):
                 incr_val = int(self.confDict['incr_port_by'])
                 incr_port = incr_val * i
-            print("port iteration: " +str(incr_port))
+            #print("port iteration: " +str(incr_port))
             return incr_port
         if dtype == "DNSName":
             try:
