@@ -1563,6 +1563,10 @@ if is_admin():
 
             discordadmin = discordadmin.replace(" (DISABLED)","")
             bottoken = bottoken.replace(" (DISABLED)","")
+
+            if self.useproxy:
+                game_port = int(game_port) - 10000
+                voice_port = int(voice_port) - 10000
             #
             #   local config
             if not conf_local.has_section("OPTIONS"):
@@ -1586,8 +1590,8 @@ if is_admin():
             conf_local.set("OPTIONS","core_assignment",core_assignment)
             conf_local.set("OPTIONS","process_priority",process_priority)
             conf_local.set("OPTIONS","incr_port_by",increment_port)
-            conf_local.set("OPTIONS","game_starting_port",game_port)
-            conf_local.set("OPTIONS","voice_starting_port",voice_port)
+            conf_local.set("OPTIONS","game_starting_port",str(game_port))
+            conf_local.set("OPTIONS","voice_starting_port",str(voice_port))
             conf_local.set("OPTIONS","github_branch",str(selected_branch))
             conf_local.set("OPTIONS","debug_mode",str(debug_mode))
             conf_local.set("OPTIONS","use_proxy",str(use_proxy))
@@ -1630,9 +1634,9 @@ if is_admin():
             hondirectory = os.path.join(hondirectory, '') #   adds a trailing slash to the end of the path if there isn't one. Required because the code breaks if a slash isn't provided
             honreplay = os.path.join(honreplay,'')
 
-            if use_proxy:
-                game_port = str(int(game_port) - 10000)
-                voice_port = str(int(voice_port) - 10000)
+            # if use_proxy:
+            #game_port = str(int(game_port) - 10000)
+            #voice_port = str(int(voice_port) - 10000)
 
             wrong_bins = False
             if len(current_hon_version) == 0:
@@ -1683,11 +1687,8 @@ if is_admin():
                 ports_to_forward_game=[]
                 ports_to_forward_voice=[]
                 initialise.add_hosts_entry(self)
-                if self.dataDict['use_proxy'] == 'False':
-                    #initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))))
-                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) - 1)
-                else:
-                    firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) + 10000 - 1)
+                #   initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))))
+                firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) - 1)
                 if honreplay != self.dataDict['hon_manager_dir']:
                     force_update = True
                     if not exists(honreplay):
@@ -2923,19 +2924,6 @@ if is_admin():
             #    Network Section
             applet.Label(tab3, text="Networking",background=maincolor,foreground='white',font=Font_Title).grid(column=1, row=8,sticky="w")
             #   use proxy
-            applet.Label(tab3, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
-            self.useproxy = tk.BooleanVar(self.app)
-            if self.dataDict['use_proxy'] == 'True':
-                self.useproxy.set(True)
-            tab3_useproxy_btn = applet.Checkbutton(tab3,variable=self.useproxy)
-            honfigurator.CreateToolTip(tab3_useproxy_btn, \
-                    f"Enable this option to use the HoN Proxy service.\nThis creates a layer of protection by ensuring all game server data is dealt with by the proxy first, eliminating malicious DoS attempts.\nIf using the proxy. Observe carefully the HoNfigurator output, and only port forward the Proxy ports on your router.")
-            tab3_useproxy_btn.grid(column= 1, row = 13,sticky="w",pady=4)
-            self.useproxy.trace_add('write', self.port_mode)
-            try:
-                isinstance(self.tab3_game_port,int)
-                honfigurator.port_mode(self,NULL,NULL,NULL)
-            except: pass
             #   Ports
             applet.Label(tab3, text="Starting game port:",background=maincolor,foreground='white').grid(column=0,row=9,sticky="e")
             self.tab3_game_port = applet.Entry(tab3,foreground=textcolor,width=5)
@@ -2965,6 +2953,15 @@ if is_admin():
             if 'static_ip' in self.dataDict:
                 self.tab3_ip.insert(0,self.dataDict['svr_ip'])
             self.tab3_ip.grid(column= 1 , row = 12,sticky="w",pady=4)
+            applet.Label(tab3, text="Use proxy (anti-DDOS):",background=maincolor,foreground='white').grid(column=0, row=13,sticky="e",padx=[20,0])
+            self.useproxy = tk.BooleanVar(self.app)
+            if self.dataDict['use_proxy'] == 'True':
+                self.useproxy.set(True)
+            tab3_useproxy_btn = applet.Checkbutton(tab3,variable=self.useproxy)
+            honfigurator.CreateToolTip(tab3_useproxy_btn, \
+                    f"Enable this option to use the HoN Proxy service.\nThis creates a layer of protection by ensuring all game server data is dealt with by the proxy first, eliminating malicious DoS attempts.\nIf using the proxy. Observe carefully the HoNfigurator output, and only port forward the Proxy ports on your router.")
+            tab3_useproxy_btn.grid(column= 1, row = 13,sticky="w",pady=4)
+            self.useproxy.trace_add('write', self.port_mode)
             #
             #    Discord Section
             self.tab3_discord_title = applet.Label(tab3, text="",background=maincolor,foreground='white',font=Font_Title)
@@ -3075,6 +3072,7 @@ if is_admin():
             honfigurator.CreateToolTip(self.tab1_restart_proxy, \
                     f"Enable this option to ensure the proxy is restarted on the next configure. This may disrupt games in progress.")
             self.tab1_restart_proxy.grid(column= 1, row = 6,sticky="w",pady=4)
+            honfigurator.port_mode(self,NULL,NULL,NULL)
             
             #   console windows, for launching servers locally (not as windows services)
             applet.Label(tab1, text="Launch servers in console mode:",background=maincolor,foreground='white').grid(column=0, row=5,sticky="e",padx=[20,0])
