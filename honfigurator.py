@@ -1808,7 +1808,7 @@ if is_admin():
                         proxy_running=True
                     # if service_proxy:
                     print("proxy exists")
-                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={game_port}",f"startvoicePort={voice_port}","region=naeu"]
+                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={int(game_port)-10000}",f"startvoicePort={int(voice_port)-10000}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
@@ -1836,11 +1836,11 @@ if is_admin():
                         tem_counter = 0
                         while not initialise.check_port(int(self.dataDict['svr_proxyPort'])):
                             time.sleep(1)
-                            print("waiting 1/30 seconds for proxy to finish setting up ports...")
+                            print(f"waiting {tem_counter}/30 seconds for proxy to finish setting up ports...")
                             tem_counter +=1
                             if tem_counter == 30:
-                                print(f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}")
-                                break
+                                initialise.print_and_tex(self,f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}",'WARNING')
+                                return False
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
                         initialise.print_and_tex(self,"Done.",'interest')
