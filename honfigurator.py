@@ -488,9 +488,9 @@ if is_admin():
         def stop_service(self,service_name,deployed):
             try:
                 if deployed:
-                    sp.Popen(['net','stop',f'{service_name}'])
+                    res = sp.Popen(['net','stop',f'{service_name}'])
                 else:
-                    sp.run(['net','stop',f'{service_name}'])
+                    res = sp.run(['net','stop',f'{service_name}'])
             except Exception:
                 print ('could not stop service {}'.format(service_name))
                 return False
@@ -1096,16 +1096,16 @@ if is_admin():
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
                 if exists(f"{self.dataDict['sdc_home_dir']}\\config\\local_config.ini"):
                     self.deployed_status = self.data.returnDict_deployed(self.svr_id)
-                wait = 5
-                waiting = 0
-                while not initialise.check_proc(f"{self.service_name_bot}.exe"):
-                    time.sleep(1)
-                    waiting +=1
-                    if initialise.check_proc(f"{self.service_name_bot}.exe"):
-                        waiting = 5
-                    if waiting > wait:
-                        initialise.print_and_tex(self,f"[{self.service_name_bot}] Problem starting.",'warning')
-                        break
+                # wait = 5
+                # waiting = 0
+                # while not initialise.check_proc(f"{self.service_name_bot}.exe"):
+                #     time.sleep(1)
+                #     waiting +=1
+                #     if initialise.check_proc(f"{self.service_name_bot}.exe"):
+                #         waiting = 5
+                #     if waiting > wait:
+                #         initialise.print_and_tex(self,f"[{self.service_name_bot}] Problem starting.",'warning')
+                #         break
                 if use_console == True:
                     mode = "console"
                 else:
@@ -1554,6 +1554,11 @@ if is_admin():
                     tex.insert(END,f"Server is already at the latest version ({latest_version}).\n")
                     print(f"Server is already at the latest version ({latest_version}).")
                     tex.see(tk.END)
+        def save_settings(self,*args, **kwargs):
+            honfigurator.update_local_config(self,*args, **kwargs)
+            self.dataDict = dmgr.mData().returnDict()
+            initialise.print_and_tex(self,"Settings Saved.",'interest')
+
         def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
@@ -1608,8 +1613,7 @@ if is_admin():
             with open(config_local, "w") as c:
                 conf_local.write(c)
             c.close()
-            self.dataDict = dmgr.mData().returnDict()
-            initialise.print_and_tex(self,"Settings Saved.",'interest')
+            #self.dataDict = dmgr.mData().returnDict()
             #initialise.print_and_tex(self,"NOTE: These settings will not be applied until you configure servers with the new values.",'warning')
         def return_currentver(self):
             manifest=f"{self.dataDict['hon_directory']}Update\\manifest.xml"
@@ -1748,10 +1752,10 @@ if is_admin():
                     firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
                 #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
+                manager_application=f"KONGOR ARENA MANAGER.exe"
                 #service_proxy = initialise.get_service(service_proxy_name)
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
-                manager_application=f"KONGOR ARENA MANAGER.exe"
                 if self.dataDict['use_proxy'] == 'False':
                     udp_listener_port = int(self.dataDict['game_starting_port']) - 1
                 else:
@@ -1808,7 +1812,7 @@ if is_admin():
                         proxy_running=True
                     # if service_proxy:
                     print("proxy exists")
-                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={game_port}",f"startvoicePort={voice_port}","region=naeu"]
+                    proxy_config=[f"count={servertotal}",f"ip={self.dataDict['svr_ip']}",f"startport={int(game_port)-10000}",f"startvoicePort={int(voice_port)-10000}","region=naeu"]
                     proxy_config_location=f"{self.dataDict['hon_root_dir']}\\HonProxyManager"
                     if not exists(proxy_config_location):
                         os.makedirs(proxy_config_location)
@@ -1836,24 +1840,26 @@ if is_admin():
                         tem_counter = 0
                         while not initialise.check_port(int(self.dataDict['svr_proxyPort'])):
                             time.sleep(1)
-                            print("waiting 1/30 seconds for proxy to finish setting up ports...")
+                            print(f"waiting {tem_counter}/30 seconds for proxy to finish setting up ports...")
                             tem_counter +=1
                             if tem_counter == 30:
-                                print(f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}")
-                                break
+                                initialise.print_and_tex(self,f"timed out waiting for proxy to start listening on port {self.dataDict['svr_proxyPort']}",'WARNING')
+                                return False
                         self.restart_proxy.set(False)
                     if svrcmd.honCMD.check_proc(application):
                         initialise.print_and_tex(self,"Done.",'interest')
+                
+                initialise.print_and_tex(self,f"\n************* Configuring adminbots *************","header")
                 if identifier == "selected":
-                    self.dataDict = dmgr.mData().returnDict()
-                    print()
+                    # self.dataDict = dmgr.mData().returnDict()
+                    # print()
                     for i in range(int(serverid),int(serverto)+1):
                         serverid = i
-                        initialise.print_and_tex(self,f"\n************* Configuring adminbot{serverid} *************","header")
                         honfigurator.update_local_config(self,hoster,regionshort, serverid, servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         self.dataDict = dmgr.mData().returnDict()
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
+
                 elif identifier == "all":
                     print("Selected option to configure ALL servers\n")
                     threads = []
@@ -1863,22 +1869,26 @@ if is_admin():
                         self.dataDict = dmgr.mData().returnDict()
                         hon_api_updated = False
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
-                    # for x in threads:
-                    #     x.start()
-                    # for x in threads:
-                    #     x.join()
-
                         
-                #tex.insert(END,f"Updated {self.service_name_bot} to version v{self.bot_version}.\n")
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
-                if identifier == "all":
-                    for i in range(0,int(servertotal)):
-                        serverid = i + 1
-                        if initialise.check_proc(f"adminbot{serverid}.exe"):
-                            pass
-                            #initialise.print_and_tex(self,f"[adminbot{serverid}] OK")
-                        else:
-                            initialise.print_and_tex(self,f"[adminbot{serverid}] Failed to start.")
+                if identifier == 'selected':
+                    total = serverto + 1
+                else:
+                    total = servertotal
+                time.sleep(2)
+                successful = []
+                failed = []
+                for i in range(0,int(total)):
+                    if initialise.check_proc(f"adminbot{i+1}.exe"):
+                        successful.append(f"adminbot{i+1}")
+                        #initialise.print_and_tex(self,f"[adminbot{i+1}] Started.",'interest')
+                    else:
+                        failed.append(f"adminbot{i+1}")
+                        #initialise.print_and_tex(self,f"[adminbot{i+1}] Failed to start.",'warning')
+                if len(successful) > 0:
+                    initialise.print_and_tex(self,f"SUCCESSFULLY CONFIGURED: {', '.join(successful)}",'interest')
+                if len(failed) > 0:
+                    initialise.print_and_tex(self,f"FAILED TO CONFIGURE: {', '.join(failed)}",'warning')
                 initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Game): {', '.join(map(str,ports_to_forward_game))}",'interest')
                 initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Voice): {', '.join(map(str,ports_to_forward_voice))}",'interest')
                 if self.dataDict['use_proxy'] == 'False':
@@ -2290,57 +2300,99 @@ if is_admin():
                 def StartProxy(self):
                     global refresh_counter
                     global refresh_delay
-                    if svrcmd.honCMD.check_proc("HoN Proxy Manager") == False:
-                        if self.dataDict['use_proxy']=='True':
-                            if initialise.start_service(self,"HoN Proxy Manager",True):
-                                tex.insert(END,"Proxy started.")
-                                tex.see(tk.END)
-                                refresh_counter = refresh_delay
-                            else:
-                                tex.insert(END,"Failed to start the proxy service.")
-                                tex.see(tk.END)
-                        else:
-                            tex.insert(END,"Proxy not enabled. Please configure some servers using the proxy.")
-                            tex.see(tk.END)
+                    if not self.dataDict['use_proxy']=='True':
+                        initialise.print_and_tex(self,"Proxy not enabled. Please configure some servers using the proxy.",'warning')
+                        return
+                    proxy_service = initialise.get_service("HoN Proxy Manager")
+                    if not proxy_service:   
+                        initialise.print_and_tex(self,"Proxy is not yet configured.")
+                        return
+                    initialise.start_service(self,"HoN Proxy Manager",True)
+                    # time.sleep(1)
+                    # if initialise.check_proc("proxymanager.exe"):
+                    #     initialise.print_and_tex(self,"Proxy started.")
+                    #     refresh_counter = refresh_delay
+                    # else:
+                    #     initialise.print_and_tex(self,"Failed to start the proxy service.")
+                    #     refresh_counter = refresh_delay
+                    # return
+                    refresh_counter = refresh_delay
+
                 def StopProxy(self):
                     global refresh_counter
                     global refresh_delay
-                    if svrcmd.honCMD.check_proc("HoN Proxy Manager") == True:
-                        if self.dataDict['use_proxy']=='True':
-                            if initialise.stop_service(self,"HoN Proxy Manager",True):
-                                tex.insert(END,"Proxy stopped.")
-                                tex.see(tk.END)
-                                refresh_counter = refresh_delay
-                            else:
-                                tex.insert(END,"Failed to stop the proxy service.")
-                                tex.see(tk.END)
-                        else:
-                            tex.insert(END,"Proxy not enabled. Please configure some servers using the proxy.")
-                            tex.see(tk.END)
+                    if not self.dataDict['use_proxy']=='True':
+                        initialise.print_and_tex(self,"Proxy not enabled. Please configure some servers using the proxy.",'WARNING')
+                        return
+                    proxy_service = initialise.get_service("HoN Proxy Manager")
+                    if not proxy_service:   
+                        initialise.print_and_tex(self,"Proxy is not yet configured.")
+                        return
+                    initialise.stop_service(self,"HoN Proxy Manager",True)
+                    # time.sleep(1)
+                    # if initialise.check_proc("proxymanager.exe"):
+                    #     initialise.print_and_tex(self,"HoN Proxy Manager started.")
+                    #     refresh_counter = refresh_delay
+                    # else:
+                    #    initialise.print_and_tex(self,"HoN Proxy Manager failed to start.")
+                    refresh_counter = refresh_delay
+                    #return
+
                 def StartManager(self):
-                    global refresh_counter
-                    global refresh_delay
-                    if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe") == False:
-                        if initialise.start_service(self,"HoN Server Manager",True):
-                            tex.insert(END,"HoN Server Manager started.")
-                            tex.see(tk.END)
-                            refresh_counter = refresh_delay
-                        else:
-                            tex.insert(END,"Failed to start the server manager service. This is required for replays.")
-                            tex.see(tk.END)
+                    global refresh_counter,refresh_delay,labl_manager,btn_manager
+                    
+                    service_manager_name="HoN Server Manager"
+                    manager_application=f"KONGOR ARENA MANAGER.exe"
+
+                    if self.dataDict['use_proxy'] == 'False':
+                        udp_listener_port = int(self.dataDict['game_starting_port']) - 1
+                    else:
+                        udp_listener_port = int(self.dataDict['game_starting_port']) + 10000 - 1
+
+                    manager_arguments=f"Set svr_port {udp_listener_port}; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set upd_checkForUpdates False;Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+                    os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
+
+                    if initialise.check_proc(service_manager_name):
+                        initialise.print_and_tex(self,"HoN Proxy Manager already started.")
+                        return
+                    if self.dataDict['use_console'] == 'False':
+                        initialise.start_service(self,service_manager_name,True)
+                    else:
+                        sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
+                    # time.sleep(1)
+                    # if initialise.check_proc(manager_application):
+                    #     initialise.print_and_tex(self,"HoN Server Manager started.")
+                    #     refresh_counter = refresh_delay
+                    # else:
+                    #     initialise.print_and_tex(self,"HoN Server Manager failed to start.",'warning')
+                    # return
+                    refresh_counter = refresh_delay
+
+
                 def StopManager(self):
-                    global refresh_counter
-                    global refresh_delay
-                    if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe") == True:
-                        if initialise.stop_service(self,"HoN Server Manager",True):
-                            tex.insert(END,"HoN Server Manager stopped.")
-                            tex.see(tk.END)
-                            refresh_counter = refresh_delay
-                        else:
-                            tex.insert(END,"Failed to stop the server manager service.")
-                            tex.see(tk.END)
+                    global refresh_counter,refresh_delay,labl_manager,btn_manager
+                    
+                    service_manager_name="HoN Server Manager"
+                    manager_application=f"KONGOR ARENA MANAGER.exe"
+                    service_manager = initialise.get_service(service_manager_name)
+                    if not initialise.check_proc(manager_application):
+                        initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
+                        return
+                    if service_manager and service_manager['status'] in ['running','paused']:
+                        initialise.stop_service(self,service_manager_name,True)
+                    else:
+                        initialise.stop_bot(self,manager_application)
+                    # time.sleep(1)
+                    # if not initialise.check_proc(manager_application):
+                    #     initialise.print_and_tex(self,"HoN Server Manager stopped.")
+                    #     refresh_counter = refresh_delay
+                    # else:
+                    #     initialise.print_and_tex(self,"HoN Server Manager failed to stop.")
+                    #     refresh_counter = refresh_delay
+                    refresh_counter = refresh_delay
+                    
                 def Stop(self):
-                    global refresh_counter
+                    global refresh_counter,refresh_delay
                     pcount = initialise.playerCountX(self,id)
                     service_name=f"adminbot{id}"
                     service_check = initialise.get_service(service_name)
@@ -2359,6 +2411,7 @@ if is_admin():
                             initialise.stop_bot(self,f"KONGOR_ARENA_{id}.exe")
                             initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                                 #viewButton.refresh()
+                        refresh_counter = refresh_delay
                     else:
                         print(f"[adminbot{id}] [ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
@@ -3142,7 +3195,7 @@ if is_admin():
             # applet.Label(tab1,text="",background=maincolor,foreground='white').grid(column=0,row=10)
             # applet.Label(tab1,text="",background=maincolor,foreground='white').grid(column=0,row=11)
             # applet.Label(tab1,text="",background=maincolor,foreground='white').grid(column=0,row=12)
-            tab1_savesettings = applet.Button(tab1,width=22, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab1_savesettings = applet.Button(tab1,width=22, text="Save Settings",command=lambda: Thread(target=self.save_settings,args=(self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_savesettings.grid(columnspan=7,column=0, row=5,stick='n',padx=[0,0],pady=[0,10])
             honfigurator.CreateToolTip(tab1_savesettings, \
                     f"Save the current configuration settings.")
@@ -3165,7 +3218,7 @@ if is_admin():
 
             tab1_allbutton = applet.Button(tab1,width=22, text="Configure All Servers",command=lambda: Thread(target=self.sendData,args=("all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_to_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab1_allbutton.grid(columnspan=7,column=0, row=4,stick='n',padx=[0,0],pady=[0,10])
-            tab3_savesettings = applet.Button(tab3,width=22, text="Save Settings",command=lambda: Thread(target=self.update_local_config,args=(self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
+            tab3_savesettings = applet.Button(tab3,width=22, text="Save Settings",command=lambda: Thread(target=self.save_settings,args=(self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start())
             tab3_savesettings.grid(columnspan=7,column=0, row=14,stick='n',padx=[0,300],pady=[0,10])
             honfigurator.CreateToolTip(tab3_savesettings, \
                     f"Save the current configuration settings.")
