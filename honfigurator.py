@@ -1872,9 +1872,9 @@ if is_admin():
                         
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
                 if identifier == 'selected':
-                    total = serverto + 1
+                    total = int(serverto) + 1
                 else:
-                    total = servertotal
+                    total = int(servertotal)
                 time.sleep(2)
                 successful = []
                 failed = []
