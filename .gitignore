@@ -2,6 +2,7 @@ config/local_config.ini
 config/num_server_rows
 utilities/honfigurator-installer.ps1
 utilities/install-beats.ps1
+*profile*.dat
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -84,6 +84,12 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import traceback
+import tracemalloc
+import linecache
+import gc
+#from pympler.tracker import SummaryTracker
+#from mem_top import mem_top
+
 import winreg
 try:
     import speedtest
@@ -103,6 +109,8 @@ def is_admin():
     except Exception:
         return False
 if is_admin():
+
+    #tracemalloc.start(25)
     exp = f'setx HONFIGURATOR_DIR \"{application_path}\"'
     sp.Popen(exp, shell=True).wait()
 
@@ -2052,12 +2060,15 @@ if is_admin():
                 if tw:
                     tw.destroy()
         def creategui(self):
+            global ButtonString,LablString
+            ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
+            LablString = ['hon_server_','status']
             class viewButton():
                 class Autoresized_Notebook(Notebook):
                     def __init__(self, master=None, **kw):
                         Notebook.__init__(self, master, **kw)
                         self.bind("<<NotebookTabChanged>>",self._on_tab_changed)
-
+        
                     def _on_tab_changed(self,event):
                         global pb
 
@@ -2126,6 +2137,59 @@ if is_admin():
                     list = tab3.grid_slaves()
                     for l in list:
                         l.destroy()
+                def elapsed_since(start):
+                    return time.strftime("%H:%M:%S", time.gmtime(time.time() - start))
+                
+                
+                def get_process_memory():
+                    process = psutil.Process(os.getpid())
+                    mem_info = process.memory_info()
+                    return mem_info.rss
+
+                def profile(func):
+                    def wrapper(*args, **kwargs):
+                        mem_before = viewButton.get_process_memory()
+                        start = time.time()
+                        result = func(*args, **kwargs)
+                        elapsed_time = viewButton.elapsed_since(start)
+                        mem_after = viewButton.get_process_memory()
+                        print("{}: memory before: {:,}, after: {:,}, consumed: {:,}; exec time: {}".format(
+                            func.__name__,
+                            mem_before, mem_after, mem_after - mem_before,
+                            elapsed_time))
+                        return result
+                    return wrapper
+                def display_top(snapshot, key_type='lineno', limit=10, where=''):
+                    print('======================================================================')
+                    if where != '':
+                        print(f'Printing stats:\n    {where}')
+                        print('======================================================================')
+                    
+
+                    snapshot = snapshot.filter_traces((
+                        tracemalloc.Filter(False, '<frozen importlib._bootstrap>'),
+                        tracemalloc.Filter(False, '<unknown>'),
+                    ))
+                    top_stats = snapshot.statistics(key_type)
+
+                    print(f'Top {limit} lines')
+                    for index, stat in enumerate(top_stats[:limit], 1):
+                        frame = stat.traceback[0]
+                        # replace '/path/to/module/file.py' with 'module/file.py'
+                        filename = os.sep.join(frame.filename.split(os.sep)[-2:])
+                        print(f'#{index}: {filename}:{frame.lineno}: {stat.size / 1024:.1f} KiB')
+                        line = linecache.getline(frame.filename, frame.lineno).strip()
+                        if line:
+                            print(f'    {line}')
+
+                    other = top_stats[limit:]
+                    if other:
+                        size = sum(stat.size for stat in other)
+                        print(f'{len(other)} other: {size / 1024:.1f} KiB')
+                    total = sum(stat.size for stat in top_stats)
+                    print()
+                    print(f'=====> Total allocated size: {total / 1024:.1f} KiB')
+                    print()
                 def refresh(*args):
                     global mod_by
                     global refresh_next
@@ -2138,10 +2202,12 @@ if is_admin():
                     refresh_next=False
                     refresh_counter = 0
                     global thread
+                    #if not first_tab_switch: tracker = SummaryTracker()
                     #Autoresized_Notebook._on_tab_changed()
                     if tabgui.index("current") in [0,1]:    
                         ver=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
                         status = Entry(self.app,background=maincolor,foreground='white',width="200")
+                        status.delete(0,END)
                         status.insert(0,f"HoN Server Version: {ver}     |     Version on Master Server: {svrcmd.honCMD().check_upstream_patch()}")
                         status.grid(row=21,column=0,sticky='w')
 
@@ -2154,8 +2220,8 @@ if is_admin():
                             mod_by = int(stretch.get())+3
                             labllist.clear()
                             viewButton.clear_frame()
-                        else:
-                            honfigurator.CreateToolTip.leave()
+                        # else:
+                        #     honfigurator.CreateToolTip.leave()
                     except Exception: pass
                     # if auto_refresh_var or swap_anyway:
                     if not server_admin_loading:
@@ -2163,8 +2229,20 @@ if is_admin():
                         if first_tab_switch and tabgui.index("current") == 2:
                             viewButton.load_server_mgr(self)
                         else:
+                            #viewButton.load_server_mgr(self)
                             thread = Thread(target=viewButton.load_server_mgr,args=[self])
                             thread.start()
+                    
+                    # snapshot = tracemalloc.take_snapshot()
+                    # top_stats = snapshot.statistics('lineno')
+
+                    # print("[ Top 10 ]")
+                    # for stat in top_stats[:10]:
+                    #     print(stat)
+                    # if not first_tab_switch:
+                    #     #tracker.print_diff()
+                    #     print(mem_top())
+                    
                 def load_log(self,*args):
                     global bot_tab
                     try:
@@ -2477,7 +2555,169 @@ if is_admin():
                         tex.insert(END,"[ABORT] players are connected. You must stop the service before uninstalling..\n")
                         tex.see(tk.END)
                         initialise.schedule_shutdown(deployed_status)
+
+                @profile
+                def do_everything(self,x,deployed_status,update):
+                    #tracemalloc.start(25)
+                    #viewButton.display_top(tracemalloc.take_snapshot(), where='before loading server')
+                    c_len = len(ButtonString)+len(LablString)
+                    global i
+                    global c
+                    global incr
+                    global labllist,btnlist,labllistrows,labllistcols,btnlistrows,btnlistcols
+                    x+=1
+                    i+=1
+                    service_name = f"adminbot{x}"
+                    dir_name = f"{deployed_status['hon_logs_dir']}\\"
+                    try:
+                        proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
+                    except Exception:
+                        proc_priority = "N/A"
+                    file = "Slave*.log"
+                    log = False
+                    try:
+                        list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
+                        log = max(list_of_files, key=os.path.getctime)
+                    except Exception:
+                        print(traceback.format_exc())
+                    if log != False:
+                        cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
+                    else:
+                        cookie = "pending"
+                    schd_restart = False
+                    schd_shutdown = False
+                    schd_restart=initialise.check_schd_restart(deployed_status)
+                    schd_shutdown=initialise.check_schd_shutdown(deployed_status)
+                    service_state = initialise.get_service(service_name)
+                    pcount = initialise.playerCountX(self,x)
+                    #
+                    # when total servers goes over <num>, move to the next column, and set row back to 1.
+                    if i%mod_by==0:
+                        c+=c_len
+                        i=3
+                    if pcount > 0:
+                        ButtonString[1] = "Stop"
+                        logs_dir = f"{deployed_status['hon_logs_dir']}\\"
+                        log_File = f"Slave*{x}*.clog"
+                        list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
+                        try:
+                            latest_file = max(list_of_files, key=os.path.getctime)
+                            match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
+                            if 'match_id' not in match_status: match_status.update({'match_id':'TBA'})
+                        except Exception:
+                            print(traceback.format_exc())
+                    elif pcount >= 0:
+                        ButtonString[1] = "Stop"
+                    else:
+                        ButtonString[1] = "Start"
+                    if service_state is not None and deployed_status['use_console'] == 'False':
+                        svc_or_con="svc"
+                    elif deployed_status['use_console'] == 'True':
+                        svc_or_con="con"
+                    LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
+                    if pcount < 0:
+                        colour = 'OrangeRed4'
+                        LablString[1]="Offline"
+                    elif pcount == 0:
+                        if schd_shutdown:
+                            colour = 'chocolate4'
+                            LablString[1]=f"I should be off"
+                        elif schd_restart:
+                            colour = 'chocolate4'
+                            LablString[1]=f"I should have restarted"
+                        else:
+                            colour = 'MediumPurple3'
+                            if cookie == 'connected':
+                                LablString[1]="Available"
+                            elif cookie == 'no cookie':
+                                LablString[1]="No cookie"
+                                colour = 'chocolate4'
+                            else:
+                                LablString[1]="Pending Info"
+                    elif pcount >0:
+                        if schd_restart:
+                            colour='indian red'
+                            LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                        elif schd_shutdown:
+                            colour='indian red'
+                            LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                        else:
+                            colour = 'SpringGreen4'
+                            LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
+                    for index1, labl_name in enumerate(LablString):
+                        c_pos1 = index1 + c
+                        if index1==0:
+                            if update:
+                                labllist[f"{x}-{index1}"].configure(text=labl_name,background=colour)
+                                # labllist[f"{x}-{index1}"]['text'] = labl_name
+                                # labllist[f"{x}-{index1}"]['background'] = colour
+                            else:
+                                labllist.update({f"{x}-{index1}":Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')})
+                                labllistrows.update({f"{x}-{index1}":i})
+                                labllistcols.update({f"{x}-{index1}":c_pos1})
+                            # try:
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
+                            # except Exception: pass
+                        elif index1==1:
+                            if update:
+                                labllist[f"{x}-{index1}"].configure(text=labl_name,background=colour)
+                                # labllist[f"{x}-{index1}"]['text']=labl_name
+                                # labllist[f"{x}-{index1}"]['background']=colour
+                            else:
+                                labllist.update({f"{x}-{index1}":Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')})
+                                labllistrows.update({f"{x}-{index1}":i})
+                                labllistcols.update({f"{x}-{index1}":c_pos1})
+                            # if 'available' in labl_name.lower():
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"Server is available and connected to the master server.")
+                            # elif 'error' in labl_name.lower():
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
+                            # elif 'pending' in labl_name.lower():
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"Waiting for server log to show whether we have a successful connection.")
+                            # elif schd_restart:
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                            # elif schd_shutdown:
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                            # elif pcount > 0:
+                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                            #         f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: {schd_shutdown}\nScheduled restart: {schd_restart}")
+                        for index2, btn_name in enumerate(ButtonString):
+                            index2 +=len(LablString)
+                            c_pos2 = index2 + c
+                            if update:
+                                btnlist[f"{x}-{index2}"].configure(text=btn_name,command=partial(viewButton,btn_name,x,pcount))
+                                # btnlist[f"{x}-{index2}"]['text']=btn_name
+                                # btnlist[f"{x}-{index2}"]['command']=partial(viewButton,btn_name,x,pcount)
+                            else:
+                                btnlist.update({f"{x}-{index2}":Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))})
+                                btnlistrows.update({f"{x}-{index2}":i})
+                                btnlistcols.update({f"{x}-{index2}":c_pos2})
+                            # if btn_name == "View Log":
+                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                            #         "View the server logs")
+                            # elif btn_name == "Start":
+                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                            #         "Start the server with the current configuration.")
+                            # elif btn_name == "Stop":
+                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                            #         "Schedule a shutdown of this server. Does NOT disconnect current games.")
+                            # elif btn_name == "Clean":
+                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                            #         "Remove unnecessary files (7 days or older), such as old log files.")
+                            # elif btn_name == "Uninstall":
+                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                            #         "Remove this server and bot, also removes folders and files.")
+                            #btn.grid(row=i, column=c_pos2)
+                    gc.collect()
+                    #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading server')
+                #@profile
                 def load_server_mgr(self,*args):
+                    #tracemalloc.start(25)
                     global i
                     global c
                     global incr
@@ -2490,8 +2730,6 @@ if is_admin():
                     c=0
                     i=2
                     incr=0
-                    ButtonString = ['View Log', 'Start', 'Clean', 'Uninstall']
-                    LablString = ['hon_server_','status']
                     #progressbar
                     pb = ttk.Progressbar(
                         app,
@@ -2503,158 +2741,6 @@ if is_admin():
                     pb.grid(column=0,sticky='n',row=1, columnspan=8, padx=10, pady=[0,0])
                     pb.start()
                     #print("Preparing Server Administration tab...")
-                    def do_everything(self,x,deployed_status,update):
-                        c_len = len(ButtonString)+len(LablString)
-                        global i
-                        global c
-                        global incr
-                        global labllist,btnlist,labllistrows,labllistcols,btnlistrows,btnlistcols
-                        x+=1
-                        i+=1
-                        service_name = f"adminbot{x}"
-                        dir_name = f"{deployed_status['hon_logs_dir']}\\"
-                        try:
-                            proc_priority = svrcmd.honCMD.get_process_priority(f"KONGOR_ARENA_{x}.exe")
-                        except Exception:
-                            proc_priority = "N/A"
-                        file = "Slave*.log"
-                        log = False
-                        try:
-                            list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
-                            log = max(list_of_files, key=os.path.getctime)
-                        except Exception:
-                            print(traceback.format_exc())
-                        if log != False:
-                            cookie = svrcmd.honCMD.check_cookie(deployed_status,log,"honfigurator_log_check")
-                        else:
-                            cookie = "pending"
-                        schd_restart = False
-                        schd_shutdown = False
-                        schd_restart=initialise.check_schd_restart(deployed_status)
-                        schd_shutdown=initialise.check_schd_shutdown(deployed_status)
-                        service_state = initialise.get_service(service_name)
-                        pcount = initialise.playerCountX(self,x)
-                        #
-                        # when total servers goes over <num>, move to the next column, and set row back to 1.
-                        if i%mod_by==0:
-                            c+=c_len
-                            i=3
-                        if pcount > 0:
-                            ButtonString[1] = "Stop"
-                            logs_dir = f"{deployed_status['hon_logs_dir']}\\"
-                            log_File = f"Slave*{x}*.clog"
-                            list_of_files = glob.glob(logs_dir + log_File) # * means all if need specific format then *.csv
-                            try:
-                                latest_file = max(list_of_files, key=os.path.getctime)
-                                match_status = svrcmd.honCMD.simple_match_data(latest_file,"match")
-                                if 'match_id' not in match_status: match_status.update({'match_id':'TBA'})
-                            except Exception:
-                                print(traceback.format_exc())
-                        elif pcount >= 0:
-                            ButtonString[1] = "Stop"
-                        else:
-                            ButtonString[1] = "Start"
-                        if service_state is not None and deployed_status['use_console'] == 'False':
-                            svc_or_con="svc"
-                        elif deployed_status['use_console'] == 'True':
-                            svc_or_con="con"
-                        LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
-                        if pcount < 0:
-                            colour = 'OrangeRed4'
-                            LablString[1]="Offline"
-                        elif pcount == 0:
-                            if schd_shutdown:
-                                colour = 'chocolate4'
-                                LablString[1]=f"I should be off"
-                            elif schd_restart:
-                                colour = 'chocolate4'
-                                LablString[1]=f"I should have restarted"
-                            else:
-                                colour = 'MediumPurple3'
-                                if cookie == 'connected':
-                                    LablString[1]="Available"
-                                elif cookie == 'no cookie':
-                                    LablString[1]="No cookie"
-                                    colour = 'chocolate4'
-                                else:
-                                    LablString[1]="Pending Info"
-                        elif pcount >0:
-                            if schd_restart:
-                                colour='indian red'
-                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                            elif schd_shutdown:
-                                colour='indian red'
-                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                            else:
-                                colour = 'SpringGreen4'
-                                LablString[1]=f"skips({match_status['skipped_frames']}) {match_status['match_id']} ({pcount}p)"
-                        for index1, labl_name in enumerate(LablString):
-                            c_pos1 = index1 + c
-                            if index1==0:
-                                if update:
-                                    labllist[f"{x}-{index1}"]['text'] = labl_name
-                                    labllist[f"{x}-{index1}"]['background'] = colour
-                                else:
-                                    labllist.update({f"{x}-{index1}":Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')})
-                                    labllistrows.update({f"{x}-{index1}":i})
-                                    labllistcols.update({f"{x}-{index1}":c_pos1})
-                                try:
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                    f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
-                                except Exception: pass
-                            elif index1==1:
-                                if update:
-                                    labllist[f"{x}-{index1}"]['text']=labl_name
-                                    labllist[f"{x}-{index1}"]['background']=colour
-                                else:
-                                    labllist.update({f"{x}-{index1}":Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')})
-                                    labllistrows.update({f"{x}-{index1}":i})
-                                    labllistcols.update({f"{x}-{index1}":c_pos1})
-                                if 'available' in labl_name.lower():
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"Server is available and connected to the master server.")
-                                elif 'error' in labl_name.lower():
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                                elif 'pending' in labl_name.lower():
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"Waiting for server log to show whether we have a successful connection.")
-                                elif schd_restart:
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
-                                elif schd_shutdown:
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
-                                elif pcount > 0:
-                                    honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                                        f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: {schd_shutdown}\nScheduled restart: {schd_restart}")
-                            for index2, btn_name in enumerate(ButtonString):
-                                index2 +=len(LablString)
-                                c_pos2 = index2 + c
-                                if update:
-                                    btnlist[f"{x}-{index2}"]['text']=btn_name
-                                    btnlist[f"{x}-{index2}"]['command']=partial(viewButton,btn_name,x,pcount)
-                                else:
-                                    btnlist.update({f"{x}-{index2}":Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))})
-                                    btnlistrows.update({f"{x}-{index2}":i})
-                                    btnlistcols.update({f"{x}-{index2}":c_pos2})
-                                if btn_name == "View Log":
-                                    btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                                        "View the server logs")
-                                elif btn_name == "Start":
-                                    btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                                        "Start the server with the current configuration.")
-                                elif btn_name == "Stop":
-                                    btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                                        "Schedule a shutdown of this server. Does NOT disconnect current games.")
-                                elif btn_name == "Clean":
-                                    btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                                        "Remove unnecessary files (7 days or older), such as old log files.")
-                                elif btn_name == "Uninstall":
-                                    btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                                        "Remove this server and bot, also removes folders and files.")
-                                #btn.grid(row=i, column=c_pos2)
-                        return
 
                     global total_columns
                     global mod_by
@@ -2675,11 +2761,12 @@ if is_admin():
                     # for o in range(mod_by+5):
                     #     tab2.rowconfigure(o, weight=1,pad=0)
                     try:
+                        #viewButton.display_top(tracemalloc.take_snapshot(), where='before loading any servers')
                         if len(labllist) == 0:
                             update=False
                             for x in range(int(self.dataDict['svr_total'])):
                                 deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                do_everything(self,x,deployed_status,update)
+                                viewButton.do_everything(self,x,deployed_status,update)
                             ########
                             for k in (labllist):
                                 labllist[k].grid(row=labllistrows[k], column=labllistcols[k])
@@ -2689,22 +2776,27 @@ if is_admin():
                             column_rows=(tab2.grid_size())
                             total_columns=column_rows[0]
                             total_rows=column_rows[1]
+                            #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading servers, before checking server manager')
                             #Proxy and Manager
                             if svrcmd.honCMD.check_proc("proxymanager.exe"):
                                 if update:
-                                    labl_proxy['text'] = "Proxy Manager - UP"
-                                    labl_proxy['background'] = "green"
-                                    btn_proxy['text'] = "Stop"
-                                    btn_proxy['command'] = lambda: viewButton.StopProxy(self)
+                                    labl_proxy.configure(text="Proxy Manager - UP",background="green")
+                                    # labl_proxy['text'] = "Proxy Manager - UP"
+                                    # labl_proxy['background'] = "green"
+                                    btn_proxy.configure(text="Stop",command=lambda: viewButton.StopProxy(self))
+                                    # btn_proxy['text'] = "Stop"
+                                    # btn_proxy['command'] = lambda: viewButton.StopProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - UP", background="green", foreground='white')
                                     btn_proxy = Button(tab2, text="Stop",command=lambda: viewButton.StopProxy(self))
                             else:
                                 if update:
-                                    labl_proxy['text'] = "Proxy Manager - Down"
-                                    labl_proxy['background'] = "red"
-                                    btn_proxy['text'] = "Start"
-                                    btn_proxy['comand'] = lambda: viewButton.StartProxy(self)
+                                    labl_proxy.configure(text="Proxy Manager - Down",background="red")
+                                    # labl_proxy['text'] = "Proxy Manager - Down"
+                                    # labl_proxy['background'] = "red"
+                                    btn_proxy.configure(text="Start",command=lambda: lambda: viewButton.StartProxy(self))
+                                    # btn_proxy['text'] = "Start"
+                                    # btn_proxy['comand'] = lambda: viewButton.StartProxy(self)
                                 else:
                                     labl_proxy = Label(tab2,width=25,text=f"Proxy Manager - Down", background="red", foreground='white')
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
@@ -2712,19 +2804,23 @@ if is_admin():
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
                                 if update:
-                                    labl_manager['text'] = "Server Manager - UP"
-                                    labl_manager['background'] = "green"
-                                    btn_manager['text'] = "Stop"
-                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
+                                    labl_manager.configure(text="Server Manager - UP",background="green")
+                                    # labl_manager['text'] = "Server Manager - UP"
+                                    # labl_manager['background'] = "green"
+                                    btn_manager.configure(text="Stop",command=lambda: viewButton.StopManager(self))
+                                    # btn_manager['text'] = "Stop"
+                                    # btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                                     btn_manager = Button(tab2, text="Stop",command=lambda: viewButton.StopManager(self))
                             else:
                                 if update:
-                                    labl_manager['text'] = "Server Manager - Down"
-                                    labl_manager['background'] = "red"
-                                    btn_manager['text'] = "Start"
-                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
+                                    labl_manager.configure(text="Server Manager - Down",background="red")
+                                    # labl_manager['text'] = "Server Manager - Down"
+                                    # labl_manager['background'] = "red"
+                                    btn_manager.configure(text="Start",command=lambda: viewButton.StartManager(self))
+                                    # btn_manager['text'] = "Start"
+                                    # btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                                     btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
@@ -2737,8 +2833,8 @@ if is_admin():
                             stretch.grid(row=1, column=0,columnspan=total_columns,padx=[120,0],sticky='w',pady=[2,4])
                             tab2_savesettings = applet.Button(tab2, text="Save Setting",command=lambda: save_num_rows(str(int(stretch.get())+3)))
                             tab2_savesettings.grid(row=1, column=0,columnspan=total_columns,padx=[160,0],sticky='w',pady=[2,4])
-                            tab2_savesettings_ttp = honfigurator.CreateToolTip(tab2_savesettings, \
-                                            f"Save the setting so that next time the number of rows remains the same.")
+                            # tab2_savesettings_ttp = honfigurator.CreateToolTip(tab2_savesettings, \
+                            #                 f"Save the setting so that next time the number of rows remains the same.")
                             
                             tabgui2 = ttk.Notebook(tab2)
                             tab11 = ttk.Frame(tabgui2)
@@ -2760,20 +2856,20 @@ if is_admin():
                             #   Buttons
                             tab2_cleanall = applet.Button(tab2, text="Clean All",command=lambda: clean_all())
                             tab2_cleanall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[300,0],pady=[20,10])
-                            tab2_cleanall_ttp = honfigurator.CreateToolTip(tab2_cleanall, \
-                                            f"Remove ALL unnecessary files (7 days or older), such as old log files.")
+                            # tab2_cleanall_ttp = honfigurator.CreateToolTip(tab2_cleanall, \
+                            #                 f"Remove ALL unnecessary files (7 days or older), such as old log files.")
                             tab2_stopall = applet.Button(tab2, text="Stop All",command=lambda: stop_all())
                             tab2_stopall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[100,0],pady=[20,10])
-                            tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_stopall, \
-                                            f"Schedule a shut down of all servers. Does NOT disconnect games in progress.")
+                            # tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_stopall, \
+                            #                 f"Schedule a shut down of all servers. Does NOT disconnect games in progress.")
                             tab2_startall = applet.Button(tab2, text="Start All",command=lambda: start_all())
                             tab2_startall.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,100],pady=[20,10])
-                            tab2_startall_ttp = honfigurator.CreateToolTip(tab2_startall, \
-                                            f"Start all stopped servers with their current configuration.")
+                            # tab2_startall_ttp = honfigurator.CreateToolTip(tab2_startall, \
+                            #                 f"Start all stopped servers with their current configuration.")
                             tab2_refresh = applet.Button(tab2, text="Refresh",command=lambda: viewButton.refresh())
                             tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
-                            tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_startall, \
-                                            f"Start all stopped servers with their current configuration.")
+                            # tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_startall, \
+                            #                 f"Start all stopped servers with their current configuration.")
                             if (tabgui.index("current")) == 2: tabgui.configure(height=tab2.winfo_reqheight())
                         else:
                             update=True
@@ -2805,15 +2901,17 @@ if is_admin():
                                     # TODO: rather than iterating over all servers, try to just iterate over the newly added ones. It was placing them in the wrong location.
                                     for x in range(int(self.dataDict['svr_total'])):
                                         deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                        do_everything(self,x,deployed_status,update=False)
+                                        viewButton.do_everything(self,x,deployed_status,update=False)
                             else:
                                 for x in range(int(self.dataDict['svr_total'])):
                                     deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                    do_everything(self,x,deployed_status,update)
+                                    viewButton.do_everything(self,x,deployed_status,update)
                     
                             column_rows=(tab2.grid_size())
                             total_columns=column_rows[0]
                             total_rows=column_rows[1]
+                            
+                            #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading servers, before checking server manager')
                             #Proxy and Manager
                             if svrcmd.honCMD.check_proc("proxymanager.exe"):
                                 if update:
@@ -2865,6 +2963,19 @@ if is_admin():
                     server_admin_loading = False                
                     pb.stop()
                     pb.destroy()
+                    gc.collect()
+                    #viewButton.display_top(tracemalloc.take_snapshot(), where='gc collected')
+                    # check_me_list = [self.dataDict,deployed_status,labllist,labllistcols,labllistrows,btnlist,btnlistcols,btnlistrows]
+                    # for check_me in check_me_list:
+                    #     print(f"size: {sys.getsizeof(check_me)}")
+                    #     print(f"ref: {sys.getrefcount(check_me)}")
+                    # snapshot = tracemalloc.take_snapshot()
+                    # top_stats = snapshot.statistics('lineno')
+
+                    # print("[ Top 10 ]")
+                    # for stat in top_stats[:10]:
+                    #     print(stat)
+                    # return
                     #print("Finished preparing Server Administration Tab")
                 def Tools():
                     pass
@@ -3383,34 +3494,38 @@ if is_admin():
                 update_counter+=1
                 refresh_counter+=1
                 #if (tabgui.index("current")) == 0:
-                if update_counter >= update_delay or first_check_complete==False:
-                    first_check_complete=True
-                    update_counter = 0
-                    print("checking for honfigurator update")
-                    self.update_repository(NULL,NULL,NULL)
-                    print("checking for hon update")
-                    if not updating:
-                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
-                    current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
-                    latest_version=svrcmd.honCMD().check_upstream_patch()
-                    if latest_version != False:
-                        latest_version_list = latest_version.split('.')
-                        if len(latest_version_list) == 3:
-                            latest_version = f"{'.'.join(latest_version_list)}.0"
+                # if update_counter >= update_delay or first_check_complete==False:
+                #     first_check_complete=True
+                #     update_counter = 0
+                #     print("checking for honfigurator update")
+                #     self.update_repository(NULL,NULL,NULL)
+                #     print("checking for hon update")
+                #     if not updating:
+                #         Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                #     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
+                #     latest_version=svrcmd.honCMD().check_upstream_patch()
+                #     if latest_version != False:
+                #         latest_version_list = latest_version.split('.')
+                #         if len(latest_version_list) == 3:
+                #             latest_version = f"{'.'.join(latest_version_list)}.0"
 
-                    if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
-                        Thread(target=honfigurator.check_deployed_update,args=[self]).start()
+                #     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
+                #         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
+                
                 if refresh_next==True:
-                    if (refresh_counter >= refresh_delay) or first_tab_switch:
-                        refresh_counter=0
-                        try:
-                            viewButton.refresh(int(stretch.get())+3)
-                        except NameError:
-                            viewButton.refresh(mod_by)
-                        except Exception:
-                            print(traceback.format_exc())
+                    if server_admin_loading: refresh_counter = 0
+                    if (refresh_counter >= int(refresh_delay)) or first_tab_switch:
+                            print("updating")
+                            refresh_counter=0
+                            try:
+                                viewButton.refresh(int(stretch.get())+3)
+                            except NameError:
+                                viewButton.refresh(mod_by)
+                            except Exception:
+                                print(traceback.format_exc())
                 refresh_next=True
-                self.app.after(int(f"{auto_refresh_delay}000"),auto_refresher)
+                app.after(int(f"{auto_refresh_delay}000"),auto_refresher)
+                return
             # create a Scrollbar and associate it with txt
             combo = TextScrollCombo(self.app)
             combo.config(width=600, height=600)
