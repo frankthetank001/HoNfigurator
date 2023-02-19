@@ -2690,7 +2690,11 @@ if is_admin():
                             index2 +=len(LablString)
                             c_pos2 = index2 + c
                             if update:
-                                btnlist[f"{x}-{index2}"].configure(text=btn_name,command=partial(viewButton,btn_name,x,pcount))
+                                if btnlist[f"{x}-{index2}"]['text'] != btn_name:
+                                    btnlist[f"{x}-{index2}"].configure(text=btn_name)
+                                    btnlist[f"{x}-{index2}"].configure(command=partial(viewButton,btn_name,x,pcount))
+
+                                #btnlist[f"{x}-{index2}"].configure(text=btn_name,command=partial(viewButton,btn_name,x,pcount))
                                 # btnlist[f"{x}-{index2}"]['text']=btn_name
                                 # btnlist[f"{x}-{index2}"]['command']=partial(viewButton,btn_name,x,pcount)
                             else:
@@ -2717,7 +2721,7 @@ if is_admin():
                     #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading server')
                 #@profile
                 def load_server_mgr(self,*args):
-                    #tracemalloc.start(25)
+                    tracemalloc.start(25)
                     global i
                     global c
                     global incr
@@ -2964,7 +2968,7 @@ if is_admin():
                     pb.stop()
                     pb.destroy()
                     gc.collect()
-                    #viewButton.display_top(tracemalloc.take_snapshot(), where='gc collected')
+                    viewButton.display_top(tracemalloc.take_snapshot(), where='after loading all servers')
                     # check_me_list = [self.dataDict,deployed_status,labllist,labllistcols,labllistrows,btnlist,btnlistcols,btnlistrows]
                     # for check_me in check_me_list:
                     #     print(f"size: {sys.getsizeof(check_me)}")
