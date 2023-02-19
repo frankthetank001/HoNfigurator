@@ -84,8 +84,8 @@ import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
 import traceback
-import tracemalloc
-import linecache
+#import tracemalloc
+#import linecache
 import gc
 #from pympler.tracker import SummaryTracker
 #from mem_top import mem_top
@@ -2556,7 +2556,7 @@ if is_admin():
                         tex.see(tk.END)
                         initialise.schedule_shutdown(deployed_status)
 
-                @profile
+                #@profile
                 def do_everything(self,x,deployed_status,update):
                     #tracemalloc.start(25)
                     #viewButton.display_top(tracemalloc.take_snapshot(), where='before loading server')
@@ -2655,10 +2655,10 @@ if is_admin():
                                 labllist.update({f"{x}-{index1}":Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')})
                                 labllistrows.update({f"{x}-{index1}":i})
                                 labllistcols.update({f"{x}-{index1}":c_pos1})
-                            # try:
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
-                            # except Exception: pass
+                            try:
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
+                            except Exception: pass
                         elif index1==1:
                             if update:
                                 labllist[f"{x}-{index1}"].configure(text=labl_name,background=colour)
@@ -2668,24 +2668,24 @@ if is_admin():
                                 labllist.update({f"{x}-{index1}":Label(tab2,width=18,text=f"{labl_name}", background=colour, foreground='white')})
                                 labllistrows.update({f"{x}-{index1}":i})
                                 labllistcols.update({f"{x}-{index1}":c_pos1})
-                            # if 'available' in labl_name.lower():
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"Server is available and connected to the master server.")
-                            # elif 'error' in labl_name.lower():
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
-                            # elif 'pending' in labl_name.lower():
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"Waiting for server log to show whether we have a successful connection.")
-                            # elif schd_restart:
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
-                            # elif schd_shutdown:
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
-                            # elif pcount > 0:
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #         f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: {schd_shutdown}\nScheduled restart: {schd_restart}")
+                            if 'available' in labl_name.lower():
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"Server is available and connected to the master server.")
+                            elif 'error' in labl_name.lower():
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"Potential outage.\nServer does not have a session cookie. Not connected to masterserver.\nRun in console mode, or view server logs to debug further.")
+                            elif 'pending' in labl_name.lower():
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"Waiting for server log to show whether we have a successful connection.")
+                            elif schd_restart:
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"A scheduled restart was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                            elif schd_shutdown:
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"A scheduled shutdown was requested, but the server has ignored it. Check the 'bot log' for this server for any errors.")
+                            elif pcount > 0:
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                    f"Game in progress ({match_status['match_id']})\n{pcount} players connected\nMatch time: {match_status['match_time']}\nSkipped server frames: {match_status['skipped_frames']}\nLargest skipped frame: {match_status['largest_skipped_frame']}\nScheduled shutdown: {schd_shutdown}\nScheduled restart: {schd_restart}")
                         for index2, btn_name in enumerate(ButtonString):
                             index2 +=len(LablString)
                             c_pos2 = index2 + c
@@ -2701,27 +2701,27 @@ if is_admin():
                                 btnlist.update({f"{x}-{index2}":Button(tab2,text=btn_name, command=partial(viewButton,btn_name,x,pcount))})
                                 btnlistrows.update({f"{x}-{index2}":i})
                                 btnlistcols.update({f"{x}-{index2}":c_pos2})
-                            # if btn_name == "View Log":
-                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                            #         "View the server logs")
-                            # elif btn_name == "Start":
-                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                            #         "Start the server with the current configuration.")
-                            # elif btn_name == "Stop":
-                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                            #         "Schedule a shutdown of this server. Does NOT disconnect current games.")
-                            # elif btn_name == "Clean":
-                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                            #         "Remove unnecessary files (7 days or older), such as old log files.")
-                            # elif btn_name == "Uninstall":
-                            #     btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
-                            #         "Remove this server and bot, also removes folders and files.")
+                            if btn_name == "View Log":
+                                btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                                    "View the server logs")
+                            elif btn_name == "Start":
+                                btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                                    "Start the server with the current configuration.")
+                            elif btn_name == "Stop":
+                                btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                                    "Schedule a shutdown of this server. Does NOT disconnect current games.")
+                            elif btn_name == "Clean":
+                                btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                                    "Remove unnecessary files (7 days or older), such as old log files.")
+                            elif btn_name == "Uninstall":
+                                btn_ttp = honfigurator.CreateToolTip(btnlist[f"{x}-{index2}"], \
+                                    "Remove this server and bot, also removes folders and files.")
                             #btn.grid(row=i, column=c_pos2)
                     gc.collect()
                     #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading server')
                 #@profile
                 def load_server_mgr(self,*args):
-                    tracemalloc.start(25)
+                    #tracemalloc.start(25)
                     global i
                     global c
                     global incr
@@ -2808,23 +2808,27 @@ if is_admin():
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
                                 if update:
-                                    labl_manager.configure(text="Server Manager - UP",background="green")
-                                    # labl_manager['text'] = "Server Manager - UP"
-                                    # labl_manager['background'] = "green"
-                                    btn_manager.configure(text="Stop",command=lambda: viewButton.StopManager(self))
-                                    # btn_manager['text'] = "Stop"
-                                    # btn_manager['command'] = lambda: viewButton.StopManager(self)
+                                    if labl_manager['text'] != "Server Manager - UP":
+                                        labl_manager.configure(text="Server Manager - UP",background="green")
+                                        # labl_manager['text'] = "Server Manager - UP"
+                                        # labl_manager['background'] = "green" "Stop="
+                                    if btn_manager['text'] != "Stop":
+                                        btn_manager.configure(text="Stop",command=lambda: viewButton.StopManager(self))
+                                        # btn_manager['text'] = "Stop"
+                                        # btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                                     btn_manager = Button(tab2, text="Stop",command=lambda: viewButton.StopManager(self))
                             else:
                                 if update:
-                                    labl_manager.configure(text="Server Manager - Down",background="red")
-                                    # labl_manager['text'] = "Server Manager - Down"
-                                    # labl_manager['background'] = "red"
-                                    btn_manager.configure(text="Start",command=lambda: viewButton.StartManager(self))
-                                    # btn_manager['text'] = "Start"
-                                    # btn_manager['command'] = lambda: viewButton.StopManager(self)
+                                    if labl_manager['text'] != "Server Manager - Down":
+                                        labl_manager.configure(text="Server Manager - Down",background="red")
+                                        # labl_manager['text'] = "Server Manager - Down"
+                                        # labl_manager['background'] = "red"
+                                    if btn_manager['text'] != "Start":
+                                        btn_manager.configure(text="Start",command=lambda: viewButton.StartManager(self))
+                                        # btn_manager['text'] = "Start"
+                                        # btn_manager['command'] = lambda: viewButton.StopManager(self)
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                                     btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
@@ -2968,7 +2972,7 @@ if is_admin():
                     pb.stop()
                     pb.destroy()
                     gc.collect()
-                    viewButton.display_top(tracemalloc.take_snapshot(), where='after loading all servers')
+                    #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading all servers')
                     # check_me_list = [self.dataDict,deployed_status,labllist,labllistcols,labllistrows,btnlist,btnlistcols,btnlistrows]
                     # for check_me in check_me_list:
                     #     print(f"size: {sys.getsizeof(check_me)}")
