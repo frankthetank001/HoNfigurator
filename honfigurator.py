@@ -1565,7 +1565,18 @@ if is_admin():
             honfigurator.update_local_config(self,*args, **kwargs)
             self.dataDict = dmgr.mData().returnDict()
             initialise.print_and_tex(self,"Settings Saved.",'interest')
-
+        def update_local_config_val(self,key,val):
+            key = str(key)
+            val = str(val)
+            conf_local = configparser.ConfigParser()
+            conf_local.read(config_local)
+            self.confDict = {}
+            for option in conf_local.options("OPTIONS"):
+                self.confDict.update({option:conf_local['OPTIONS'][option]})
+            conf_local.set("OPTIONS",key,val)
+            with open(config_local, "w") as c:
+                conf_local.write(c)
+            c.close()
         def update_local_config(self,hoster,regionshort,serverid,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip,bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             conf_local = configparser.ConfigParser()
             self.basic_dict = dmgr.mData.returnDict_basic(self,serverid)
@@ -1900,6 +1911,8 @@ if is_admin():
                             failed.append(f"adminbot{i+1}")
                 if len(successful) > 0:
                     initialise.print_and_tex(self,f"SUCCESSFULLY CONFIGURED: {', '.join(successful)}",'interest')
+                    self.dataDict.update({'total_configured_servers':last})
+                    honfigurator.update_local_config_val(self,"total_configured_servers",last)
                 if len(failed) > 0:
                     initialise.print_and_tex(self,f"FAILED TO CONFIGURE: {', '.join(failed)}",'warning')
                 initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Game): {', '.join(map(str,ports_to_forward_game))}",'interest')
@@ -2227,9 +2240,9 @@ if is_admin():
                         # else:
                         #     honfigurator.CreateToolTip.leave()
                     except Exception: pass
-                    if not server_admin_loading:
+                    if not server_admin_loading and int(self.dataDict['total_configured_servers']) > 0:
                         #print("REFRESHING")
-                        if (first_tab_switch and tabgui.index("current") == 2 or first_time_installed):
+                        if (first_tab_switch and tabgui.index("current") == 2):
                             viewButton.load_server_mgr(self)
                         else:
                             #viewButton.load_server_mgr(self)
