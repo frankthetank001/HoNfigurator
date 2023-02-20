@@ -2613,10 +2613,13 @@ if is_admin():
                         ButtonString[1] = "Stop"
                     else:
                         ButtonString[1] = "Start"
-                    if service_state is not None and deployed_status['use_console'] == 'False':
-                        svc_or_con="svc"
-                    elif deployed_status['use_console'] == 'True':
-                        svc_or_con="con"
+                    if 'use_console' not in deployed_status:
+                        svc_or_con = ''
+                    else:
+                        if service_state is not None and deployed_status['use_console'] == 'False':
+                            svc_or_con="svc"
+                        elif deployed_status['use_console'] == 'True':
+                            svc_or_con="con"
                     LablString[0]=f"{x}-{proc_priority}-{svc_or_con}"
                     if pcount < 0:
                         colour = 'OrangeRed4'
