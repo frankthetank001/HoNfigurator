@@ -2241,7 +2241,7 @@ if is_admin():
                         # else:
                         #     honfigurator.CreateToolTip.leave()
                     except Exception: pass
-                    if not server_admin_loading and int(self.dataDict['total_configured_servers']) > 0:
+                    if not server_admin_loading:
                         #print("REFRESHING")
                         if (first_tab_switch and tabgui.index("current") == 2):
                             viewButton.load_server_mgr(self)
