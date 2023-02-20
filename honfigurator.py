@@ -83,7 +83,6 @@ from threading import Thread
 import git
 from python_hosts import Hosts, HostsEntry
 from functools import partial
-import traceback
 # import tracemalloc
 # import linecache
 import gc
@@ -2943,19 +2942,19 @@ if is_admin():
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
                             if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
                                 if update:
-                                    labl_manager['text'] = "Server Manager - UP"
-                                    labl_manager['background'] = "green"
-                                    btn_manager['text'] = "Stop"
-                                    btn_manager['command'] = lambda: viewButton.StopManager(self)
+                                    if labl_manager['text'] != "Server Manager - UP":
+                                        labl_manager.configure(text='Server Manager - UP',background='green')
+                                    if btn_manager['text'] != "Stop":
+                                        btn_manager.configure(text='Stop',command=lambda: viewButton.StopManager(self))
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - UP", background="green", foreground='white')
                                     btn_manager = Button(tab2, text="Stop",command=lambda: viewButton.StopManager(self))
                             else:
                                 if update:
-                                    labl_manager['text'] = "Server Manager - Down"
-                                    labl_manager['background'] = "red"
-                                    btn_manager['text'] = "Start"
-                                    btn_manager['command'] = lambda: viewButton.StartManager(self)
+                                    if labl_manager['text'] != "Server Manager - Down":
+                                        labl_manager.configure(text='Server Manager - Down',background='red')
+                                    if btn_manager['text'] != "Start":
+                                        btn_manager.configure(text='Start',command=lambda: viewButton.StartManager(self))
                                 else:
                                     labl_manager = Label(tab2,width=25,text=f"Server Manager - Down", background="red", foreground='white')
                                     btn_manager = Button(tab2, text="Start",command=lambda: viewButton.StartManager(self))
@@ -3523,7 +3522,6 @@ if is_admin():
                 if refresh_next==True:
                     if server_admin_loading: refresh_counter = 0
                     if (refresh_counter >= int(refresh_delay)) or first_tab_switch:
-                            print("updating")
                             refresh_counter=0
                             try:
                                 viewButton.refresh(int(stretch.get())+3)
