@@ -1879,19 +1879,25 @@ if is_admin():
                         
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
                 if identifier == 'selected':
-                    total = int(serverto) + 1
+                    first = int(serverid)
+                    last = int(serverto)
                 else:
-                    total = int(servertotal)
+                    first = 0
+                    last = int(servertotal)
                 time.sleep(2)
                 successful = []
                 failed = []
-                for i in range(0,int(total)):
-                    if initialise.check_proc(f"adminbot{i+1}.exe"):
-                        successful.append(f"adminbot{i+1}")
-                        #initialise.print_and_tex(self,f"[adminbot{i+1}] Started.",'interest')
+                if first - last == 0:
+                    if initialise.check_proc(f"adminbot{first}.exe"):
+                        successful.append(f"adminbot{first}")
                     else:
-                        failed.append(f"adminbot{i+1}")
-                        #initialise.print_and_tex(self,f"[adminbot{i+1}] Failed to start.",'warning')
+                        failed.append(f"adminbot{first}")
+                else:
+                    for i in range(first,last):
+                        if initialise.check_proc(f"adminbot{i+1}.exe"):
+                            successful.append(f"adminbot{i+1}")
+                        else:
+                            failed.append(f"adminbot{i+1}")
                 if len(successful) > 0:
                     initialise.print_and_tex(self,f"SUCCESSFULLY CONFIGURED: {', '.join(successful)}",'interest')
                 if len(failed) > 0:
@@ -2213,7 +2219,6 @@ if is_admin():
                     # if len(args) >= 1 and type(args[0]) is int:
                     #     mod_by = args[0]
                     try: 
-                        # auto_refresh_var = auto_refresh.get()
                         if (mod_by != int(stretch.get())+3):
                             print("Number of servers to display has changed. Resizing window.")
                             mod_by = int(stretch.get())+3
@@ -2222,10 +2227,9 @@ if is_admin():
                         # else:
                         #     honfigurator.CreateToolTip.leave()
                     except Exception: pass
-                    # if auto_refresh_var or swap_anyway:
                     if not server_admin_loading:
                         #print("REFRESHING")
-                        if first_tab_switch and tabgui.index("current") == 2:
+                        if (first_tab_switch and tabgui.index("current") == 2 or first_time_installed):
                             viewButton.load_server_mgr(self)
                         else:
                             #viewButton.load_server_mgr(self)
