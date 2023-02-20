@@ -82,6 +82,8 @@ class mData():
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"svr_id_w_total":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
         self.confDict.update({"app_name":f"adminbot{self.confDict['svr_id']}"})
+        if 'total_configured_servers' not in self.confDict:
+            self.confDict.update({'total_configured_servers':0})
         if 'core_assignment' not in self.confDict:
             self.confDict.update({'core_assignment':'one core/server'})
         if 'process_priority' not in self.confDict:
