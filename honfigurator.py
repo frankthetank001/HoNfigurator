@@ -2721,7 +2721,7 @@ if is_admin():
                     #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading server')
                 #@profile
                 def load_server_mgr(self,*args):
-                    #tracemalloc.start(25)
+                    # tracemalloc.start(25)
                     global i
                     global c
                     global incr
@@ -2972,7 +2972,7 @@ if is_admin():
                     pb.stop()
                     pb.destroy()
                     gc.collect()
-                    #viewButton.display_top(tracemalloc.take_snapshot(), where='after loading all servers')
+                    # viewButton.display_top(tracemalloc.take_snapshot(), where='after loading all servers')
                     # check_me_list = [self.dataDict,deployed_status,labllist,labllistcols,labllistrows,btnlist,btnlistcols,btnlistrows]
                     # for check_me in check_me_list:
                     #     print(f"size: {sys.getsizeof(check_me)}")
@@ -3502,23 +3502,23 @@ if is_admin():
                 update_counter+=1
                 refresh_counter+=1
                 #if (tabgui.index("current")) == 0:
-                # if update_counter >= update_delay or first_check_complete==False:
-                #     first_check_complete=True
-                #     update_counter = 0
-                #     print("checking for honfigurator update")
-                #     self.update_repository(NULL,NULL,NULL)
-                #     print("checking for hon update")
-                #     if not updating:
-                #         Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
-                #     current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
-                #     latest_version=svrcmd.honCMD().check_upstream_patch()
-                #     if latest_version != False:
-                #         latest_version_list = latest_version.split('.')
-                #         if len(latest_version_list) == 3:
-                #             latest_version = f"{'.'.join(latest_version_list)}.0"
+                if update_counter >= update_delay or first_check_complete==False:
+                    first_check_complete=True
+                    update_counter = 0
+                    print("checking for honfigurator update")
+                    self.update_repository(NULL,NULL,NULL)
+                    print("checking for hon update")
+                    if not updating:
+                        Thread(target=self.forceupdate_hon,args=(False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),self.tab1_from_svr.get(),self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.alert_on_crash.get(),self.alert_on_lag.get(),self.tab1_alertlist_limit.get(),self.tab1_eventlist_limit.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())).start()
+                    current_version=dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
+                    latest_version=svrcmd.honCMD().check_upstream_patch()
+                    if latest_version != False:
+                        latest_version_list = latest_version.split('.')
+                        if len(latest_version_list) == 3:
+                            latest_version = f"{'.'.join(latest_version_list)}.0"
 
-                #     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
-                #         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
+                    if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
+                        Thread(target=honfigurator.check_deployed_update,args=[self]).start()
                 
                 if refresh_next==True:
                     if server_admin_loading: refresh_counter = 0
