@@ -1890,16 +1890,18 @@ if is_admin():
                         initialise(self.dataDict).configureEnvironment(force_update,use_console)
                         
                 initialise.print_and_tex(self,"\n************ Summary **************","header")
+                #   a group has been selected
                 if identifier == 'selected':
                     first = int(serverid)
                     last = int(serverto)
+                #   total servers selected, do all
                 else:
                     first = 0
                     last = int(servertotal)
                 time.sleep(2)
                 successful = []
                 failed = []
-                if first - last == 0:
+                if last - first == 0:
                     if initialise.check_proc(f"adminbot{first}.exe"):
                         successful.append(f"adminbot{first}")
                     else:
@@ -1912,8 +1914,6 @@ if is_admin():
                             failed.append(f"adminbot{i+1}")
                 if len(successful) > 0:
                     initialise.print_and_tex(self,f"SUCCESSFULLY CONFIGURED: {', '.join(successful)}",'interest')
-                    self.dataDict.update({'total_configured_servers':last})
-                    honfigurator.update_local_config_val(self,"total_configured_servers",last)
                 if len(failed) > 0:
                     initialise.print_and_tex(self,f"FAILED TO CONFIGURE: {', '.join(failed)}",'warning')
                 initialise.print_and_tex(self,f"UDP PORTS TO FORWARD (Game): {', '.join(map(str,ports_to_forward_game))}",'interest')
@@ -1933,10 +1933,17 @@ if is_admin():
             t = self.dataDict['svr_total']
             current_ver = float(self.dataDict['bot_version'])
             for i in range (1,(int(t)+1)):
-                temp = dmgr.mData.returnDict_deployed(self,i)
-                temp_incoming = dmgr.mData.returnDict_temp(temp)
-                deployed_server = temp | temp_incoming
-                deployed_ver = float(deployed_server['bot_version'])
+                try:
+                    temp = dmgr.mData.returnDict_deployed(self,i)
+                    temp_incoming = dmgr.mData.returnDict_temp(temp)
+                    deployed_server = temp | temp_incoming
+                    deployed_ver = float(deployed_server['bot_version'])
+                except KeyError:
+                    print(f"adminbot{i} is not properly configured. It may require reconfiguration.")
+                    return
+                except Exception as e:
+                    print(traceback.format_exc())
+                    return
                 if deployed_ver != current_ver:
                     if deployed_server['use_console'] == "True":
                         use_console=True
@@ -2873,8 +2880,7 @@ if is_admin():
                             tabgui2.add(tab22,text="Match Log")
                             tabgui2.add(tab23,text="Bot Log")
                             tabgui2.add(tab24,text="Proxy Log")
-                            tabgui2.grid(column=0,row=total_rows+2,sticky='ew',columnspan=total_columns)
-                            tab2
+                            tabgui2.grid(column=0,row=30,sticky='ew',columnspan=total_columns)
                             tabgui2.select(bot_tab)
                             Thread(target=tabgui2.bind,args=('<<NotebookTabChanged>>',viewButton.load_log)).start()
 
@@ -2898,7 +2904,6 @@ if is_admin():
                             tab2_refresh.grid(columnspan=total_columns,column=0, row=mod_by+1,sticky='n',padx=[0,300],pady=[20,10])
                             tab2_refresh_ttp = honfigurator.CreateToolTip(tab2_startall, \
                                             f"Start all stopped servers with their current configuration.")
-                            if (tabgui.index("current")) == 2: tabgui.configure(height=tab2.winfo_reqheight())
                         else:
                             update=True
                             num_total_svr = int(self.dataDict['svr_total'])
@@ -2988,6 +2993,8 @@ if is_admin():
                                 btnlist[k].grid(row=btnlistrows[k], column=btnlistcols[k])
                     except Exception:
                         print(traceback.format_exc())
+                    
+                    if (tabgui.index("current")) == 2: tabgui.configure(height=tab2.winfo_reqheight())
                     server_admin_loading = False                
                     pb.stop()
                     pb.destroy()
