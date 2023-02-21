@@ -50,7 +50,6 @@ def is_admin():
     except Exception:
         return False
 if is_admin():
-
     svr_cmd = srvcmd.honCMD()
     dmgr = mData()
     processed_data_dict = dmgr.returnDict()
