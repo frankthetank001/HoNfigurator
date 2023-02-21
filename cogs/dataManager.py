@@ -19,6 +19,7 @@ import stat
 import hashlib
 import sys
 import traceback
+import platform
 import multiprocessing
 import time
 import shutil
@@ -156,6 +157,7 @@ class mData():
         self.confDict.update({"svr_port":int(self.confDict['game_starting_port'])+int(self.confDict['incr_port'])})
         self.confDict.update({"svr_proxyPort":self.confDict['svr_port']+10000})
         self.confDict.update({"svr_proxyLocalVoicePort":int(self.confDict['voice_starting_port'])+int(self.confDict['incr_port'])})
+        self.confDict.update({"cpu":mData.get_cpu_info()})
         self.confDict.update({"svr_proxyRemoteVoicePort":self.confDict['svr_proxyLocalVoicePort']+10000})
         #self.confDict.update({"last_restart":mData.getData(self,"last_restart")})
         if exists(f"{self.confDict['hon_game_dir']}\\startup.cfg"):
@@ -348,7 +350,7 @@ class mData():
             self.confDict_basic.update({'use_console':'False'})
         return self.confDict_basic
     def return_simple_dict(self,data):
-        hon_elk_update_dict = {'static_ip':data['static_ip'] if 'static_ip' in data else False,'github_branch':data['github_branch'],'use_proxy':data['use_proxy'],'disable_bot':data['disable_bot'],'auto_update':data['auto_update'],'bot_version':data['bot_version'],'bots_running':data['bots_running']}
+        hon_elk_update_dict = {'static_ip':data['static_ip'] if 'static_ip' in data else False,'github_branch':data['github_branch'],'use_proxy':data['use_proxy'],'disable_bot':data['disable_bot'],'auto_update':data['auto_update'],'bot_version':data['bot_version'],'bots_running':data['bots_running'],'cpu':data['cpu']}
         return hon_elk_update_dict
         
     # def setData(self,key):
@@ -521,6 +523,11 @@ class mData():
             return hash
         except Exception as e:
             print(e)
+    def get_cpu_info():
+        try:
+            return platform.processor()
+        except:
+            return "couldn't obtain"
     def parse_config(self,filename):
         # svr_options = ["svr_port","svr_name","svr_location","man_port","man_startServerPort","man_endServerPort","svr_proxyLocalVoicePort","svr_proxyPort","svr_proxyRemoteVoicePort","svr_voicePortEnd","svr_voicePortStart","man_cowServerPort","man_cowVoiceProxyPort","man_enableProxy"]
         COMMENT_CHAR = '#'
