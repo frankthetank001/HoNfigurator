@@ -2514,9 +2514,11 @@ if is_admin():
                             initialise.stop_bot(self,f"HON_SERVER_{id}.exe")
                                 #viewButton.refresh()
                         refresh_counter = refresh_delay
+                        return True
                     else:
                         print(f"[adminbot{id}] [ABORT] players are connected. Scheduling shutdown instead..")
                         initialise.schedule_shutdown(deployed_status)
+                        return False
                     #viewButton.refresh()
                 def Clean(self):
                     paths = [f"{deployed_status['hon_logs_dir']}",f"{deployed_status['hon_logs_dir']}\\diagnostics",f"{deployed_status['hon_home_dir']}\\HoNProxyManager"]
@@ -2551,21 +2553,12 @@ if is_admin():
                     print(f"DONE. Cleaned {count} files.")
                 def Uninstall(self,x):
                     global refresh_counter
-                    pcount = initialise.playerCountX(self,id)
-                    if pcount <= 0:
-                        service_state = initialise.get_service(service_name)
-                        if service_state != False and service_state['status'] != 'stopped':
-                            if initialise.stop_service(self,service_name,True):
-                                tex.insert(END,f"{service_name} stopped successfully.\n")
-                                viewButton.load_server_mgr(self)
-                            else:
-                                tex.insert(END,f"{service_name} failed to stop.\n")
-                            tex.see(tk.END)
+                    if self.Stop():
                         service_state = initialise.get_service(service_name)
                         if service_state == False or service_state['status'] == 'stopped':
                             try:
                                 #shutil.copy(f"{deployed_status['sdc_home_dir']}\\cogs\\total_games_played")
-                                rem = shutil.rmtree(deployed_status['hon_home_dir'],onerror=honfigurator.onerror)
+                                rem = shutil.rmtree(deployed_status['hon_home_dir'],onerror=honfigurator.onerror,ignore_errors=True)
                                 tex.insert(END,f"removed files: {deployed_status['hon_home_dir']}")
                                 tex.see(tk.END)
                             except Exception:
@@ -2575,8 +2568,8 @@ if is_admin():
                             except Exception:
                                 print(traceback.format_exc())
                     else:
-                        print("[ABORT] players are connected. You must stop the service before uninstalling..")
-                        tex.insert(END,"[ABORT] players are connected. You must stop the service before uninstalling..\n")
+                        print(f"[adminbot{x}] [ABORT] players are connected. You must stop the service before uninstalling..")
+                        tex.insert(END,"[adminbot{x}] [ABORT] players are connected. You must stop the service before uninstalling..\n")
                         tex.see(tk.END)
                         initialise.schedule_shutdown(deployed_status)
 
@@ -2786,7 +2779,7 @@ if is_admin():
                     global labl_manager
                     global btn_manager
                     
-                    self.app.lift()
+                    app.lift()
                     for o in range(100):
                         tab2.columnconfigure(o, weight=1,pad=0)
                     # for o in range(mod_by+5):

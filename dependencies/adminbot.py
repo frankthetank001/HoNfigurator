@@ -1,3 +1,11 @@
+import ctypes, sys
+import traceback
+
+def show_exception_and_exit(exc_type, exc_value, tb):
+    traceback.print_exception(exc_type, exc_value, tb)
+    raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
+    sys.exit()
+sys.excepthook = show_exception_and_exit
 from asyncio.windows_events import NULL
 from email import message
 import discord
@@ -12,9 +20,7 @@ import asyncio
 from datetime import datetime
 from random import randint
 from time import sleep
-import traceback
 from discord.ext import tasks
-import ctypes, sys
 from typing import Optional
 import psutil
 import signal
@@ -43,12 +49,6 @@ def is_admin():
     except Exception:
         return False
 if is_admin():
-    def show_exception_and_exit(exc_type, exc_value, tb):
-        traceback.print_exception(exc_type, exc_value, tb)
-        raw_input = input(f"Due to the above error, HoNfigurator has failed to launch. Ensure you have all dependencies installed by running {application_path}\\honfigurator-install-dependencies.bat.")
-        sys.exit()
-    sys.excepthook = show_exception_and_exit
-
     svr_cmd = srvcmd.honCMD()
     dmgr = mData()
     processed_data_dict = dmgr.returnDict()

@@ -953,6 +953,7 @@ class honCMD():
         match_status.update({'now':'idle'})
         match_status.update({'first_run':True})
         match_status.update({'skipped_frames_after_line':0})
+
     def assign_cpu(self):
         self.server_status['hon_pid_hook'].cpu_affinity([processed_data_dict['svr_affinity'][0],processed_data_dict['svr_affinity'][1]])
         print(f"Server assigned to CPU cores: {processed_data_dict['svr_affinity']}")

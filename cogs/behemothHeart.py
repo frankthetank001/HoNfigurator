@@ -71,6 +71,7 @@ class heartbeat(commands.Cog):
         elif ctx == None:
             self.processed_data_dict.update({'bots_running':False})
         
+        svr_state.append_line_to_file(f"{ self.processed_data_dict['app_log']}",f"Initialising variables (soft). Data Dump: {dmgr.mData().return_simple_dict( self.processed_data_dict)}","INFO")
         async def send_user_msg(ctx,log_msg,alert):
             send_new_message = False
             msg_sent = False
