@@ -180,13 +180,12 @@ if is_admin():
             self.data = dmgr.mData()
             #self.dataDict = self.data.returnDict()
             self.dataDict = data
-            self.startup = initialise.get_startupcfg(self)
+            #self.startup = initialise.get_startupcfg(self)
             self.nssm = self.dataDict['nssm_exe']
             self.hon_directory = self.dataDict['hon_directory']
             self.hon_game_dir = self.dataDict['hon_game_dir']
             self.sdc_home_dir = self.dataDict['sdc_home_dir']
             self.hon_logs_dir = self.dataDict['hon_logs_dir']
-            self.bot_version = self.dataDict['bot_version']
             self.hon_home_dir = self.dataDict['hon_home_dir']
             self.svr_hoster = self.dataDict['svr_hoster']
             #self.svr_region = self.dataDict['svr_region']
@@ -212,6 +211,16 @@ if is_admin():
                 except Exception: pass
             else:
                 self.ver_existing = 0
+            if exists(config_global):
+                config = configparser.ConfigParser()
+                config.read(config_global)
+                self.ver_current = config['OPTIONS']['bot_version']
+                try:
+                    self.ver_current = float(self.ver_current)
+                except Exception: pass
+            else:
+                self.ver_current = 0
+
             #app_name=f"adminbot{self.dataDict['svr_id']}"
             app_name=f"adminbot"
             # if exists(f"{self.sdc_home_dir}\\config\\local_config.ini"):
@@ -741,7 +750,7 @@ if is_admin():
                 self.proxy.update({'voiceRedirectPort':voicelocal})
                 self.proxy.update({'voicePublicPort':voiceremote})
                 self.proxy.update({'region':'naeu'})
-            dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
+            #dmgr.mData.setData(NULL,filename,type,self.startup,self.proxy)
             return True
         def configure_firewall(self,name,application):
             try:
@@ -801,7 +810,7 @@ if is_admin():
             global players_connected
             global tex
 
-            self.bot_version = float(self.bot_version)
+            #self.bot_version = float(self.bot_version)
             bot_needs_update = False
             bot_first_launch = False
             exe_force_copy = False
@@ -809,7 +818,7 @@ if is_admin():
             os.environ["USERPROFILE"] = self.dataDict['hon_home_dir']
             os.environ["APPDATA"] = self.dataDict['hon_root_dir']
 
-            if self.bot_version > self.ver_existing: # or checkbox force is on:
+            if self.ver_current > self.ver_existing: # or checkbox force is on:
                 bot_needs_update = True
             
             print()
@@ -1117,7 +1126,7 @@ if is_admin():
                     mode = "console"
                 else:
                     mode = "windows service"
-                initialise.print_and_tex(self,f"[{self.service_name_bot}] APPLIED v{self.bot_version} in {mode} mode!",'interest')
+                initialise.print_and_tex(self,f"[{self.service_name_bot}] APPLIED v{self.ver_current} in {mode} mode!",'interest')
                 if self.dataDict['use_proxy'] == 'False':
                     #initialise.print_and_tex(self,f"Server ports: Game ({self.startup['svr_port']}), Voice ({self.startup['svr_proxyLocalVoicePort']})\n")
                     ports_to_forward_game.append(self.dataDict['svr_port'])
@@ -1127,7 +1136,7 @@ if is_admin():
                     ports_to_forward_game.append(self.dataDict['svr_proxyPort'])
                     ports_to_forward_voice.append(self.dataDict['svr_proxyRemoteVoicePort'])
             else:
-                initialise.print_and_tex(self,f"ADMINBOT{self.svr_id} v{self.bot_version}")
+                initialise.print_and_tex(self,f"ADMINBOT{self.svr_id} v{self.ver_current}")
                 initialise.print_and_tex(self,"NO UPDATES OR CONFIGURATION CHANGES MADE")
                 #tex.insert(END,"==============================================\n")
             bot_needs_update = False
@@ -1351,6 +1360,12 @@ if is_admin():
         def port_mode(self,var,index,mode):
             game_port = int(self.tab3_game_port.get())
             voice_port = int(self.tab3_voice_port.get())
+            
+            #   The below 2 lines address a bug where the port was accidentally reduced by 10000.
+            #   If the ports are below 10k, then this has happened, and they should be changed
+            if game_port < 10000 and voice_port < 10000:
+                game_port = game_port+10000
+                voice_port = voice_port+10000
             if self.useproxy.get() == True:
                 self.tab1_restart_proxy.configure(state='enabled')
                 self.tab3_game_port.delete(0,END)
@@ -1588,9 +1603,17 @@ if is_admin():
             discordadmin = discordadmin.replace(" (DISABLED)","")
             bottoken = bottoken.replace(" (DISABLED)","")
 
-            if self.useproxy:
+            if use_proxy:
                 game_port = int(game_port) - 10000
                 voice_port = int(voice_port) - 10000
+                if game_port < 5000:
+                    game_port +=10000
+                if voice_port < 5000:
+                    voice_port +=10000
+                if game_port > 15000:
+                    game_port -=10000
+                if voice_port > 15000:
+                    voice_port -=10000
             #
             #   local config
             if not conf_local.has_section("OPTIONS"):
@@ -1926,17 +1949,20 @@ if is_admin():
         def check_deployed_update(self):
             global ports_to_forward_game
             global ports_to_forward_voice
-            time.sleep(5)
+            global first_check_complete
 
             ports_to_forward_game=[]
             ports_to_forward_voice=[]
             t = self.dataDict['svr_total']
             current_ver = float(self.dataDict['bot_version'])
             for i in range (1,(int(t)+1)):
+                temp={}
+                temp_incoming={}
+                deployed_server={}
                 try:
                     temp = dmgr.mData.returnDict_deployed(self,i)
                     temp_incoming = dmgr.mData.returnDict_temp(temp)
-                    deployed_server = temp | temp_incoming
+                    deployed_server = temp_incoming | temp
                     deployed_ver = float(deployed_server['bot_version'])
                 except KeyError:
                     print(f"adminbot{i} is not properly configured. It may require reconfiguration.")
@@ -1945,14 +1971,21 @@ if is_admin():
                     print(traceback.format_exc())
                     return
                 if deployed_ver != current_ver:
+                    game_port = int(deployed_server['game_starting_port'])
+                    voice_port = int(deployed_server['voice_starting_port'])
                     if deployed_server['use_console'] == "True":
                         use_console=True
                     else:
                         use_console=False
+                    if deployed_server['use_proxy'] == 'True':
+                        if game_port < 10000: game_port = game_port + 20000
+                        else: game_port = game_port + 10000
+                        if voice_port < 10000: voice_port = voice_port + 20000
+                        voice_port = voice_port + 10000
                     #initialise.print_and_tex(self,f"\nServer requires update (adminbot{i})")
                     #initialise.print_and_tex(self,f"\n==============================================\nHoNfigurator version change from {deployed_ver} ---> {current_ver}.\nAutomatically reconfiguring idle server instances, scheduling a restart for the rest.")
                     #honfigurator.update_local_config(self,self.tab3_hosterd.get(),self.tab3_regionsd.get(),i,self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),use_console,self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
-                    honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['disc_alert_on_crash'],deployed_server['disc_alert_on_lag'],deployed_server['disc_alert_list_limit'],deployed_server['disc_event_list_limit'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,deployed_server['game_starting_port'],deployed_server['voice_starting_port'],deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
+                    honfigurator.update_local_config(self,deployed_server['svr_hoster'],deployed_server['svr_region_short'],deployed_server['svr_id'],deployed_server['svr_total'],deployed_server['hon_directory'],deployed_server['hon_manager_dir'],deployed_server['svr_login'],deployed_server['svr_password'],deployed_server['svr_ip'],deployed_server['token'],deployed_server['discord_admin'],deployed_server['master_server'],True,deployed_server['disable_bot'],deployed_server['disc_alert_on_crash'],deployed_server['disc_alert_on_lag'],deployed_server['disc_alert_list_limit'],deployed_server['disc_event_list_limit'],deployed_server['auto_update'],deployed_server['use_console'],deployed_server['use_proxy'],False,game_port,voice_port,deployed_server['core_assignment'],deployed_server['process_priority'],deployed_server['allow_botmatches'],deployed_server['debug_mode'],deployed_server['github_branch'],deployed_server['incr_port_by'])
                     #if initialise.playerCountX(self,i) >= 0:
                     initialise.print_and_tex(self,f"\n************* Configuring adminbot{i} *************","header")
                     initialise.print_and_tex(self,f"HoNfigurator version change from {deployed_ver} ---> {current_ver}.",'warning')
@@ -3522,8 +3555,8 @@ if is_admin():
                 update_counter+=1
                 refresh_counter+=1
                 #if (tabgui.index("current")) == 0:
-                if update_counter >= update_delay or first_check_complete==False:
-                    first_check_complete=True
+                if update_counter >= update_delay or first_check_complete == False:
+                    first_check_complete = True
                     update_counter = 0
                     print("checking for honfigurator update")
                     self.update_repository(NULL,NULL,NULL)
@@ -3539,10 +3572,9 @@ if is_admin():
 
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
-                
                 if refresh_next==True:
                     if server_admin_loading: refresh_counter = 0
-                    if (refresh_counter >= int(refresh_delay)) or first_tab_switch:
+                    if ((refresh_counter >= int(refresh_delay)) or first_tab_switch):
                             refresh_counter=0
                             try:
                                 viewButton.refresh(int(stretch.get())+3)
