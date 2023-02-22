@@ -1610,9 +1610,9 @@ if is_admin():
                     game_port +=10000
                 if voice_port < 5000:
                     voice_port +=10000
-                if game_port > 15000:
+                if game_port > 18000:
                     game_port -=10000
-                if voice_port > 15000:
+                if voice_port > 18000:
                     voice_port -=10000
             #
             #   local config
