@@ -23,6 +23,7 @@ import platform
 import multiprocessing
 import time
 import shutil
+import time
 
 #import cogs.server_status as svrcmd
 
@@ -51,7 +52,6 @@ class mData():
     
     #def returnDict(self,configFile):      
     def returnDict(self):
-        
         #print(os.getcwd())
         if exists(resource_path("config\\local_config.ini.incoming")):
             try:
@@ -180,114 +180,119 @@ class mData():
         conf_parse_local.read(resource_path("config\\local_config.ini"))
         conf_parse_global.read(resource_path("config\\global_config.ini"))
 
-        self.confDict_root = {}
-        self.confDict_deployed = {}
-
+        confDict_root = {}
+        confDict_deployed = {}
+        
         for option in conf_parse_local.options("OPTIONS"):
-            self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+            confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         # for option in conf_parse_local.options("OPTIONS"):
-        #     self.confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
+        #     confDict_root.update({option:conf_parse_local['OPTIONS'][option]})
         for option in conf_parse_global.options("OPTIONS"):
-                self.confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
-        #if 'hon_root_dir' not in self.confDict_root:
-            #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
-        #self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
-            #self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
+            confDict_root.update({option:conf_parse_global['OPTIONS'][option]})
+        for k,v in confDict_root.items():
+            confDict_deployed.update({k:v})
+        #if 'hon_root_dir' not in confDict_root:
+            #confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_directory']}..\\hon_server_instances\\hon"})
+        #confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_directory']}..\\hon_server_instances\\Hon_Server_{svr_id}"})
+            #confDict_deployed.update({"hon_home_dir":f"{confDict_deployed['hon_root_dir']}\\hon_server_instances\\Hon_Server_{svr_id}"})
         # else:
-        #     self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_root_dir']}"})
-        self.confDict_deployed = {k:v[0] for k,v in self.confDict_deployed.items()}
-        self.confDict_deployed.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
-        self.confDict_deployed.update({"hon_home_dir":f"{self.confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
-        self.confDict_deployed.update({"hon_game_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict_deployed.update({"hon_logs_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
-        self.confDict_deployed.update({"sdc_home_dir":f"{self.confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
-        self.confDict_deployed.update({"app_name":f"adminbot{svr_id}"})
-        self.confDict_deployed.update({"app_log":f"{self.confDict_deployed['sdc_home_dir']}\\{self.confDict_deployed['app_name']}.log"})
-        self.confDict_deployed.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
-        self.confDict_deployed.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
-        self.confDict_deployed.update({"svr_id":svr_id})
-        self.confDict_deployed.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
-        self.confDict_deployed.update({"svr_id_w_total":f"{self.confDict_root['svr_hoster']}-{svr_id}/{self.confDict_root['svr_total']}"})
-        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
-            conf_parse_deployed_global.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
+        #     confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_root_dir']}"})
+        confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_directory']}..\\hon_server_instances"})
+        confDict_deployed.update({"hon_home_dir":f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
+        confDict_deployed.update({"hon_game_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
+        confDict_deployed.update({"hon_logs_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
+        confDict_deployed.update({"sdc_home_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
+        if exists(f"{confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
+            conf_parse_deployed_global.read(f"{confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
             for option in conf_parse_deployed_global.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
-            time.sleep(1)
-        if exists(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
-            conf_parse_deployed_local.read(f"{self.confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
+                confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
+        if exists(f"{confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
+            conf_parse_deployed_local.read(f"{confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
             for option in conf_parse_deployed_local.options("OPTIONS"):
-                self.confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
-        if 'use_console' not in self.confDict_deployed:
-            self.confDict_deployed.update({'use_console':'False'})
-        if 'incr_port_by' not in self.confDict_deployed:
-            self.confDict_deployed.update({'incr_port_by':self.confDict_root['incr_port_by']})
-        self.confDict_deployed.update({"incr_port":mData.incr_port(int(svr_id),self.confDict_deployed['incr_port_by'])})
-        if 'game_starting_port' not in self.confDict_deployed:
-            self.confDict_deployed.update({'game_starting_port':self.confDict_root['game_starting_port']})
-        if 'voice_starting_port' not in self.confDict_deployed:
-            self.confDict_deployed.update({'voice_starting_port':self.confDict_root['voice_starting_port']})
-        if 'auto_update' not in self.confDict_deployed:
-            self.confDict_deployed.update({'auto_update':'True'})
-        if 'auto_update' not in self.confDict_deployed:
-            self.confDict_deployed.update({'auto_update':'True'})
-        if 'disc_event_list_limit' not in self.confDict_deployed:
-            self.confDict_deployed.update({'disc_event_list_limit':5})
-        if 'disc_alert_list_limit' not in self.confDict_deployed:
-            self.confDict_deployed.update({'disc_alert_list_limit':3})
-        if 'disc_alert_on_crash' not in self.confDict_deployed:
-            self.confDict_deployed.update({'disc_alert_on_crash':'True'})
-        if 'disc_alert_on_lag' not in self.confDict_deployed:
-            self.confDict_deployed.update({'disc_alert_on_lag':'True'})
-        # for k,v in self.confDict_deployed.items():
+                if option == 'use_proxy':
+                    confDict_deployed.update({option:conf_parse_deployed_local['OPTIONS'][option]})
+        #confDict_deployed = {k:v[0] for k,v in confDict_deployed.items()}
+        confDict_deployed.update({"app_name":f"adminbot{svr_id}"})
+        confDict_deployed.update({"app_log":f"{confDict_deployed['sdc_home_dir']}\\{confDict_deployed['app_name']}.log"})
+        confDict_deployed.update({"nssm_exe":f"{confDict_root['hon_directory']}"+"nssm.exe"})
+        confDict_deployed.update({"svr_hoster":confDict_root['svr_hoster']})
+        confDict_deployed.update({"svr_region_short":confDict_root['svr_region_short']})
+        confDict_deployed.update({"svr_identifier":f"{confDict_root['svr_hoster']}-{svr_id}"})
+        confDict_deployed.update({"svr_id":svr_id})
+        confDict_deployed.update({"svr_total":confDict_root['svr_total']})
+        confDict_deployed.update({"svrid_total":f"{svr_id}/{confDict_root['svr_total']}"})
+        confDict_deployed.update({"svr_id_w_total":f"{confDict_root['svr_hoster']}-{svr_id}/{confDict_root['svr_total']}"})
+        if 'use_console' not in confDict_deployed:
+            confDict_deployed.update({'use_console':'False'})
+        if 'incr_port_by' not in confDict_deployed:
+            confDict_deployed.update({'incr_port_by':confDict_root['incr_port_by']})
+        confDict_deployed.update({"incr_port":mData.incr_port(int(svr_id),confDict_deployed['incr_port_by'])})
+        if 'game_starting_port' not in confDict_deployed:
+            confDict_deployed.update({'game_starting_port':confDict_root['game_starting_port']})
+        if 'voice_starting_port' not in confDict_deployed:
+            confDict_deployed.update({'voice_starting_port':confDict_root['voice_starting_port']})
+        if 'auto_update' not in confDict_deployed:
+            confDict_deployed.update({'auto_update':'True'})
+        if 'auto_update' not in confDict_deployed:
+            confDict_deployed.update({'auto_update':'True'})
+        if 'disc_event_list_limit' not in confDict_deployed:
+            confDict_deployed.update({'disc_event_list_limit':5})
+        if 'disc_alert_list_limit' not in confDict_deployed:
+            confDict_deployed.update({'disc_alert_list_limit':3})
+        if 'disc_alert_on_crash' not in confDict_deployed:
+            confDict_deployed.update({'disc_alert_on_crash':'True'})
+        if 'disc_alert_on_lag' not in confDict_deployed:
+            confDict_deployed.update({'disc_alert_on_lag':'True'})
+        # for k,v in confDict_deployed.items():
         #     if type(v) == list:
         #         v = v[0]
-        #         self.confDict_deployed.update({k:v})
-        self.confDict_deployed.update({"svr_port":int(self.confDict_deployed['game_starting_port'])+int(self.confDict_deployed['incr_port'])})
-        self.confDict_deployed.update({"svr_proxyPort":self.confDict_deployed['svr_port']+10000})
-        self.confDict_deployed.update({"svr_proxyLocalVoicePort":int(self.confDict_deployed['voice_starting_port'])+int(self.confDict_deployed['incr_port'])})
-        self.confDict_deployed.update({"svr_proxyRemoteVoicePort":self.confDict_deployed['svr_proxyLocalVoicePort']+10000})
+        #         confDict_deployed.update({k:v})
+        confDict_deployed.update({"svr_port":int(confDict_deployed['game_starting_port'])+int(confDict_deployed['incr_port'])})
+        confDict_deployed.update({"svr_proxyPort":confDict_deployed['svr_port']+10000})
+        confDict_deployed.update({"svr_proxyLocalVoicePort":int(confDict_deployed['voice_starting_port'])+int(confDict_deployed['incr_port'])})
+        confDict_deployed.update({"svr_proxyRemoteVoicePort":confDict_deployed['svr_proxyLocalVoicePort']+10000})
         try:
-            self.confDict_deployed.update({"svr_affinity":mData.check_affinity(svr_id,self.confDict_deployed['core_assignment'])})
+            confDict_deployed.update({"svr_affinity":mData.check_affinity(svr_id,confDict_deployed['core_assignment'])})
         except Exception:pass
-        if 'master_server' not in self.confDict_deployed:
-            self.confDict_deployed.update({'master_server':'api.kongor.online'})
-        if self.confDict_deployed['master_server'] == "honmasterserver.com":
-            self.confDict_deployed.update({"hon_file_name":f"HON_SERVER_{svr_id}.exe"})
+        if 'master_server' not in confDict_deployed:
+            confDict_deployed.update({'master_server':'api.kongor.online'})
+        if confDict_deployed['master_server'] == "honmasterserver.com":
+            confDict_deployed.update({"hon_file_name":f"HON_SERVER_{svr_id}.exe"})
         else:
-            self.confDict_deployed.update({"hon_file_name":f"KONGOR_ARENA_{svr_id}.exe"})
+            confDict_deployed.update({"hon_file_name":f"KONGOR_ARENA_{svr_id}.exe"})
         #
         try:
-            hon_dir = self.confDict_deployed['hon_directory']
-        except Exception: hon_dir = self.confDict_root['hon_directory']
-        self.confDict_deployed.update({"hon_exe":f"{hon_dir}{self.confDict_deployed['hon_file_name']}"})
-        self.confDict_deployed.update({"hon_version":mData.check_hon_version(self,self.confDict_deployed['hon_exe'])})
+            hon_dir = confDict_deployed['hon_directory']
+        except Exception: hon_dir = confDict_root['hon_directory']
+        confDict_deployed.update({"hon_exe":f"{hon_dir}{confDict_deployed['hon_file_name']}"})
+        confDict_deployed.update({"hon_version":mData.check_hon_version(self,confDict_deployed['hon_exe'])})
 
-        self.confDict_deployed.update({"proxy_exe":f"{hon_dir}proxy.exe"})
-        self.confDict_deployed.update({"proxy_manager_exe":f"{hon_dir}proxymanager.exe"})
-        self.confDict_deployed.update({"svr_k2dll":f"{hon_dir}k2_x64.dll"})
-        self.confDict_deployed.update({"svr_cgame_dll":f"{hon_dir}game\\cgame_x64.dll"})
-        self.confDict_deployed.update({"svr_game_shared_dll":f"{hon_dir}game\\game_shared_x64.dll"})
-        self.confDict_deployed.update({"svr_game_dll":f"{hon_dir}game\\game_x64.dll"})
-        self.confDict_deployed.update({"svr_id":str(svr_id)})
-        self.confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
+        confDict_deployed.update({"proxy_exe":f"{hon_dir}proxy.exe"})
+        confDict_deployed.update({"proxy_manager_exe":f"{hon_dir}proxymanager.exe"})
+        confDict_deployed.update({"svr_k2dll":f"{hon_dir}k2_x64.dll"})
+        confDict_deployed.update({"svr_cgame_dll":f"{hon_dir}game\\cgame_x64.dll"})
+        confDict_deployed.update({"svr_game_shared_dll":f"{hon_dir}game\\game_shared_x64.dll"})
+        confDict_deployed.update({"svr_game_dll":f"{hon_dir}game\\game_x64.dll"})
+        confDict_deployed.update({"svr_id":str(svr_id)})
+        confDict_deployed.update({"python_location":mData.getData(self,"pythonLoc")})
         
         try:
-            gameDllHash = mData.get_hash(self.confDict_deployed['svr_k2dll'])
+            gameDllHash = mData.get_hash(confDict_deployed['svr_k2dll'])
         except Exception: gameDllHash = "null"
         if gameDllHash == "70E841D98E59DFE9347E24260719E1B7B590EBB8":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-70.exe"})
-            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
+            confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-70.exe"})
+            confDict_deployed.update({"player_count_exe":"pingplayerconnected-70.exe"})
         elif gameDllHash == "3D97C3FB6121219344CFABE8DFCC608FAC122DB4":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-3D.exe"})
-            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-3D.exe"})
+            confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-3D.exe"})
+            confDict_deployed.update({"player_count_exe":"pingplayerconnected-3D.exe"})
         elif gameDllHash == "DC9E9869936407231F4D1B942BF7B81FCC9834FF":
-            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
-            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+            confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
+            confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
         else:
-            self.confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
-            self.confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
+            confDict_deployed.update({"player_count_exe_loc":f"{hon_dir}pingplayerconnected-DC.exe"})
+            confDict_deployed.update({"player_count_exe":"pingplayerconnected-DC.exe"})
 
-        return self.confDict_deployed
+        return confDict_deployed
         
     def returnDict_temp(baseDict):
         confDict_temp = {}
