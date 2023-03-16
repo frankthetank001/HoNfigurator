@@ -1364,24 +1364,30 @@ if is_admin():
             #   The below 2 lines address a bug where the port was accidentally reduced by 10000.
             #   If the ports are below 10k, then this has happened, and they should be changed
             if self.useproxy.get() == True:
-                if game_port < 10000 and voice_port < 10000:
-                    game_port = game_port+10000
-                    voice_port = voice_port+10000
+                while game_port < 20000:
+                    game_port +=10000
+                while voice_port < 20000:
+                    voice_port += 10000
+                while game_port >= 30000: game_port -=10000
+                while voice_port >= 30000: voice_port -=10000
                 self.tab1_restart_proxy.configure(state='enabled')
                 self.tab3_game_port.delete(0,END)
                 self.tab3_voice_port.delete(0,END)
-                self.tab3_game_port.insert(0,str(game_port+10000))
-                self.tab3_voice_port.insert(0,str(voice_port+10000))
+                self.tab3_game_port.insert(0,str(game_port))
+                self.tab3_voice_port.insert(0,str(voice_port))
             else:
-                if game_port < 10000 and voice_port < 10000:
-                    game_port = game_port+20000
-                    voice_port = voice_port+20000
+                while game_port < 10000:
+                    game_port +=10000
+                while voice_port < 10000:
+                    voice_port += 10000
+                while game_port >= 20000: game_port -=10000
+                while voice_port >= 20000: voice_port -=10000
                 self.restart_proxy.set(False)
                 self.tab1_restart_proxy.configure(state='disabled')
                 self.tab3_game_port.delete(0,END)
                 self.tab3_voice_port.delete(0,END)
-                self.tab3_game_port.insert(0,game_port-10000)
-                self.tab3_voice_port.insert(0,voice_port-10000)
+                self.tab3_game_port.insert(0,game_port)
+                self.tab3_voice_port.insert(0,voice_port)
 
         def switch_widget_state(self,var,index,mode):
             if self.enablebot.get() == True:
