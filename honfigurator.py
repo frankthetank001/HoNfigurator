@@ -1363,16 +1363,19 @@ if is_admin():
             
             #   The below 2 lines address a bug where the port was accidentally reduced by 10000.
             #   If the ports are below 10k, then this has happened, and they should be changed
-            if game_port < 10000 and voice_port < 10000:
-                game_port = game_port+10000
-                voice_port = voice_port+10000
             if self.useproxy.get() == True:
+                if game_port < 10000 and voice_port < 10000:
+                    game_port = game_port+10000
+                    voice_port = voice_port+10000
                 self.tab1_restart_proxy.configure(state='enabled')
                 self.tab3_game_port.delete(0,END)
                 self.tab3_voice_port.delete(0,END)
                 self.tab3_game_port.insert(0,str(game_port+10000))
                 self.tab3_voice_port.insert(0,str(voice_port+10000))
             else:
+                if game_port < 10000 and voice_port < 10000:
+                    game_port = game_port+20000
+                    voice_port = voice_port+20000
                 self.restart_proxy.set(False)
                 self.tab1_restart_proxy.configure(state='disabled')
                 self.tab3_game_port.delete(0,END)
@@ -1734,7 +1737,7 @@ if is_admin():
                 ports_to_forward_voice=[]
                 initialise.add_hosts_entry(self)
                 #   initialise.print_and_tex(self,("UDP PORTS TO FORWARD (Auto-Server-Selector): "+str((int(self.dataDict['game_starting_port']) - 1))))
-                firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(game_port) - 1)
+                firewall = initialise.configure_firewall_port(self,'HoN Ping Responder',int(self.tab3_game_port.get()) - 1)
                 if honreplay != self.dataDict['hon_manager_dir']:
                     force_update = True
                     if not exists(honreplay):
