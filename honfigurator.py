@@ -1364,8 +1364,8 @@ if is_admin():
             #   The below 2 lines address a bug where the port was accidentally reduced by 10000.
             #   If the ports are below 10k, then this has happened, and they should be changed
             if game_port < 10000 and voice_port < 10000:
-                game_port = game_port+10000
-                voice_port = voice_port+10000
+                game_port = game_port+20000
+                voice_port = voice_port+20000
             if self.useproxy.get() == True:
                 self.tab1_restart_proxy.configure(state='enabled')
                 self.tab3_game_port.delete(0,END)
