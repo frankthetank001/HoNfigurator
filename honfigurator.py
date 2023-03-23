@@ -3460,13 +3460,14 @@ if is_admin():
                     now = time.time()
                     try:
                         for path in paths:
-                            for f in os.listdir(path):
-                                f = os.path.join(path, f)
-                                if os.stat(f).st_mtime < now - 7 * 86400:
-                                    if os.path.isfile(f):
-                                        os.remove(os.path.join(path, f))
-                                        count+=1
-                                        print("removed "+f)
+                            if exists(path):
+                                for f in os.listdir(path):
+                                    f = os.path.join(path, f)
+                                    if os.stat(f).st_mtime < now - 7 * 86400:
+                                        if os.path.isfile(f):
+                                            os.remove(os.path.join(path, f))
+                                            count+=1
+                                            print("removed "+f)
                     except Exception:
                         print(traceback.format_exc())
                     replays = f"{deployed_status['hon_game_dir']}\\replays"
