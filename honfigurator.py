@@ -959,18 +959,17 @@ if is_admin():
                     shutil.copy(f"{application_path}\\dependencies\\requirements.txt",f"{self.dataDict['sdc_home_dir']}\\dependencies\\requirements.txt")
                 except Exception:
                     print(traceback.format_exc())
-                if not exists(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe') or force_update:
-                    try:
-                        shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
-                    except PermissionError:
-                        if exists(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe'):
-                            try:
-                                os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
-                            except Exception:
-                                print(traceback.format_exc())
-                                shutil.move(f"{self.sdc_home_dir}\\{self.service_name_bot}_old.exe",f"{self.sdc_home_dir}\\{self.service_name_bot}_old2.exe'")
-                        os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
-                        shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                try:
+                    shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
+                except PermissionError:
+                    if exists(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe'):
+                        try:
+                            os.remove(f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
+                        except Exception:
+                            print(traceback.format_exc())
+                            shutil.move(f"{self.sdc_home_dir}\\{self.service_name_bot}_old.exe",f"{self.sdc_home_dir}\\{self.service_name_bot}_old2.exe'")
+                    os.rename(f'{self.sdc_home_dir}\\{self.service_name_bot}.exe',f'{self.sdc_home_dir}\\{self.service_name_bot}_old.exe')
+                    shutil.copy(f"{self.dataDict['python_location']}", f'{self.sdc_home_dir}\\{self.service_name_bot}.exe')
 
                 shutil.copy(os.path.abspath(application_path)+"\\dependencies\\adminbot.py", f'{self.sdc_home_dir}\\adminbot.py')
                 src_folder = os.path.abspath(application_path)+"\\cogs\\"
@@ -992,7 +991,9 @@ if is_admin():
                     dst_file = dst_folder+file_name
                     if os.path.isfile(src_file):
                         if file_name == 'local_config.ini' or file_name == 'global_config.ini':
-                            shutil.copy(src_file, f"{dst_file}.incoming")
+                            if force_update:
+                                shutil.copy(src_file, f"{dst_file}.incoming")
+                            else: shutil.copy(src_file, f"{dst_file}")
                         else:
                             shutil.copy(src_file,dst_file)
                         print('copied', file_name)
@@ -1070,7 +1071,7 @@ if is_admin():
             
 
             ### CHECK IF PROXY IS ONLINE ###
-            if self.dataDict['use_proxy']=='True':
+            if self.dataDict['use_proxy']=='True' and force_update:
                 if initialise.check_port(self.game_port_proxy):
                     pass
                 else:
@@ -1079,7 +1080,7 @@ if is_admin():
             ###
             service_bot = initialise.get_service(self.service_name_bot)
 
-            if not use_console:
+            if not use_console and force_update:
                 ### Perform checks for a windows service configuration
                 if not service_bot:
                     bot_needs_update = True
@@ -1100,14 +1101,15 @@ if is_admin():
                     # stop bot is faster than restarting the service
                     initialise.stop_bot(self,f"{self.service_name_bot}.exe")
             else:
-                ### Perform checks for a console app configuration
-                if service_bot:
-                    if (service_bot['status'] == 'running' or service_bot['status'] == 'paused'):
-                        initialise.print_and_tex(self,f"[{self.service_name_bot}] You are switching from windows service to console mode.",'warning')
-                        print(f"[{self.service_name_bot}] No players connected, safe to restart...")
-                        sp.Popen(['net','stop',self.service_name_bot])
-                print(f"[{self.service_name_bot}] Starting as a console application.")
-                initialise.start_bot(self,False)
+                if force_update:
+                    ### Perform checks for a console app configuration
+                    if service_bot:
+                        if (service_bot['status'] == 'running' or service_bot['status'] == 'paused'):
+                            initialise.print_and_tex(self,f"[{self.service_name_bot}] You are switching from windows service to console mode.",'warning')
+                            print(f"[{self.service_name_bot}] No players connected, safe to restart...")
+                            sp.Popen(['net','stop',self.service_name_bot])
+                    print(f"[{self.service_name_bot}] Starting as a console application.")
+                    initialise.start_bot(self,False)
 
             if force_update == True or bot_first_launch == True or bot_needs_update == True:
                 if exists(f"{self.dataDict['sdc_home_dir']}\\config\\local_config.ini"):
@@ -1968,11 +1970,15 @@ if is_admin():
                 temp={}
                 temp_incoming={}
                 deployed_server={}
+                restart_server = False
                 try:
                     temp = dmgr.mData.returnDict_deployed(self,i)
                     temp_incoming = dmgr.mData.returnDict_temp(temp)
                     deployed_server = temp_incoming | temp
                     deployed_ver = float(deployed_server['bot_version'])
+                    player_count = initialise.playerCountX(self,i)
+                    if player_count >= 0:
+                        restart_server = True
                 except KeyError:
                     print(f"adminbot{i} is not properly configured. It may require reconfiguration.")
                     return
@@ -1998,7 +2004,7 @@ if is_admin():
                     #if initialise.playerCountX(self,i) >= 0:
                     initialise.print_and_tex(self,f"\n************* Configuring adminbot{i} *************","header")
                     initialise.print_and_tex(self,f"HoNfigurator version change from {deployed_ver} ---> {current_ver}.",'warning')
-                    initialise(deployed_server).configureEnvironment(True,use_console)
+                    initialise(deployed_server).configureEnvironment(restart_server,use_console)
                     #honfigurator.sendData(self,False,"all",self.tab3_hosterd.get(),self.tab3_regionsd.get(),i,self.tab1_servertd.get(),self.tab3_hondird.get(),self.tab3_honreplay.get(),self.tab3_user.get(),self.tab3_pass.get(),self.tab3_ip.get(),self.tab3_bottokd.get(),self.tab3_discordadmin.get(),self.tab3_masterserver.get(),True,self.enablebot.get(),self.autoupdate.get(),self.console.get(),self.useproxy.get(),self.restart_proxy.get(),self.tab3_game_port.get(),self.tab3_voice_port.get(),self.core_assign.get(),self.priority.get(),self.botmatches.get(),self.debugmode.get(),self.git_branch.get(),self.increment_port.get())
         def stop_all_for_update(self):
             global first_time_installed
