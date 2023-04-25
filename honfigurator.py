@@ -107,6 +107,12 @@ def is_admin():
         return ctypes.windll.shell32.IsUserAnAdmin()
     except Exception:
         return False
+def find_process_by_cmdline_keyword(keyword):
+    for process in psutil.process_iter(['cmdline']):
+        if process.info['cmdline']:
+            if any(keyword in arg.lower() for arg in process.info['cmdline']):
+                return process
+    return None
 if is_admin():
 
     #tracemalloc.start(25)
@@ -1535,15 +1541,15 @@ if is_admin():
                 ready_for_update = honfigurator.stop_all_for_update(self)
                 if ready_for_update:
                     os.chdir(hondirectory)
-                    #sp.call(["hon_x64.exe","-update","-masterserver",master_server])
-                    #sp.call(["hon_update_x64.exe"])
                     update_running = initialise.check_proc("hon_update_x64.exe")
                     if update_running:
                         svrcmd.honCMD.stop_proc_by_name("hon_update_x64.exe")
                     if exists("Update\\hon_update_x64.exe.zip"):
                         os.remove("Update\\hon_update_x64.exe.zip")
+                    shutil.copy(f"{application_path}\\dependencies\\hon_update_x64.exe",hondirectory)
                     #sp.Popen(["hon_update_x64.exe"])
-                    sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+                    #sp.Popen(["hon_x64.exe","-update","-masterserver",master_server])
+                    self.start_manager()
                     while (current_version != latest_version):
                         time.sleep(30)
                         current_version = dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe")
@@ -1558,6 +1564,8 @@ if is_admin():
                     except Exception:
                         print(traceback.format_exc())
                     if dmgr.mData.check_hon_version(self,f"{self.dataDict['hon_directory']}hon_x64.exe") == latest_version:
+                        self.stop_manager_by_cmdline()
+                        self.start_manager()
                         print("Patch successful!")
                         if force:
                             print("Please wait 60 seconds..")
@@ -1677,6 +1685,40 @@ if is_admin():
                             ver=line.split(" ")
                             return ver
             return "couldn't find version number."
+        def start_manager(self):
+            service_manager_name="HoN Server Manager"
+            manager_application=f"hon_update_x64.exe"
+
+            if self.dataDict['use_proxy'] == 'False':
+                udp_listener_port = int(self.dataDict['game_starting_port']) - 1
+            else:
+                udp_listener_port = int(self.dataDict['game_starting_port']) + 10000 - 1
+
+            manager_arguments=f"Set svr_port {udp_listener_port}; Set man_masterLogin {self.dataDict['svr_login']}:;Set man_masterPassword {self.dataDict['svr_password']};Set upd_checkForUpdates False;Set man_numSlaveAccounts 0;Set man_startServerPort {self.dataDict['game_starting_port']};Set man_endServerPort {int(self.dataDict['game_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_voiceProxyStartPort {self.dataDict['voice_starting_port']};Set man_voiceProxyEndPort {int(self.dataDict['voice_starting_port'])+(int(self.dataDict['svr_total'])-1)};Set man_maxServers {self.dataDict['svr_id']};Set man_enableProxy {self.dataDict['use_proxy']};Set man_broadcastSlaves true;Set http_useCompression false;Set man_autoServersPerCPU 1;Set man_allowCPUs 0;Set host_affinity -1;Set man_uploadToS3OnDemand 1;Set man_uploadToCDNOnDemand 0;Set svr_name {self.dataDict['svr_hoster']} 0 0;Set svr_location {self.dataDict['svr_region_short']};Set svr_ip {self.dataDict['svr_ip']}"
+            os.environ["USERPROFILE"] = self.dataDict['hon_manager_dir']
+
+            if initialise.check_proc(service_manager_name):
+                initialise.print_and_tex(self,"HoN Proxy Manager already started.")
+                return
+            if self.dataDict['use_console'] == 'False':
+                initialise.start_service(self,service_manager_name,True)
+            else:
+                sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
+        
+        def stop_manager_by_cmdline(self):
+            service_manager_name="HoN Server Manager"
+            manager_application=f"hon_update_x64.exe"
+            service_manager = initialise.get_service(service_manager_name)
+            if not initialise.check_proc(manager_application):
+                initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
+                return
+            if service_manager and service_manager['status'] in ['running','paused']:
+                initialise.stop_service(self,service_manager_name,True)
+            else:
+                proc = find_process_by_cmdline_keyword("-manager")
+                if proc:
+                    proc.kill()
+
         def sendData(self,identifier,hoster, regionshort, serverid,serverto,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
             global config_global
@@ -1805,7 +1847,7 @@ if is_admin():
                     firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
                 #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
-                manager_application=f"KONGOR ARENA MANAGER.exe"
+                manager_application=f"hon_update_x64.exe"
                 #service_proxy = initialise.get_service(service_proxy_name)
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
@@ -1821,7 +1863,7 @@ if is_admin():
                 
                 hash1=dmgr.mData.get_hash(f"{hondirectory}{manager_application}")
                 hash2=dmgr.mData.get_hash(f"{hondirectory}hon_x64.exe")
-                if not exists(f"{hondirectory}KONGOR ARENA MANAGER.exe") or (hash1 != hash2):
+                if not exists(f"{hondirectory}hon_update_x64.exe") or (hash1 != hash2):
                     try:
                         shutil.copy(f"{hondirectory}hon_x64.exe",f"{hondirectory}{manager_application}")
                     except PermissionError:
@@ -2050,7 +2092,7 @@ if is_admin():
             else:
                 print("Stopped all hon servers. Moving to update.")
                 service_manager_name = "HoN Server Manager"
-                manager_application = "KONGOR ARENA MANAGER.exe"
+                manager_application = "hon_update_x64.exe"
                 service_manager = initialise.get_service(service_manager_name)
                 if service_manager:
                     if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
@@ -2492,7 +2534,7 @@ if is_admin():
                     global refresh_counter,refresh_delay,labl_manager,btn_manager
                     
                     service_manager_name="HoN Server Manager"
-                    manager_application=f"KONGOR ARENA MANAGER.exe"
+                    manager_application=f"hon_update_x64.exe"
 
                     if self.dataDict['use_proxy'] == 'False':
                         udp_listener_port = int(self.dataDict['game_starting_port']) - 1
@@ -2523,7 +2565,7 @@ if is_admin():
                     global refresh_counter,refresh_delay,labl_manager,btn_manager
                     
                     service_manager_name="HoN Server Manager"
-                    manager_application=f"KONGOR ARENA MANAGER.exe"
+                    manager_application=f"hon_update_x64.exe"
                     service_manager = initialise.get_service(service_manager_name)
                     if not initialise.check_proc(manager_application):
                         initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
@@ -2531,7 +2573,9 @@ if is_admin():
                     if service_manager and service_manager['status'] in ['running','paused']:
                         initialise.stop_service(self,service_manager_name,True)
                     else:
-                        initialise.stop_bot(self,manager_application)
+                        proc = find_process_by_cmdline_keyword("-manager")
+                        if proc:
+                            proc.kill()
                     # time.sleep(1)
                     # if not initialise.check_proc(manager_application):
                     #     initialise.print_and_tex(self,"HoN Server Manager stopped.")
@@ -2874,7 +2918,7 @@ if is_admin():
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
                             btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
-                            if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
+                            if find_process_by_cmdline_keyword("-manager"):
                                 if update:
                                     if labl_manager['text'] != "Server Manager - UP":
                                         labl_manager.configure(text="Server Manager - UP",background="green")
@@ -3007,7 +3051,7 @@ if is_admin():
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
                             btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
-                            if svrcmd.honCMD.check_proc("KONGOR ARENA MANAGER.exe"):
+                            if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
                                 if update:
                                     if labl_manager['text'] != "Server Manager - UP":
                                         labl_manager.configure(text='Server Manager - UP',background='green')
