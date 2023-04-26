@@ -1706,7 +1706,7 @@ if is_admin():
 
         def start_manager(self):
             service_manager_name="HoN Server Manager"
-            manager_application=f"hon_update_x64.exe"
+            manager_application=f"KONGOR ARENA.exe"
             manager_proc = find_process_by_cmdline_keyword("-manager")
 
             if self.dataDict['use_proxy'] == 'False':
@@ -1729,7 +1729,6 @@ if is_admin():
         
         def stop_manager_by_cmdline(self):
             service_manager_name="HoN Server Manager"
-            manager_application=f"hon_update_x64.exe"
             service_manager = initialise.get_service(service_manager_name)
             if not find_process_by_cmdline_keyword("-manager"):
                 initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
@@ -1869,7 +1868,7 @@ if is_admin():
                     firewall = initialise.configure_firewall(self,"HoN Proxy",hondirectory+'proxy.exe')
                 #service_proxy_name="HoN Proxy Manager"
                 service_manager_name="HoN Server Manager"
-                manager_application=f"hon_update_x64.exe"
+                manager_application=f"KONGOR ARENA.exe"
                 #service_proxy = initialise.get_service(service_proxy_name)
                 service_manager = initialise.get_service(service_manager_name)
                 default_voice_port=11435
