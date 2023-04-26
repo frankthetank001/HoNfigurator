@@ -1197,6 +1197,7 @@ class honCMD():
     def time():
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     def append_line_to_file(self,file,text,level):
+        print(f"{level} - {text}")
         timenow = honCMD.time()
         with open(file, 'a+') as f:
             f.seek(0)
