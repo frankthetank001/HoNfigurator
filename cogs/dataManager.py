@@ -197,8 +197,8 @@ class mData():
         # else:
         #     confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_root_dir']}"})
         confDict_deployed.update({"hon_root_dir":f"{confDict_root['hon_directory']}..\\hon_server_instances"})
-        if not exists(f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"):
-            return False
+        # if not exists(f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"):
+        #     return False
         confDict_deployed.update({"hon_home_dir":f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
         confDict_deployed.update({"hon_game_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
         confDict_deployed.update({"hon_logs_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})

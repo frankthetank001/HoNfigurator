@@ -1535,9 +1535,7 @@ if is_admin():
 
             if ((current_version != latest_version) and latest_version != False and not updating) or force:
                 updating = True
-                print(f"Update available. {current_version} --> {latest_version}")
-                tex.insert(END,f"Update available. {current_version} --> {latest_version}")
-                tex.see(tk.END)
+                initialise.print_and_tex(self,f"Update available. {current_version} --> {latest_version}")
                 ready_for_update = honfigurator.stop_all_for_update(self)
                 if ready_for_update:
                     os.chdir(hondirectory)
@@ -2708,6 +2706,8 @@ if is_admin():
                     try:
                         list_of_files = glob.glob(dir_name + file) # * means all if need specific format then *.csv
                         log = max(list_of_files, key=os.path.getctime)
+                    except ValueError:
+                        pass
                     except Exception:
                         print(traceback.format_exc())
                     if log != False:
@@ -2903,8 +2903,8 @@ if is_admin():
                             update=False
                             for x in range(int(self.dataDict['svr_total'])):
                                 deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
-                                if not deployed_status:
-                                    return True
+                                # if not deployed_status:
+                                #     return True
                                 viewButton.do_everything(self,x,deployed_status,update)
                             ########
                             for k in (labllist):
