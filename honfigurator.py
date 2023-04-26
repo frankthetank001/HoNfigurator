@@ -1709,7 +1709,7 @@ if is_admin():
             service_manager_name="HoN Server Manager"
             manager_application=f"hon_update_x64.exe"
             service_manager = initialise.get_service(service_manager_name)
-            if not initialise.check_proc(manager_application):
+            if not find_process_by_cmdline_keyword("-manager"):
                 initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
                 return
             if service_manager and service_manager['status'] in ['running','paused']:
@@ -2567,7 +2567,7 @@ if is_admin():
                     service_manager_name="HoN Server Manager"
                     manager_application=f"hon_update_x64.exe"
                     service_manager = initialise.get_service(service_manager_name)
-                    if not initialise.check_proc(manager_application):
+                    if not find_process_by_cmdline_keyword("-manager"):
                         initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
                         return
                     if service_manager and service_manager['status'] in ['running','paused']:
@@ -3051,7 +3051,7 @@ if is_admin():
                                     btn_proxy = Button(tab2, text="Start",command=lambda: viewButton.StartProxy(self))
                             btn_proxy.grid(columnspan=total_columns,column=0, row=1,sticky='n',padx=[430,0])
                             labl_proxy.grid(row=1, column=0,columnspan=total_columns,padx=[200,0],sticky='n',pady=[2,4])
-                            if svrcmd.honCMD.check_proc("hon_update_x64.exe"):
+                            if find_process_by_cmdline_keyword("-manager"):
                                 if update:
                                     if labl_manager['text'] != "Server Manager - UP":
                                         labl_manager.configure(text='Server Manager - UP',background='green')
