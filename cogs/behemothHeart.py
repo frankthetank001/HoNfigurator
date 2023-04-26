@@ -178,7 +178,7 @@ class heartbeat(commands.Cog):
             await asyncio.sleep(heartbeat_freq)
 
             try:
-                if self.server_status['hon_pid'] == 'pending':
+                if 'hon_pid' in self.server_status and self.server_status['hon_pid'] == 'pending':
                     playercount = svr_state.playerCount()
                 else:
                     playercount = svr_state.playerCount_pid()
