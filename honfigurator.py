@@ -1476,7 +1476,11 @@ if is_admin():
                 # print(f"Repository: {selected_branch}\nCheckout status: {checkout.stdout}")
                 #tex.insert(END,f"Repository: {selected_branch}\nCheckout Status: {checkout.stdout}")
                 print(f"Updating selected repository: {selected_branch} branch")
-                output = sp.run(["git", "pull"],stdout=sp.PIPE, text=True)
+                output = sp.run(["git", "pull"],stdout=sp.PIPE,stderr=sp.PIPE, text=True)
+                if output.stderr:
+                    print(output.stderr)
+                    if 'Please commit your changes or stash them' in output.stderr:
+                        raise Exception("You have local changes. Either save them, or if you don't know why you are receiving this message, run honfigurator-repair.exe")
                 print(f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,f"Repository: {selected_branch}\nUpdate Status: {output.stdout}")
                 tex.insert(END,"==========================================\n")
