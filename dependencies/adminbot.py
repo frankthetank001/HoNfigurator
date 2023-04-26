@@ -930,25 +930,22 @@ if is_admin():
                                 print(traceback.format_exc())
                                 svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         async def run_bot_local(self):
-            try:
-                print("bot started in local mode.")
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
-                tempData = {'bot_first_run':True}
-                svr_cmd.updateStatus(tempData)
-                result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
-                if result == True:
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
-                elif result == "server already started":
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Adminbot has hooked onto the already running server.","INFO")
-                elif result == "ram":
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
-                elif result == "proxy":
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
-                else:
-                    svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
-            except Exception:
-                print(traceback.format_exc())
-                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
+            print("bot started in local mode.")
+            svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting in local mode as discord bot is disabled.","INFO")
+            tempData = {'bot_first_run':True}
+            svr_cmd.updateStatus(tempData)
+            result = srvcmd.honCMD().startSERVER("Attempting to start server as the first launch of adminbot")
+            if result == True:
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"The server has started successfully.","INFO")
+            elif result == "server already started":
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Adminbot has hooked onto the already running server.","INFO")
+            elif result == "ram":
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because there is not enough free RAM (1GB minimum required).","FATAL")
+                raise Exception("Starting the server failed because there is not enough free RAM (1GB minimum required).")
+            elif result == "proxy":
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed because the proxy port is not online.","FATAL")
+            else:
+                svr_cmd.append_line_to_file(f"{processed_data_dict['app_log']}",f"Starting the server failed without any way to proceed. Return code: {result}.","FATAL")
             await heart.heartbeat.startheart(self,None)
         # def run_bot_disc(self):
         #     if processed_data_dict['disable_bot'] == 'False':
