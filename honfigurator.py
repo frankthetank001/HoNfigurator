@@ -1579,7 +1579,7 @@ if is_admin():
                             print("Relaunching servers")
                             honfigurator.sendData(self,identifier,hoster,regionshort,serverid,0,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,True,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,True,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port)
                         else:
-                            initialise.print_and_tex(self,"Servers updated successfully, now ready to be configured.","interest")
+                            initialise.print_and_tex(self,"\nServers updated successfully, now ready to be configured.","interest")
                         update_counter = update_delay
                         updating = False
                         return True
