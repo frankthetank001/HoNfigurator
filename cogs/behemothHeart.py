@@ -184,7 +184,7 @@ class heartbeat(commands.Cog):
                     else:
                         playercount = svr_state.playerCount_pid()
                 except KeyError:
-                    raise("HoN PID is not defined. This means the hon server failed to launch.")
+                    raise Exception("HoN PID is not defined. This means the hon server failed to launch.")
                 counter_keeper+=1
                 # check the live DDOS blacklist for any changes requiring action in firewall
                 if (counter_keeper >= threshold_keeper or self.server_status['bot_first_run'] == True) and self.processed_data_dict['svr_id'] == "1":
