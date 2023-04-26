@@ -1587,6 +1587,8 @@ if is_admin():
                         return True
                     else:
                         initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'warning')
+                        if latest_version == "4.10.7.0":
+                            initialise.print_and_tex(self,"Ensure you have reinstalled your hon client for this patch. It requires a clean install.","fatal")
                         updating = False
                         return False
                 initialise.print_and_tex(self,"not all servers are ready for update. Trying again later",'warning')
@@ -3496,6 +3498,7 @@ if is_admin():
             tex = tk.Text(self.app,foreground=textcolor,background=textbox,height=10)
             tex.grid(row=16, column=0, sticky="nsew", padx=2, pady=2)
             tex.tag_config('warning', background="yellow", foreground="red")
+            tex.tag_config('fatal', background="black", foreground="red")
             tex.tag_config('interest', background="green")
             tex.tag_config('header', background="white",foreground="black")
             tex.tag_configure("stderr", foreground="#b22222")
