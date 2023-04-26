@@ -2904,6 +2904,8 @@ if is_admin():
                             update=False
                             for x in range(int(self.dataDict['svr_total'])):
                                 deployed_status = dmgr.mData.returnDict_deployed(self,x+1)
+                                if not deployed_status:
+                                    return False
                                 viewButton.do_everything(self,x,deployed_status,update)
                             ########
                             for k in (labllist):
