@@ -727,6 +727,8 @@ class honCMD():
             last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
             #
             #   This reads the data if it exists
+            if not exists(server_status['sdc_home_dir']):
+                return False
             if (exists(last_modified_time_file)):
                 with open(last_modified_time_file, 'r') as last_modified:
                     lastmodData = last_modified.readline()
