@@ -207,6 +207,7 @@ class mData():
             conf_parse_deployed_global.read(f"{confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
             for option in conf_parse_deployed_global.options("OPTIONS"):
                 confDict_deployed.update({option:conf_parse_deployed_global['OPTIONS'][option]})
+        else: confDict_deployed.update({'bot_version' : '0.0'})
         if exists(f"{confDict_deployed['sdc_home_dir']}\\config\\local_config.ini"):
             conf_parse_deployed_local.read(f"{confDict_deployed['sdc_home_dir']}\\config\\local_config.ini")
             for option in conf_parse_deployed_local.options("OPTIONS"):
