@@ -1587,7 +1587,7 @@ if is_admin():
                         return True
                     else:
                         initialise.print_and_tex(self,"Patch failed! Please try again later or use force update hon",'warning')
-                        if latest_version == "4.10.7.0":
+                        if latest_version == "4.10.7.0" or latest_version == '4.10.7':
                             initialise.print_and_tex(self,"Ensure you have reinstalled your hon client for this patch. It requires a clean install.","fatal")
                         updating = False
                         return False
