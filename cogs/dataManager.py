@@ -74,10 +74,10 @@ class mData():
         #   Update the dictionary with some processed data
         self.confDict.update({"hon_root_dir":f"{self.confDict['hon_directory']}..\\hon_server_instances"})
         self.confDict.update({"hon_home_dir":f"{self.confDict['hon_root_dir']}\\Hon_Server_{self.confDict['svr_id']}"})
-        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict.update({"hon_replays_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays"})
-        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
-        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{self.confDict['svr_id']}"})
+        self.confDict.update({"hon_game_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR"})
+        self.confDict.update({"hon_replays_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays"})
+        self.confDict.update({"hon_logs_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs"})
+        self.confDict.update({"sdc_home_dir":f"{self.confDict['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs\\adminbot{self.confDict['svr_id']}"})
         self.confDict.update({"nssm_exe":f"{self.confDict['hon_directory']}"+"nssm.exe"})
         self.confDict.update({"svr_identifier":f"{self.confDict['svr_hoster']}-{self.confDict['svr_id']}"})
         self.confDict.update({"svrid_total":f"{self.confDict['svr_id']}/{self.confDict['svr_total']}"})
@@ -200,9 +200,9 @@ class mData():
         # if not exists(f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"):
         #     return False
         confDict_deployed.update({"hon_home_dir":f"{confDict_deployed['hon_root_dir']}\\Hon_Server_{svr_id}"})
-        confDict_deployed.update({"hon_game_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
-        confDict_deployed.update({"hon_logs_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
-        confDict_deployed.update({"sdc_home_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
+        confDict_deployed.update({"hon_game_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR"})
+        confDict_deployed.update({"hon_logs_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs"})
+        confDict_deployed.update({"sdc_home_dir":f"{confDict_deployed['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs\\adminbot{svr_id}"})
         if exists(f"{confDict_deployed['sdc_home_dir']}\\config\\global_config.ini"):
             conf_parse_deployed_global.read(f"{confDict_deployed['sdc_home_dir']}\\config\\global_config.ini")
             for option in conf_parse_deployed_global.options("OPTIONS"):
@@ -346,9 +346,9 @@ class mData():
         self.confDict_basic.update({"hon_root_dir":f"{self.confDict_root['hon_directory']}..\\hon_server_instances"})
         self.confDict_basic.update({"hon_manager_dir":f"{self.confDict_basic['hon_root_dir']}\\hon"})
         self.confDict_basic.update({"hon_home_dir":f"{self.confDict_basic['hon_root_dir']}\\Hon_Server_{svr_id}"})
-        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game"})
-        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs"})
-        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{svr_id}"})
+        self.confDict_basic.update({"hon_game_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR"})
+        self.confDict_basic.update({"hon_logs_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs"})
+        self.confDict_basic.update({"sdc_home_dir":f"{self.confDict_basic['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs\\adminbot{svr_id}"})
         self.confDict_basic.update({"nssm_exe":f"{self.confDict_root['hon_directory']}"+"nssm.exe"})
         self.confDict_basic.update({"svr_identifier":f"{self.confDict_root['svr_hoster']}-{svr_id}"})
         self.confDict_basic.update({"svrid_total":f"{svr_id}/{self.confDict_root['svr_total']}"})
