@@ -454,7 +454,7 @@ class honCMD():
             return False
 
         match_id = match_status['match_id'].replace("M","")
-        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
+        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\KONGOR\\replays\\"
 
         try:
             if not exists(processed_data_dict['hon_replays_dir']):
@@ -502,7 +502,7 @@ class honCMD():
         if 'match_id' not in match_status:
             return False
         match_id = match_status['match_id'].replace("M","")
-        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\replays\\"
+        replays_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\KONGOR\\replays\\"
         try:
             if not exists(processed_data_dict['hon_replays_dir']):
                 os.makedirs(processed_data_dict['hon_replays_dir'])
@@ -551,7 +551,7 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         #
         # move stats files off into the manager directory. so manager can resubmit stats
-        stats_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\game\\logs\\"
+        stats_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\KONGOR\\logs\\"
         try:
             files = os.listdir(processed_data_dict['hon_logs_dir'])
             for file in files:
@@ -727,6 +727,8 @@ class honCMD():
             last_modified_time_file = f"{server_status['sdc_home_dir']}\\cogs\\{name}_mtime"
             #
             #   This reads the data if it exists
+            if not exists(server_status['sdc_home_dir']):
+                return False
             if (exists(last_modified_time_file)):
                 with open(last_modified_time_file, 'r') as last_modified:
                     lastmodData = last_modified.readline()
