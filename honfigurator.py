@@ -238,7 +238,7 @@ if is_admin():
             if deployed:
                 try:
                     if deployed_status['svr_id'] not in deployed_status['sdc_home_dir']:
-                        deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\game\\logs\\adminbot{deployed_status['svr_id']}"})
+                        deployed_status.update({'sdc_home_dir':f"{deployed_status['hon_home_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\logs\\adminbot{deployed_status['svr_id']}"})
                     os.chdir(deployed_status['sdc_home_dir'])
                     #os.startfile(f"adminbot{deployed_status['svr_id']}-launch.exe")
                     Thread(target=os.startfile,args=[f"{deployed_status['sdc_home_dir']}\\adminbot{deployed_status['svr_id']}-launch.exe"]).start()
@@ -868,9 +868,9 @@ if is_admin():
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir} ...")
                 os.makedirs(self.sdc_home_dir)
             
-            if not exists(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays"):
-                print(f"[{self.dataDict['app_name']}] creating {self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
-                os.makedirs(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays")
+            if not exists(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays"):
+                print(f"[{self.dataDict['app_name']}] creating {self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays")
+                os.makedirs(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays")
 
             if not exists(f"{self.sdc_home_dir}\\messages"):
                 print(f"[{self.dataDict['app_name']}] creating: {self.sdc_home_dir}\\messages ...")
@@ -1825,16 +1825,16 @@ if is_admin():
                             return
                     if exists(honreplay):
                         print("migrating data")
-                        if not exists(honreplay+"\\Documents\\Heroes of Newerth x64\\game\\replays"):
+                        if not exists(honreplay+"\\Documents\\Heroes of Newerth x64\\KONGOR\\replays"):
                             try:
-                                os.makedirs(honreplay+"\\Documents\\Heroes of Newerth x64\\game\\replays")
+                                os.makedirs(honreplay+"\\Documents\\Heroes of Newerth x64\\KONGOR\\replays")
                             except Exception:
                                 print(traceback.format_exc())
-                            initialise.print_and_tex(self,f"FIXME: Failed to create directory {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays\nIs it a valid path?",'warning')    
+                            initialise.print_and_tex(self,f"FIXME: Failed to create directory {honreplay}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays\nIs it a valid path?",'warning')    
                         try:
-                            distutils.dir_util.copy_tree(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\game\\replays",f"{honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays",update=1)
+                            distutils.dir_util.copy_tree(f"{self.dataDict['hon_manager_dir']}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays",f"{honreplay}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays",update=1)
                             initialise.print_and_tex(self,"You have changed the hon replays directory. Please ensure you configure all servers.",'interest')
-                            initialise.print_and_tex(self,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\game\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.",'interest')
+                            initialise.print_and_tex(self,f"All replays migrated to {honreplay}\\Documents\\Heroes of Newerth x64\\KONGOR\\replays.\nYou may want to manually clean up the old directory: {self.dataDict['hon_manager_dir']} to free up disk space.",'interest')
                             self.dataDict.update({'hon_manager_dir':honreplay})
                         except Exception:
                             print(traceback.format_exc())
