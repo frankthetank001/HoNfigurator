@@ -1706,7 +1706,7 @@ if is_admin():
             if manager_proc:
                 initialise.print_and_tex(self,"HoN Server Manager is running. It shouldn't be. Please close hon_x64.exe or hon_update_x64.exe")
                 return False
-            sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
+            sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-mod","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
 
         def start_manager(self):
             service_manager_name="HoN Server Manager"
@@ -1729,7 +1729,7 @@ if is_admin():
                 if service_manager:
                     initialise.start_service(self,service_manager_name,True)
             else:
-                sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
+                sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-mod","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
         
         def stop_manager_by_cmdline(self):
             service_manager_name="HoN Server Manager"
@@ -1898,7 +1898,7 @@ if is_admin():
                     initialise.print_and_tex(self,"\n************* Configuring Replay Manager *************","header")
                     if service_manager:
                         if use_console == False:
-                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -mod game;KONGOR -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
                         if service_manager['status'] == 'running' or service_manager['status'] == 'paused':
                             initialise.stop_service(self,service_manager_name,False)
                         else:
@@ -1909,16 +1909,16 @@ if is_admin():
                         if use_console == False:
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-mod,","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
                     else:
                         if svrcmd.honCMD.check_proc(manager_application):
                             svrcmd.honCMD.stop_proc_by_name(manager_application)
                         if use_console == False:
                             initialise.create_service_generic(self,service_manager_name,manager_application)
-                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
+                            initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -mod game;KONGOR -noconfig -execute \"{manager_arguments}\" -masterserver {master_server}")
                             initialise.start_service(self,service_manager_name,False)
                         else:
-                            sp.Popen([hondirectory+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
+                            sp.Popen([hondirectory+manager_application,"-manager","-mod","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",master_server])
                     if svrcmd.honCMD.check_proc(manager_application):
                         initialise.print_and_tex(self,"Done.",'interest')
                 if use_proxy:
@@ -2575,7 +2575,7 @@ if is_admin():
                     if self.dataDict['use_console'] == 'False':
                         initialise.start_service(self,service_manager_name,True)
                     else:
-                        sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
+                        sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-mod","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
                     # time.sleep(1)
                     # if initialise.check_proc(manager_application):
                     #     initialise.print_and_tex(self,"HoN Server Manager started.")
