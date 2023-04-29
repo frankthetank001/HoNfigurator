@@ -2794,10 +2794,10 @@ if is_admin():
                                 labllist.update({f"{x}-{index1}":Label(tab2,width=13,text=f"{labl_name}", background=colour, foreground='white')})
                                 labllistrows.update({f"{x}-{index1}":i})
                                 labllistcols.update({f"{x}-{index1}":c_pos1})
-                            # try:
-                            #     honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
-                            #     f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
-                            # except Exception: pass
+                            try:
+                                honfigurator.CreateToolTip(labllist[f"{x}-{index1}"], \
+                                f"HoNfigurator Version: {deployed_status['bot_version']}\nHoN Version: {deployed_status['hon_version']}\nCPU Affinity: {deployed_status['svr_affinity']}\nCPU Mode: {deployed_status['core_assignment']}\nProcess Priority: {proc_priority}")
+                            except Exception: pass
                         elif index1==1:
                             if update:
                                 labllist[f"{x}-{index1}"].configure(text=labl_name,background=colour)
