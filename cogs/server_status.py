@@ -551,14 +551,20 @@ class honCMD():
             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
         #
         # move stats files off into the manager directory. so manager can resubmit stats
-        stats_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\KONGOR\\logs\\"
+        stats_dest_dir = f"{processed_data_dict['hon_manager_dir']}Documents\\Heroes of Newerth x64\\KONGOR\\logs"
+        if exists(stats_dest_dir):
+            if os.path.isfile(stats_dest_dir):
+                os.remove(stats_dest_dir)
+                os.makedirs(stats_dest_dir)
+        else:
+            os.makedirs(stats_dest_dir)
         try:
             files = os.listdir(processed_data_dict['hon_logs_dir'])
             for file in files:
                 if os.path.isfile(processed_data_dict['hon_logs_dir']+"\\"+file):
                     if file.endswith(".stats"):
                         try:
-                            shutil.move(processed_data_dict['hon_logs_dir']+"\\"+file,stats_dest_dir)
+                            shutil.move(processed_data_dict['hon_logs_dir']+"\\"+file,f"{stats_dest_dir}\\")
                         except Exception:
                             print(traceback.format_exc())
                             honCMD().append_line_to_file(f"{processed_data_dict['app_log']}",f"{traceback.format_exc()}","WARNING")
