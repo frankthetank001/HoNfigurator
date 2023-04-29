@@ -581,6 +581,7 @@ if is_admin():
                 sp.run(['nssm', "set",service_name,f"AppExit","Default","Restart"])
                 if service_name == "HoN Server Manager":
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"USERPROFILE={self.dataDict['hon_manager_dir']}"])
+                    sp.run(['nssm', "set",service_name,"Description",f"latest"])
                 elif service_name == "HoN Proxy Manager":
                     sp.run(['nssm', "set",service_name,"AppEnvironmentExtra",f"APPDATA={self.dataDict['hon_root_dir']}"])
             except Exception:
@@ -1727,6 +1728,8 @@ if is_admin():
             if self.dataDict['use_console'] == 'False':
                 service_manager = initialise.get_service(service_manager_name)
                 if service_manager:
+                    if service_manager["description"] != "latest":
+                        initialise.configure_service_generic(self,service_manager_name,manager_application,f"-manager -mod game;KONGOR -noconfig -execute \"{manager_arguments}\" -masterserver {self.dataDict['master_server']}")
                     initialise.start_service(self,service_manager_name,True)
             else:
                 sp.Popen([self.dataDict['hon_directory']+manager_application,"-manager","-mod","game;KONGOR","-noconfig","-execute",manager_arguments,"-masterserver",self.dataDict['master_server']])
@@ -1738,11 +1741,11 @@ if is_admin():
                 initialise.print_and_tex(self,"HoN Proxy Manager isn't running.")
                 return
             if service_manager and service_manager['status'] in ['running','paused']:
-                initialise.stop_service(self,service_manager_name,True)
-            else:
-                proc = find_process_by_cmdline_keyword("-manager")
-                if proc:
-                    proc.kill()
+                initialise.stop_service(self,service_manager_name,False)
+            time.sleep(2)
+            proc = find_process_by_cmdline_keyword("-manager")
+            if proc:
+                proc.kill()
 
         def sendData(self,identifier,hoster, regionshort, serverid,serverto,servertotal,hondirectory,honreplay,svr_login,svr_password,static_ip, bottoken,discordadmin,master_server,force_update,disable_bot,alert_on_crash,alert_on_lag,alert_list_limit,event_list_limit,auto_update,use_console,use_proxy,restart_proxy,game_port,voice_port,core_assignment,process_priority,botmatches,debug_mode,selected_branch,increment_port):
             global config_local
@@ -3663,12 +3666,16 @@ if is_admin():
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
                     
-                    manager_proc = find_process_by_cmdline_keyword("-manager")
-                    if manager_proc:
-                        manager_cmdline = manager_proc.cmdline()
-                        if "-mod" not in manager_cmdline:
-                            manager_proc.terminate()
-                            self.start_manager()
+                    try:
+                        manager_proc = find_process_by_cmdline_keyword("-manager")
+                        service_manager = initialise.get_service("HoN Server Manager")
+                        if manager_proc:
+                            manager_cmdline = manager_proc.cmdline()
+                            if "-mod" not in manager_cmdline or (service_manager and service_manager["description"] != "latest"):
+                                self.stop_manager_by_cmdline()
+                                self.start_manager()
+                    except Exception:
+                        print(traceback.format_exc())
                 if refresh_next==True:
                     if server_admin_loading: refresh_counter = 0
                     if ((refresh_counter >= int(refresh_delay)) or first_tab_switch):
