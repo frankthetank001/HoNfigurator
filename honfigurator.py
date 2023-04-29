@@ -3662,6 +3662,13 @@ if is_admin():
 
                     if (self.dataDict['svr_hoster'] != "eg. T4NK" and self.autoupdate.get()==True and current_version == latest_version):
                         Thread(target=honfigurator.check_deployed_update,args=[self]).start()
+                    
+                    manager_proc = find_process_by_cmdline_keyword("-manager")
+                    if manager_proc:
+                        manager_cmdline = manager_proc.cmdline()
+                        if "-mod" not in manager_cmdline:
+                            manager_proc.terminate()
+                            self.start_manager()
                 if refresh_next==True:
                     if server_admin_loading: refresh_counter = 0
                     if ((refresh_counter >= int(refresh_delay)) or first_tab_switch):
