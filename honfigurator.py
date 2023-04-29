@@ -2559,7 +2559,7 @@ if is_admin():
                     global refresh_counter,refresh_delay,labl_manager,btn_manager
                     
                     service_manager_name="HoN Server Manager"
-                    manager_application=f"hon_update_x64.exe"
+                    manager_application=f"KONGOR ARENA.exe"
 
                     if self.dataDict['use_proxy'] == 'False':
                         udp_listener_port = int(self.dataDict['game_starting_port']) - 1
