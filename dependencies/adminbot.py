@@ -27,6 +27,7 @@ import signal
 import subprocess as sp
 import time
 import cogs.setupEnv as setup
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
